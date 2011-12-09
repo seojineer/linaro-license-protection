@@ -1,43 +1,66 @@
 RewriteEngine On
 
-# If license file is requested, and a download has been requested previously,
-# pass through to the license file.
+## If license file is requested, and a download has been requested previously,
+## pass through to the license file.
+# Samsung.
 RewriteCond %{REQUEST_URI} /licenses/samsung-v2.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested
 RewriteCond %{HTTP_COOKIE} !samsunglicenseaccepted=true
 RewriteRule .* - [L]
+# ST-E.
+RewriteCond %{REQUEST_URI} /licenses/ste.html$
+RewriteCond %{HTTP_COOKIE} downloadrequested
+RewriteCond %{HTTP_COOKIE} !stelicenseaccepted=true
+RewriteRule .* - [L]
 
-# When license files are requested directly, forward to
-# the snapshots.l.o site itself.
+## When license files are requested directly, forward to
+## the snapshots.l.o site itself.
 RewriteCond %{REQUEST_URI} /licenses/samsung-v2.html$ [OR]
+RewriteCond %{REQUEST_URI} /licenses/ste.html$ [OR]
 RewriteCond %{REQUEST_URI} /licenses/nolicense.html$
 RewriteCond %{HTTP_COOKIE} !downloadrequested=(.*)
 RewriteRule .* / [R,L]
 
-# If there is a cookie indicating license has been accepted, pass through.
+## If there is a cookie indicating license has been accepted, pass through.
+# Samsung.
 RewriteCond %{HTTP_COOKIE} samsunglicenseaccepted=true
 RewriteCond %{REQUEST_URI} ^/android/.*origen.*
 RewriteRule .* - [L]
+# ST-E.
+RewriteCond %{HTTP_COOKIE} stelicenseaccepted=true
+RewriteCond %{REQUEST_URI} ^/android/.*snowball.*
+RewriteRule .* - [L]
 
-# When license is accepted, set the cookie.
+## When license is accepted, set the cookie.
+# Samsung.
 RewriteCond %{REQUEST_URI} licenses/samsung-accepted.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=(.*)
 RewriteRule .* %1 [CO=samsunglicenseaccepted:true:.snapsoti.linaro.org,R,L]
+# ST-E.
+RewriteCond %{REQUEST_URI} licenses/ste-accepted.html$
+RewriteCond %{HTTP_COOKIE} downloadrequested=(.*)
+RewriteRule .* %1 [CO=stelicenseaccepted:true:.snapsoti.linaro.org,R,L]
 
-# When license is declined, show the notice that you have to accept it.
+## When license is being declined, show the notice that you have to accept it.
+RewriteCond %{REQUEST_URI} licenses/ste-declined.html$ [OR]
 RewriteCond %{REQUEST_URI} licenses/samsung-declined.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=(.*)
 RewriteRule .* /licenses/nolicense.html [L]
-#CO=samsunglicenseaccepted:false:.snapsoti.linaro.org,R,L]
 
-# Pass through any non-protected dirs.
+## If license is declined, show the nolicense page.
+RewriteCond %{HTTP_COOKIE} stelicenseaccepted=false [OR]
+RewriteCond %{HTTP_COOKIE} samsunglicenseaccepted=false
+RewriteRule .* /licenses/nolicense.html [R,L]
+
+## Pass through any non-protected dirs.
 RewriteCond %{REQUEST_URI} !^/android/.*origen.*
 RewriteCond %{REQUEST_URI} !^/android/.*snowball.*
 RewriteRule .* - [L]
 
-RewriteCond %{HTTP_COOKIE} samsunglicenseaccepted=false
-RewriteRule .* /licenses/nolicense.html [R,L]
-
-# Always redirect to the license file for origen builds.
+## Redirect to the license file protected builds.
+# Samsung.
 RewriteCond %{REQUEST_URI} ^/android/.*origen.*
 RewriteRule .* /licenses/samsung-v2.html [CO=downloadrequested:%{REQUEST_URI}:.snapsoti.linaro.org,R,L]
+# ST-E.
+RewriteCond %{REQUEST_URI} ^/android/.*snowball.*
+RewriteRule .* /licenses/ste.html [CO=downloadrequested:%{REQUEST_URI}:.snapsoti.linaro.org,R,L]
