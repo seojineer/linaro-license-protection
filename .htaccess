@@ -47,11 +47,6 @@ RewriteCond %{REQUEST_URI} licenses/samsung-declined.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=(.*)
 RewriteRule .* /licenses/nolicense.html [L]
 
-## If license is declined, show the nolicense page.
-RewriteCond %{HTTP_COOKIE} stelicenseaccepted=false [OR]
-RewriteCond %{HTTP_COOKIE} samsunglicenseaccepted=false
-RewriteRule .* /licenses/nolicense.html [R,L]
-
 ## Pass through any non-protected dirs.
 RewriteCond %{REQUEST_URI} !^/android/.*origen.*
 RewriteCond %{REQUEST_URI} !^/android/.*snowball.*
