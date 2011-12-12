@@ -58,7 +58,7 @@ RewriteRule .* - [L]
 
 ## Redirect to the license file protected builds.
 # Samsung.
-RewriteCond %{REQUEST_URI} ^/android/.*origen.*
+RewriteCond %{REQUEST_URI} ^/android/.*origen.*[^/]$
 RewriteRule .* /licenses/samsung-v2.html [CO=downloadrequested:%{REQUEST_URI}:.%{HTTP_HOST},R,L]
 # ST-E.
 RewriteCond %{REQUEST_URI} ^/android/.*snowball.*
