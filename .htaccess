@@ -35,15 +35,19 @@ RewriteRule .* - [L]
 # Samsung.
 RewriteCond %{REQUEST_URI} licenses/samsung-accepted.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=([^\;]*)
-RewriteRule .* %1 [CO=samsunglicenseaccepted:true:.%{HTTP_HOST},R,L]
+RewriteRule .* %1 [CO=samsunglicenseaccepted:true:.%{HTTP_HOST}:47,R,L]
 # ST-E.
 RewriteCond %{REQUEST_URI} licenses/ste-accepted.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=([^\;]*)
 RewriteRule .* %1 [CO=stelicenseaccepted:true:.%{HTTP_HOST},R,L]
 
 ## When license is being declined, show the notice that you have to accept it.
-RewriteCond %{REQUEST_URI} licenses/ste-declined.html$ [OR]
+# Samsung.
 RewriteCond %{REQUEST_URI} licenses/samsung-declined.html$
+RewriteCond %{HTTP_COOKIE} downloadrequested=(.*)
+RewriteRule .* /licenses/nolicense.html [L]
+# ST-E.
+RewriteCond %{REQUEST_URI} licenses/ste-declined.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=(.*)
 RewriteRule .* /licenses/nolicense.html [L]
 
