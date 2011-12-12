@@ -25,7 +25,7 @@ RewriteRule .* / [R,L]
 # Samsung.
 RewriteCond %{HTTP_COOKIE} samsunglicenseaccepted=true
 RewriteCond %{REQUEST_URI} ^/android/.*origen.*
-RewriteRule .* - [L]
+RewriteRule .* - [CO=samsunglicenseaccepted:false:.%{HTTP_HOST},L]
 # ST-E.
 RewriteCond %{HTTP_COOKIE} stelicenseaccepted=true
 RewriteCond %{REQUEST_URI} ^/android/.*snowball.*
@@ -35,7 +35,7 @@ RewriteRule .* - [L]
 # Samsung.
 RewriteCond %{REQUEST_URI} licenses/samsung-accepted.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=([^\;]*)
-RewriteRule .* %1 [CO=samsunglicenseaccepted:true:.%{HTTP_HOST}:47,R,L]
+RewriteRule .* %1 [CO=samsunglicenseaccepted:true:.%{HTTP_HOST},R,L]
 # ST-E.
 RewriteCond %{REQUEST_URI} licenses/ste-accepted.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=([^\;]*)
