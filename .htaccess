@@ -25,7 +25,7 @@ RewriteRule .* / [R,L]
 # Samsung.
 RewriteCond %{HTTP_COOKIE} samsunglicenseaccepted=true
 RewriteCond %{REQUEST_URI} ^/android/.*origen.*
-RewriteRule .* - [CO=samsunglicenseaccepted:false:.%{HTTP_HOST},L]
+RewriteRule .* - [L]
 # ST-E.
 RewriteCond %{HTTP_COOKIE} stelicenseaccepted=true
 RewriteCond %{REQUEST_URI} ^/android/.*snowball.*
@@ -34,8 +34,8 @@ RewriteRule .* - [L]
 ## When license is accepted, set the cookie.
 # Samsung.
 RewriteCond %{REQUEST_URI} licenses/samsung-accepted.html$
-RewriteCond %{HTTP_COOKIE} downloadrequested=([^\;]*)
-RewriteRule .* %1 [CO=samsunglicenseaccepted:true:.%{HTTP_HOST},R,L]
+RewriteCond %{HTTP_COOKIE} downloadrequested=([^\;]*\/)([^/\;]*)
+RewriteRule .* %1%2 [CO=samsunglicenseaccepted:true:.%{HTTP_HOST}:5:%1,R,L]
 # ST-E.
 RewriteCond %{REQUEST_URI} licenses/ste-accepted.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=([^\;]*\/)([^/\;]*)
@@ -58,7 +58,7 @@ RewriteRule .* - [L]
 
 ## Redirect to the license file protected builds.
 # Samsung.
-RewriteCond %{REQUEST_URI} ^/android/.*origen.*[^/]$
+RewriteCond %{REQUEST_URI} ^/android/.*origen.*$
 RewriteRule .* /licenses/samsung-v2.html [CO=downloadrequested:%{REQUEST_URI}:.%{HTTP_HOST},R,L]
 # ST-E.
 RewriteCond %{REQUEST_URI} ^/android/.*snowball.*
