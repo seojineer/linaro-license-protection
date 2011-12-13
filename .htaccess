@@ -5,12 +5,12 @@ RewriteEngine On
 # Samsung.
 RewriteCond %{REQUEST_URI} /licenses/samsung-v2.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested
-RewriteCond %{HTTP_COOKIE} !samsunglicenseaccepted=true
+RewriteCond %{HTTP_COOKIE} !samsunglicenseaccepted-v1=true
 RewriteRule .* - [L]
 # ST-E.
 RewriteCond %{REQUEST_URI} /licenses/ste.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested
-RewriteCond %{HTTP_COOKIE} !stelicenseaccepted=true
+RewriteCond %{HTTP_COOKIE} !stelicenseaccepted-v1=true
 RewriteRule .* - [L]
 
 ## When license files are requested directly, forward to
@@ -23,11 +23,11 @@ RewriteRule .* / [R,L]
 
 ## If there is a cookie indicating license has been accepted, pass through.
 # Samsung.
-RewriteCond %{HTTP_COOKIE} samsunglicenseaccepted=true
+RewriteCond %{HTTP_COOKIE} samsunglicenseaccepted-v1=true
 RewriteCond %{REQUEST_URI} ^/android/.*origen.*
 RewriteRule .* - [L]
 # ST-E.
-RewriteCond %{HTTP_COOKIE} stelicenseaccepted=true
+RewriteCond %{HTTP_COOKIE} stelicenseaccepted-v1=true
 RewriteCond %{REQUEST_URI} ^/android/.*snowball.*
 RewriteRule .* - [L]
 
@@ -35,11 +35,11 @@ RewriteRule .* - [L]
 # Samsung.
 RewriteCond %{REQUEST_URI} licenses/samsung-accepted.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=([^\;]*\/)([^/\;]*)
-RewriteRule .* %1%2 [CO=samsunglicenseaccepted:true:.%{HTTP_HOST}:5:%1,R,L]
+RewriteRule .* %1%2 [CO=samsunglicenseaccepted-v1:true:.%{HTTP_HOST}:5:%1,R,L]
 # ST-E.
 RewriteCond %{REQUEST_URI} licenses/ste-accepted.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=([^\;]*\/)([^/\;]*)
-RewriteRule .* %1%2 [CO=stelicenseaccepted:true:.%{HTTP_HOST}:60:%1,R,L]
+RewriteRule .* %1%2 [CO=stelicenseaccepted-v1:true:.%{HTTP_HOST}:60:%1,R,L]
 
 ## When license is being declined, show the notice that you have to accept it.
 # Samsung.
