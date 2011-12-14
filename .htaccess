@@ -1,5 +1,9 @@
 RewriteEngine On
 
+## Let android-build.linaro.org always through
+RewriteCond %{REMOTE_ADDR} 50.17.250.69
+RewriteRule .* - [L]
+
 ## If license file is requested, and a download has been requested previously,
 ## pass through to the license file.
 # Samsung.
