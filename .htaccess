@@ -34,6 +34,10 @@ RewriteRule .* - [L]
 RewriteCond %{HTTP_COOKIE} stelicenseaccepted-v1=true
 RewriteCond %{REQUEST_URI} ^/android/.*snowball.*
 RewriteRule .* - [L]
+# Ubuntu ST-E.
+RewriteCond %{HTTP_COOKIE} stelicenseaccepted-v1=true
+RewriteCond %{REQUEST_URI} ^/oneiric/.*snowball.*
+RewriteRule .* - [L]
 
 ## When license is accepted, set the cookie.
 # Samsung.
@@ -58,6 +62,7 @@ RewriteRule .* /licenses/nolicense.html [L]
 ## Pass through any non-protected dirs.
 RewriteCond %{REQUEST_URI} !^/android/.*origen.*
 RewriteCond %{REQUEST_URI} !^/android/.*snowball.*
+RewriteCond %{REQUEST_URI} !^/oneiric/.*snowball.*
 RewriteRule .* - [L]
 
 ## Redirect to the license file protected builds.
@@ -65,5 +70,6 @@ RewriteRule .* - [L]
 RewriteCond %{REQUEST_URI} ^/android/.*origen.*$
 RewriteRule .* /licenses/samsung-v2.html [CO=downloadrequested:%{REQUEST_URI}:.%{HTTP_HOST},R,L]
 # ST-E.
+RewriteCond %{REQUEST_URI} ^/oneiric/.*snowball.* [OR]
 RewriteCond %{REQUEST_URI} ^/android/.*snowball.*
 RewriteRule .* /licenses/ste.html [CO=downloadrequested:%{REQUEST_URI}:.%{HTTP_HOST},R,L]
