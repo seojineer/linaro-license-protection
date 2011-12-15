@@ -1,7 +1,10 @@
 RewriteEngine On
 
-## Let android-build.linaro.org always through
-RewriteCond %{REMOTE_ADDR} 50.17.250.69
+## Let internal hosts through always.
+# android-build.linaro.org.
+RewriteCond %{REMOTE_ADDR} 50.17.250.69 [OR]
+# validation.linaro.org.
+RewriteCond %{REMOTE_ADDR} 213.123.120.124
 RewriteRule .* - [L]
 
 ## If license file is requested, and a download has been requested previously,
