@@ -1,3 +1,6 @@
+HeaderName /HEADER.html
+IndexIgnore HEADER* licenses
+
 RewriteEngine On
 
 ## Let internal hosts through always.
