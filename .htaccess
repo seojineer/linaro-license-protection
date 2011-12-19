@@ -1,4 +1,3 @@
-HeaderName /HEADER.html
 IndexIgnore HEADER* licenses
 
 RewriteEngine On
