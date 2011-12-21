@@ -5,6 +5,8 @@ RewriteEngine On
 ## Let internal hosts through always.
 # android-build.linaro.org.
 RewriteCond %{REMOTE_ADDR} 50.17.250.69 [OR]
+# ci.linaro.org.
+RewriteCond %{REMOTE_ADDR} 50.17.200.206 [OR]
 # validation.linaro.org.
 RewriteCond %{REMOTE_ADDR} 213.123.120.124
 RewriteRule .* - [L]
