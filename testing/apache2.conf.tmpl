@@ -1,0 +1,136 @@
+ServerRoot ""
+
+LockFile click_through_license.lock
+PidFile click_through_license.pid
+
+Timeout 300
+
+KeepAlive On
+
+KeepAliveTimeout 5
+
+Listen 8080
+
+ServerAdmin you@example.com
+
+#ServerName www.example.com:80
+
+DocumentRoot ""
+
+AccessFileName .htaccess
+
+LoadModule authz_host_module /usr/lib/apache2/modules/mod_authz_host.so
+LoadModule cache_module /usr/lib/apache2/modules/mod_cache.so
+LoadModule disk_cache_module /usr/lib/apache2/modules/mod_disk_cache.so
+LoadModule mem_cache_module /usr/lib/apache2/modules/mod_mem_cache.so
+LoadModule dbd_module /usr/lib/apache2/modules/mod_dbd.so
+LoadModule dumpio_module /usr/lib/apache2/modules/mod_dumpio.so
+LoadModule reqtimeout_module /usr/lib/apache2/modules/mod_reqtimeout.so
+LoadModule ext_filter_module /usr/lib/apache2/modules/mod_ext_filter.so
+LoadModule include_module /usr/lib/apache2/modules/mod_include.so
+LoadModule filter_module /usr/lib/apache2/modules/mod_filter.so
+LoadModule substitute_module /usr/lib/apache2/modules/mod_substitute.so
+LoadModule charset_lite_module /usr/lib/apache2/modules/mod_charset_lite.so
+LoadModule deflate_module /usr/lib/apache2/modules/mod_deflate.so
+LoadModule log_forensic_module /usr/lib/apache2/modules/mod_log_forensic.so
+LoadModule env_module /usr/lib/apache2/modules/mod_env.so
+LoadModule mime_magic_module /usr/lib/apache2/modules/mod_mime_magic.so
+LoadModule cern_meta_module /usr/lib/apache2/modules/mod_cern_meta.so
+LoadModule expires_module /usr/lib/apache2/modules/mod_expires.so
+LoadModule headers_module /usr/lib/apache2/modules/mod_headers.so
+LoadModule ident_module /usr/lib/apache2/modules/mod_ident.so
+LoadModule usertrack_module /usr/lib/apache2/modules/mod_usertrack.so
+LoadModule unique_id_module /usr/lib/apache2/modules/mod_unique_id.so
+LoadModule setenvif_module /usr/lib/apache2/modules/mod_setenvif.so
+LoadModule version_module /usr/lib/apache2/modules/mod_version.so
+LoadModule mime_module /usr/lib/apache2/modules/mod_mime.so
+LoadModule autoindex_module /usr/lib/apache2/modules/mod_autoindex.so
+LoadModule suexec_module /usr/lib/apache2/modules/mod_suexec.so
+LoadModule negotiation_module /usr/lib/apache2/modules/mod_negotiation.so
+LoadModule dir_module /usr/lib/apache2/modules/mod_dir.so
+LoadModule imagemap_module /usr/lib/apache2/modules/mod_imagemap.so
+LoadModule actions_module /usr/lib/apache2/modules/mod_actions.so
+LoadModule speling_module /usr/lib/apache2/modules/mod_speling.so
+LoadModule userdir_module /usr/lib/apache2/modules/mod_userdir.so
+LoadModule alias_module /usr/lib/apache2/modules/mod_alias.so
+LoadModule rewrite_module /usr/lib/apache2/modules/mod_rewrite.so
+
+User daemon
+Group daemon
+
+<IfModule mpm_prefork_module>
+    StartServers          5
+    MinSpareServers       5
+    MaxSpareServers      10
+    MaxClients          150
+    MaxRequestsPerChild   0
+</IfModule>
+
+<IfModule mpm_worker_module>
+    StartServers          2
+    MinSpareThreads      25
+    MaxSpareThreads      75.
+    ThreadLimit          64
+    ThreadsPerChild      25
+    MaxClients          150
+    MaxRequestsPerChild   0
+</IfModule>
+
+<IfModule mpm_event_module>
+    StartServers          2
+    MinSpareThreads      25
+    MaxSpareThreads      75.
+    ThreadLimit          64
+    ThreadsPerChild      25
+    MaxClients          150
+    MaxRequestsPerChild   0
+</IfModule>
+
+<Directory />
+    Options +FollowSymLinks
+    AllowOverride All
+    Order deny,allow
+    Deny from all
+</Directory>
+
+<Directory "">
+    Options Indexes +FollowSymLinks MultiViews
+    AllowOverride All
+    Order allow,deny
+    Allow from all
+</Directory>
+
+<IfModule dir_module>
+    DirectoryIndex index.html
+</IfModule>
+
+<FilesMatch "^\.ht">
+    Order allow,deny
+    Deny from all
+    Satisfy All
+</FilesMatch>
+
+ErrorLog "click_through_license_error.log"
+
+LogLevel warn
+
+<IfModule log_config_module>
+    LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+    LogFormat "%h %l %u %t \"%r\" %>s %b" common
+
+    <IfModule logio_module>
+      LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" %I %O" combinedio
+    </IfModule>
+
+    CustomLog "click_through_license_access.log" common
+
+</IfModule>
+
+AddType text/html	html htm shtml
+
+DefaultType text/plain
+
+IndexOptions FancyIndexing VersionSort HTMLTable NameWidth=* DescriptionWidth=* Charset=UTF-8
+ReadmeName README.html
+HeaderName HEADER.html
+IndexIgnore .??* *~ *# RCS CVS *,v *,t.
