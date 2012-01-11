@@ -2,8 +2,6 @@
 set -x
 BASE_PATH=/home/android-build-linaro/android/.tmp
 TARGET_PATH=/srv3/snapshots.linaro.org/www/android/
-BASE_PATH=/tmp/and
-TARGET_PATH=/boot/tmp
 
 # Expected argument: ~username_jobname/buildno
 build_path="$1"
