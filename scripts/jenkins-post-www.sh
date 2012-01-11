@@ -5,9 +5,9 @@ for dir in `ls $BASE_PATH`; do
   if [ -d $BASE_PATH/$dir ]; then
     username=`echo "$dir" | cut -d_ -f1`
     buildname=`echo "$dir" | cut -d_ -f2-`
-    echo -n "Moving $BASE_PATH/$dir to $TARGET_PATH/\~$username/$buildname... " &&
-    (mkdir -p $TARGET_PATH/\~$username/$buildname && \
-     mv $BASE_PATH/"$dir"/* $TARGET_PATH/"~$username"/"$buildname"/ && \
+    echo -n "Moving $BASE_PATH/$dir to $TARGET_PATH/~$username/$buildname... " &&
+    (mkdir -p "$TARGET_PATH/~$username/$buildname" && \
+     mv $BASE_PATH/"$dir"/* "$TARGET_PATH/~$username/$buildname/" && \
      rmdir $BASE_PATH/"$dir" && \
      echo "done")
   fi
