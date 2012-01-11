@@ -7,8 +7,8 @@ for dir in `ls $BASE_PATH`; do
     buildname=`echo "$dir" | cut -d_ -f2-`
     echo -n "Moving $BASE_PATH/$dir to $TARGET_PATH/~$username/$buildname... " &&
     (mkdir -p "$TARGET_PATH/~$username/$buildname" && \
-     mv $BASE_PATH/"$dir"/* "$TARGET_PATH/~$username/$buildname/" && \
-     rmdir $BASE_PATH/"$dir" && \
+     cp -a $BASE_PATH/"$dir"/* "$TARGET_PATH/~$username/$buildname/" && \
+     rm -rf $BASE_PATH/"$dir" && \
      echo "done")
   fi
 done
