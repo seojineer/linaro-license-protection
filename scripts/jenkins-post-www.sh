@@ -6,6 +6,11 @@ TARGET_PATH=/srv3/snapshots.linaro.org/www/android/
 # Expected argument: ~username_jobname/buildno
 build_path="$1"
 
+if [ -z "$build_path" ]; then
+    echo "Missing build path"
+    exit 1;
+fi
+
 # Paranoid security
 if echo "$build_path" | grep -q "\."; then
     echo "No dots in build names please"
