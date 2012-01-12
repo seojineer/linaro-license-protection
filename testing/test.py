@@ -13,10 +13,11 @@ local_rewrite = 'RewriteCond %{REMOTE_ADDR} 127.0.0.1 [OR]'
 
 # Now not all tests pass in usermode, .htaccess file needs to be fixed
 # To successfully run all tests use 
-# host = 'http://127.0.0.1'
+#host = 'http://127.0.0.1'
 # and run tests with 'sudo'.
 
-host = 'http://127.0.0.1:8080'
+host = 'http://127.0.0.1'
+port = '80'
 samsung_license_path = '/licenses/samsung-v2.html'
 ste_license_path = '/licenses/ste.html'
 samsung_test_file = '/android/~linaro-android/staging-origen/test.txt'
@@ -115,7 +116,8 @@ def test_decline_license(url, fetcher):
     for line in testfile.splitlines():
         res = re.search("The requested URL /licenses/nolicense.html was not "
                         "found on this server", line)
-        if res:
+        res1 = re.search("License has not been accepted", line)
+        if res or res1:
             return 0
 
     return 1
@@ -153,6 +155,8 @@ def test_redirect_to_license_ste(url, fetcher):
     return 1
 
 def setup():
+    global host
+    host = host + ':' + port 
     shutil.copy("apache2.conf.tmpl", "apache2.conf")
     shutil.copy("%s/.htaccess" % docroot, "%s/dothtaccess" % docroot)
     subprocess.Popen(['sed', '-i' , 's/ServerRoot \"\"/ServerRoot \"%s\"/' % cwd.replace('/', '\/'),
@@ -164,6 +168,10 @@ def setup():
     subprocess.Popen(['sed', '-i' , 's/Directory \"\"/Directory \"%s\"/' % docroot.replace('/', '\/'),
                     'apache2.conf'], stdout=open('/dev/null', 'w'),
                     stderr=subprocess.STDOUT).wait()
+    subprocess.Popen(['sed', '-i' , 's/Listen/Listen %s/' % port,
+                    'apache2.conf'], stdout=open('/dev/null', 'w'),
+                    stderr=subprocess.STDOUT).wait()
+ 
     if subprocess.Popen(['which', 'apache2'], stdout=open('/dev/null', 'w'),
                         stderr=subprocess.STDOUT).wait():
         print "apache2 command not found. Please install apache2 web server " \
