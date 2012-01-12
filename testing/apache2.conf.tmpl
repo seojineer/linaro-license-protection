@@ -21,38 +21,8 @@ AccessFileName .htaccess
 
 LoadModule authz_host_module /usr/lib/apache2/modules/mod_authz_host.so
 LoadModule cache_module /usr/lib/apache2/modules/mod_cache.so
-LoadModule disk_cache_module /usr/lib/apache2/modules/mod_disk_cache.so
-LoadModule mem_cache_module /usr/lib/apache2/modules/mod_mem_cache.so
-LoadModule dbd_module /usr/lib/apache2/modules/mod_dbd.so
-LoadModule dumpio_module /usr/lib/apache2/modules/mod_dumpio.so
-LoadModule reqtimeout_module /usr/lib/apache2/modules/mod_reqtimeout.so
-LoadModule ext_filter_module /usr/lib/apache2/modules/mod_ext_filter.so
-LoadModule include_module /usr/lib/apache2/modules/mod_include.so
-LoadModule filter_module /usr/lib/apache2/modules/mod_filter.so
-LoadModule substitute_module /usr/lib/apache2/modules/mod_substitute.so
-LoadModule charset_lite_module /usr/lib/apache2/modules/mod_charset_lite.so
-LoadModule deflate_module /usr/lib/apache2/modules/mod_deflate.so
-LoadModule log_forensic_module /usr/lib/apache2/modules/mod_log_forensic.so
-LoadModule env_module /usr/lib/apache2/modules/mod_env.so
-LoadModule mime_magic_module /usr/lib/apache2/modules/mod_mime_magic.so
-LoadModule cern_meta_module /usr/lib/apache2/modules/mod_cern_meta.so
-LoadModule expires_module /usr/lib/apache2/modules/mod_expires.so
-LoadModule headers_module /usr/lib/apache2/modules/mod_headers.so
-LoadModule ident_module /usr/lib/apache2/modules/mod_ident.so
-LoadModule usertrack_module /usr/lib/apache2/modules/mod_usertrack.so
-LoadModule unique_id_module /usr/lib/apache2/modules/mod_unique_id.so
-LoadModule setenvif_module /usr/lib/apache2/modules/mod_setenvif.so
-LoadModule version_module /usr/lib/apache2/modules/mod_version.so
 LoadModule mime_module /usr/lib/apache2/modules/mod_mime.so
 LoadModule autoindex_module /usr/lib/apache2/modules/mod_autoindex.so
-LoadModule suexec_module /usr/lib/apache2/modules/mod_suexec.so
-LoadModule negotiation_module /usr/lib/apache2/modules/mod_negotiation.so
-LoadModule dir_module /usr/lib/apache2/modules/mod_dir.so
-LoadModule imagemap_module /usr/lib/apache2/modules/mod_imagemap.so
-LoadModule actions_module /usr/lib/apache2/modules/mod_actions.so
-LoadModule speling_module /usr/lib/apache2/modules/mod_speling.so
-LoadModule userdir_module /usr/lib/apache2/modules/mod_userdir.so
-LoadModule alias_module /usr/lib/apache2/modules/mod_alias.so
 LoadModule rewrite_module /usr/lib/apache2/modules/mod_rewrite.so
 
 User daemon
@@ -125,8 +95,6 @@ LogLevel warn
     CustomLog "click_through_license_access.log" common
 
 </IfModule>
-
-AddType text/html	html htm shtml
 
 DefaultType text/plain
 
