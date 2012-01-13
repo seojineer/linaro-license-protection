@@ -17,8 +17,8 @@ if echo "$build_path" | grep -q -E '\.\\*\.'; then
 fi
 
 if [ ! -d $BASE_PATH/$build_path ]; then
-    echo "ERROR: Expected directory $BASE_PATH/$build_path does not exist"
-    exit 1
+    echo "WARNING: Expected directory $BASE_PATH/$build_path does not exist"
+    exit 0
 fi
 
 job_dir=$(dirname $build_path)
