@@ -8,6 +8,7 @@ import pycurl
 import re
 import urlparse
 
+
 class LicenseProtectedFileFetcher:
     """Fetch a file from the web that may be protected by a license redirect
 
