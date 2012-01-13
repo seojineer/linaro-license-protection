@@ -18,11 +18,6 @@ docroot = cwd
 srvroot = os.path.abspath(os.path.join(*([cwd] + ['testing'])))
 local_rewrite = 'RewriteCond %{REMOTE_ADDR} 127.0.0.1 [OR]'
 
-# Now not all tests pass in usermode, .htaccess file needs to be fixed
-# To successfully run all tests use 
-#host = 'http://127.0.0.1'
-# and run tests with 'sudo'.
-
 host = 'http://127.0.0.1'
 port = '8080'
 samsung_license_path = '/licenses/samsung-v2.html'
@@ -144,15 +139,13 @@ class TestLicense(TestCase):
         search = "License has not been accepted"
         testfile = fetcher.get(host + ste_test_file, accept_license=False)
         self.assertThat(testfile, Contains(search))
- 
+
     def test_non_protected_dirs(self):
         search = "This is always available."
         testfile = fetcher.get(host + not_protected_test_file)
         self.assertThat(testfile, Contains(search))
 
     def test_accept_license_samsung_file(self):
-        if port != '80':
-            self.skipTest("Needs .htaccess fixing")
         search = "This is a protected with click-through Samsung license."
         testfile = fetcher.get(host + samsung_test_file)
         fetcher.close()
@@ -161,15 +154,11 @@ class TestLicense(TestCase):
         self.assertThat(testfile, Contains(search))
 
     def test_accept_license_samsung_dir(self):
-        if port != '80':
-            self.skipTest("Needs .htaccess fixing")
         search = "Index of /android/~linaro-android/staging-origen"
         testfile = fetcher.get(host + os.path.dirname(samsung_test_file))
         self.assertThat(testfile, Contains(search))
 
     def test_accept_license_ste_file(self):
-        if port != '80':
-            self.skipTest("Needs .htaccess fixing")
         search = "This is a protected with click-through ST-E license."
         testfile = fetcher.get(host + ste_test_file)
         fetcher.close()
@@ -178,23 +167,17 @@ class TestLicense(TestCase):
         self.assertThat(testfile, Contains(search))
 
     def test_accept_license_ste_dir(self):
-        if port != '80':
-            self.skipTest("Needs .htaccess fixing")
         search = "Index of /android/~linaro-android/staging-snowball"
         testfile = fetcher.get(host + os.path.dirname(ste_test_file))
         self.assertThat(testfile, Contains(search))
 
     def test_license_accepted_samsung(self):
-        if port != '80':
-            self.skipTest("Needs .htaccess fixing")
         search = "This is a protected with click-through Samsung license."
         os.rename("%s/cookies.samsung" % docroot, "%s/cookies.txt" % docroot)
         testfile = fetcher.get(host + samsung_test_file, ignore_license=True)
         self.assertThat(testfile, Contains(search))
 
     def test_license_accepted_ste(self):
-        if port != '80':
-            self.skipTest("Needs .htaccess fixing")
         search = "This is a protected with click-through ST-E license."
         os.rename("%s/cookies.ste" % docroot, "%s/cookies.txt" % docroot)
         testfile = fetcher.get(host + ste_test_file, ignore_license=True)
@@ -202,7 +185,7 @@ class TestLicense(TestCase):
 
     def test_internal_host_samsung(self):
         search = "This is a protected with click-through Samsung license."
-        subprocess.Popen(['sed', '-i' , '/RewriteEngine On/ a %s' % local_rewrite,
+        subprocess.Popen(['sed', '-i' , '/## Let internal hosts through always./ a %s' % local_rewrite,
             '%s/.htaccess' % docroot], stdout=open('/dev/null', 'w'),
             stderr=subprocess.STDOUT).wait()
         testfile = fetcher.get(host + samsung_test_file, ignore_license=True)
@@ -211,10 +194,9 @@ class TestLicense(TestCase):
 
     def test_internal_host_ste(self):
         search = "This is a protected with click-through ST-E license."
-        subprocess.Popen(['sed', '-i' , '/RewriteEngine On/ a %s' % local_rewrite,
+        subprocess.Popen(['sed', '-i' , '/## Let internal hosts through always./ a %s' % local_rewrite,
             '%s/.htaccess' % docroot], stdout=open('/dev/null', 'w'),
             stderr=subprocess.STDOUT).wait()
         testfile = fetcher.get(host + ste_test_file, ignore_license=True)
         shutil.copy("%s/dothtaccess" % docroot, "%s/.htaccess" % docroot)
         self.assertThat(testfile, Contains(search))
-

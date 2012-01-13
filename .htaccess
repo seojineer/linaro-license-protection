@@ -1,12 +1,19 @@
 IndexIgnore HEADER* licenses
+IndexOptions FancyIndexing HTMLTable
 
 RewriteEngine On
+
+RewriteCond %{SERVER_PORT} !^80$
+RewriteCond %{HTTP_HOST} (.*)(\:.*)
+RewriteRule .* - [E=CO_DOMAIN:%1]
+
+RewriteCond %{SERVER_PORT} ^80$
+RewriteCond %{HTTP_HOST} (^.*$)
+RewriteRule .* - [E=CO_DOMAIN:%1]
 
 ## Let internal hosts through always.
 # android-build.linaro.org.
 RewriteCond %{REMOTE_ADDR} 50.17.250.69 [OR]
-# ci.linaro.org.
-RewriteCond %{REMOTE_ADDR} 50.17.200.206 [OR]
 # validation.linaro.org.
 RewriteCond %{REMOTE_ADDR} 213.123.120.124
 RewriteRule .* - [L]
@@ -46,11 +53,11 @@ RewriteRule .* - [L]
 # Samsung.
 RewriteCond %{REQUEST_URI} licenses/samsung-accepted.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=([^\;]*\/)([^/\;]*)
-RewriteRule .* %1%2 [CO=samsunglicenseaccepted-v1:true:.%{HTTP_HOST}:5:%1,R,L]
+RewriteRule .* %1%2 [CO=samsunglicenseaccepted-v1:true:.%{ENV:CO_DOMAIN}:5:%1,R,L]
 # ST-E.
 RewriteCond %{REQUEST_URI} licenses/ste-accepted.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=([^\;]*\/)([^/\;]*)
-RewriteRule .* %1%2 [CO=stelicenseaccepted-v1:true:.%{HTTP_HOST}:60:%1,R,L]
+RewriteRule .* %1%2 [CO=stelicenseaccepted-v1:true:.%{ENV:CO_DOMAIN}:60:%1,R,L]
 
 ## When license is being declined, show the notice that you have to accept it.
 # Samsung.
@@ -70,7 +77,7 @@ RewriteRule .* - [L]
 ## Redirect to the license file protected builds.
 # Samsung.
 RewriteCond %{REQUEST_URI} ^/.*origen.*$
-RewriteRule .* /licenses/samsung-v2.html [CO=downloadrequested:%{REQUEST_URI}:.%{HTTP_HOST},R,L]
+RewriteRule .* /licenses/samsung-v2.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
 # ST-E.
 RewriteCond %{REQUEST_URI} ^/.*snowball.*
-RewriteRule .* /licenses/ste.html [CO=downloadrequested:%{REQUEST_URI}:.%{HTTP_HOST},R,L]
+RewriteRule .* /licenses/ste.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
