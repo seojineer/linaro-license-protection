@@ -10,15 +10,15 @@ if [ -z "$build_path" ]; then
     exit 1;
 fi
 
-# Paranoid security
-if echo "$build_path" | grep -q "\."; then
-    echo "No dots in build names please"
+# Paranoid security - alarm on 2 dots separated only by 0 or more backslahes
+if echo "$build_path" | grep -q -E '\.\\*\.'; then
+    echo "No double-dots in build names please"
     exit 1
 fi
 
 if [ ! -d $BASE_PATH/$build_path ]; then
-    echo "ERROR: Expected directory $BASE_PATH/$build_path does not exist"
-    exit 1
+    echo "WARNING: Expected directory $BASE_PATH/$build_path does not exist"
+    exit 0
 fi
 
 job_dir=$(dirname $build_path)
