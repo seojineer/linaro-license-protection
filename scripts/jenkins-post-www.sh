@@ -32,4 +32,3 @@ echo -n "Moving $BASE_PATH/$build_path to $TARGET_PATH/~$username/$jobname/... "
      cp -a $BASE_PATH/"$build_path" "$TARGET_PATH/~$username/$jobname/" && \
      rm -rf $BASE_PATH/"$build_path" && \
      echo "done")
-cd "$TARGET_PATH/~$username/$jobname/"
