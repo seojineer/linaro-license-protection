@@ -24,8 +24,12 @@ fi
 job_dir=$(dirname $build_path)
 username=`echo "$job_dir" | cut -d_ -f1`
 jobname=`echo "$job_dir" | cut -d_ -f2-`
+pushd $BASE_PATH/$build_path
+find * -xtype f > MANIFEST
+popd
 echo -n "Moving $BASE_PATH/$build_path to $TARGET_PATH/~$username/$jobname/... " &&
 (mkdir -p "$TARGET_PATH/~$username/$jobname" && \
      cp -a $BASE_PATH/"$build_path" "$TARGET_PATH/~$username/$jobname/" && \
      rm -rf $BASE_PATH/"$build_path" && \
      echo "done")
+cd "$TARGET_PATH/~$username/$jobname/"
