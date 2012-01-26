@@ -1,0 +1,80 @@
+Linaro downloads license protection
+===================================
+
+Linaro builds sometimes contain "binary blobs"—pieces of binary-only code which enable extra features like accelerated graphics or multimedia.  These pieces are distributed under a separate license, and downloading images or collections containing them requires some sort of license protection.
+
+This code provides such license protection.  At the moment, it's implemented as a click-through license acceptance on the Apache side.
+
+To ensure and prove this keeps working, we are also using automated tests with this code.
+
+
+Setup
+-----
+
+This tree is the base for snapshots.linaro.org and releases.linaro.org www roots as served by Apache.  It makes have use of mod_rewrite from within the .htaccess file.
+
+Currently, all directories/files containing either 'origen' or 'snowball' in the name are protected with appropriate license (Samsung or ST-E) click-through.
+
+
+Technical details
+-----------------
+
+releases.linaro.org
+...................
+
+Root directory for releases.linaro.org includes .htaccess and licenses/*.
+It has mod_rewrite enabled.
+
+Currently hosted on mombin.canonical.com.
+
+
+snapshots.linaro.org
+....................
+
+Same basic set-up as releases.linaro.org.
+
+Further, to allow android-build.linaro.org to push to snapshots.linaro.org
+www area directly, we set-up two different users on the system with SSH keys:
+
+ * android-build-linaro:
+
+   chrooted to /srv3/snapshots.linaro.org/www/android/ and allows sftp
+   access to push files over;  home directory
+
+ * android-build-linaro-trigger:
+
+   limited to executing only a single command through
+   /etc/ssh/user-authorized-keys/android-build-linaro-trigger
+
+     command="/home/android-build-linaro-trigger/scripts/trigger-android-build-linaro.sh ${SSH_ORIGINAL_COMMAND#* }"
+
+   (this passes the arguments received from the remote end as well)
+
+   This script does a sudo to 'android-build-linaro' and then runs
+
+     /home/android-build-linaro/scripts/jenkins-post-sftp.sh
+
+   script which moves files from /android/.tmp/ into appropriate
+   build directories.  It expects "build_name/build_number" as command
+   line parameters.
+
+android-build.linaro.org
+........................
+
+Runs Jenkins and uses SFTP plugin to access the above two users.  Private keys live in
+
+  /home/ubuntu/snapshots-sync/snapshots-sync — android-build-linaro
+  /home/ubuntu/snapshots-sync/snapshots-filemove — android-build-linaro-trigger
+
+To ensure serialization of steps, and allow LAVA submission, these happen as
+build steps, and not as publishing steps.
+
+
+Tests
+-----
+
+Testing infrastructure is based on 'testrepository' and requires at least
+Python and Apache2:
+
+  $ testr init
+  $ testr run
