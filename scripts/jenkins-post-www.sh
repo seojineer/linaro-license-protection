@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 BASE_PATH=/home/android-build-linaro/android/.tmp
 TARGET_PATH=/srv3/snapshots.linaro.org/www/android/
 
