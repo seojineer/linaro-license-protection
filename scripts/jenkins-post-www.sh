@@ -2,7 +2,7 @@
 BASE_PATH=/home/android-build-linaro/android/.tmp
 TARGET_PATH=/srv3/snapshots.linaro.org/www/android/
 
-# Expected argument: ~username_jobname/buildno
+# Expected argument: username_jobname/buildno
 build_path="$1"
 
 if [[ -n $2 ]]; then
