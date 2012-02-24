@@ -3,7 +3,7 @@ Linaro downloads license protection
 
 Linaro builds sometimes contain "binary blobs"—pieces of binary-only code which enable extra features like accelerated graphics or multimedia.  These pieces are distributed under a separate license, and downloading images or collections containing them requires some sort of license protection.
 
-This code provides such license protection.  At the moment, it's implemented as a click-through license acceptance on the Apache side.
+This code provides such license protection on the hosting web server: other parts of infrastructure need to properly integrate with it (see eg. android-build.linaro.org section).  At the moment, it's implemented as a click-through license acceptance on the Apache side.
 
 To ensure and prove this keeps working, we are also using automated tests with this code.
 
@@ -11,9 +11,9 @@ To ensure and prove this keeps working, we are also using automated tests with t
 Setup
 -----
 
-This tree is the base for snapshots.linaro.org and releases.linaro.org www roots as served by Apache.  It makes have use of mod_rewrite from within the .htaccess file.
+This tree is the base for snapshots.linaro.org and releases.linaro.org www roots as served by Apache.  It makes heavy use of mod_rewrite from within the .htaccess file.
 
-Currently, all directories/files containing either 'origen' or 'snowball' in the name are protected with appropriate license (Samsung or ST-E) click-through.
+Currently, all directories/files containing either 'origen' or 'snowball' in the URL path are protected with appropriate license (Samsung or ST-E) click-through.
 
 
 Technical details
@@ -24,6 +24,10 @@ releases.linaro.org
 
 Root directory for releases.linaro.org includes .htaccess and licenses/*.
 It has mod_rewrite enabled.
+
+It allows a few hard-coded hosts to bypass the click-through protection, by their IPs:
+ * android-build.linaro.org (50.17.250.69)
+ * validation.linaro.org (213.123.120.124)
 
 Currently hosted on mombin.canonical.com.
 
@@ -55,7 +59,7 @@ www area directly, we set-up two different users on the system with SSH keys:
      /home/android-build-linaro/scripts/jenkins-post-sftp.sh
 
    script which moves files from /android/.tmp/ into appropriate
-   build directories.  It expects "build_name/build_number" as command
+   build directory.  It expects "build_name/build_number" as command
    line parameters.
 
 android-build.linaro.org
