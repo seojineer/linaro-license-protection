@@ -7,6 +7,7 @@ from scripts.publish_to_snapshots import (
     SnapshotsPublisher,
     )
 
+
 class TestSnapshotsPublisher(TestCase):
     '''Tests for publishing files to the snapshots.l.o www are.'''
 
