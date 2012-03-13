@@ -8,19 +8,21 @@ import shutil
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-j", "--job_type", dest="job_type",
-                    help="Specifiy the job type (Ex: android/kernel-hwpack)")
+parser.add_argument("-t", "--job-type", dest="job_type",
+                    help="Specify the job type (Ex: android/kernel-hwpack)")
 parser.add_argument("-u", "--user", dest="user_name",
-                    help="Specifiy the user who built the job")
-parser.add_argument("-t", "--ktree", dest="kernel_tree",
-                    help="Specifiy the kernel tree built by the job")
-parser.add_argument("-n", "--job_name", dest="job_name",
+                    help="Specify the user who built the job")
+parser.add_argument("-r", "--ktree", dest="kernel_tree",
+                    help="Specify the kernel tree built by the job")
+parser.add_argument("-j", "--job-name", dest="job_name",
                     help="Specify the job name which resulted the archive to be stored.\
                     Ex: ${JOB_NAME} should be specified for andriod and for \
                     kernel-hwpack ${KERNEL_JOB_NAME}")
-parser.add_argument("-i", "--build_num", dest="build_num", type=int,
+parser.add_argument("-n", "--build-num", dest="build_num", type=int,
                     help="Specify the job build number for android builds only")
 
+uploads_path = '/srv3/snapshots.linaro.org/uploads/'
+target_path = '/srv3/snapshots.linaro.org/www/'
 PASS = 0 
 FAIL = 1
 acceptable_job_types = [
@@ -34,8 +36,7 @@ class SnapshotsPublisher(object):
         # Validate that all the required information 
         # is passed on the command line
         if (args.job_type == None or  args.job_name == None): 
-            parser.error("\nYou must specify job_type and job_name")
-            raise InvalidParametersException
+            parser.error("\nYou must specify job-type and job-name")
             return FAIL
 
         if (args.job_type == "android" and (args.build_num == None or \
@@ -51,7 +52,8 @@ class SnapshotsPublisher(object):
             parser.error("Invalid job type")
             return FAIL
 
-    def validate_paths_move_artifacts(self, args, uploads_path, target_path):
+    def validate_paths(self, args, uploads_path, target_path):
+        build_dir_path = target_dir_path = None
         if args.job_type == "android":
            build_path = '/'.join([args.job_type, args.user_name, args.job_name])
            build_dir_path = os.path.join(uploads_path, build_path, 
@@ -64,35 +66,41 @@ class SnapshotsPublisher(object):
            target_dir_path = os.path.join(target_path, build_path)
 
         if not (os.path.isdir(uploads_path) or os.path.isdir(build_dir_path)):
-            print "Missing build path", build_dir_path
-            return FAIL
+            build_paths = "'%s' or '%s'" % (uploads_path, build_dir_path)
+            print "Missing build paths: ", build_paths
+            return None, None
        
         if not os.path.isdir(target_path):
             print "Missing target path", target_path
-            return FAIL
+            return None, None
 
+        return build_dir_path, target_dir_path
+
+
+    def move_artifacts(self, args, build_dir_path, target_dir_path):
         try:
             # Make a note of the contents of src dir so that 
             # it can be used to validate the move to destination
-            uploads_dirList = os.listdir(build_dir_path)
+            uploads_dir_list = os.listdir(build_dir_path)
 
             if not os.path.isdir(target_dir_path):
                 os.makedirs(target_dir_path)
                 if not os.path.isdir(target_dir_path):
                     raise OSError
 
-            for fname in uploads_dirList:
+            for fname in uploads_dir_list:
                 fname = os.path.join(build_dir_path, fname)
                 shutil.copy2(fname, target_dir_path)
-            target_dirList = os.listdir(target_dir_path)
 
-            for fname in uploads_dirList:
-                if not fname in target_dirList:
+            target_dir_list = os.listdir(target_dir_path)
+            for fname in uploads_dir_list:
+                if not fname in target_dir_list:
                     print "Destination missing file", fname
                     return FAIL
 
             shutil.rmtree(build_dir_path)
-            print "Moved the files from", build_dir_path, "to ",target_dir_path
+            print "Moved the files from '",build_dir_path, "' to '",\
+                  target_dir_path, "'"
             return PASS
 
         except OSError, details:
@@ -104,18 +112,18 @@ class SnapshotsPublisher(object):
             return FAIL
 
 def main():
-    uploads_path = '/srv3/snapshots.linaro.org/uploads/'
-    target_path = '/srv3/snapshots.linaro.org/www/'
-    uploads_path = '/tmp/uploads/'
-    target_path = '/tmp/www/'
-
     publisher = SnapshotsPublisher()
     args = parser.parse_args()
     publisher.validate_args(args)
-    ret = publisher.validate_paths_move_artifacts(args, uploads_path,
-                                                  target_path)
-    if ret != PASS:
+    build_dir_path, target_dir_path = publisher.validate_paths(args, uploads_path, 
+                                                               target_path)
+    if build_dir_path == None or target_dir_path == None:
         print "Problem with build/target path, move failed"
+        return FAIL
+
+    ret  = publisher.move_artifacts(args, build_dir_path, target_dir_path)
+    if ret != PASS:
+        print "Move Failed"
         return FAIL
     else:
         print "Move succeeded"

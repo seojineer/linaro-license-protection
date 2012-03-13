@@ -17,11 +17,11 @@ class TestSnapshotsPublisher(TestCase):
 
     def setUp(self):
         self.parser =  argparse.ArgumentParser()
-        self.parser.add_argument("-j", "--job_type", dest="job_type")
+        self.parser.add_argument("-t", "--job-type", dest="job_type")
         self.parser.add_argument("-u", "--user", dest="user_name")
-        self.parser.add_argument("-t", "--ktree", dest="kernel_tree")
-        self.parser.add_argument("-n", "--job_name", dest="job_name")
-        self.parser.add_argument("-i", "--build_num", dest="build_num", type=int)
+        self.parser.add_argument("-r", "--ktree", dest="kernel_tree")
+        self.parser.add_argument("-j", "--job-name", dest="job_name")
+        self.parser.add_argument("-n", "--build-num", dest="build_num", type=int)
         if not os.path.isdir(self.uploads_path):
             os.mkdir(self.uploads_path)
         
@@ -39,19 +39,19 @@ class TestSnapshotsPublisher(TestCase):
 
     def test_validate_args_valid_job_values(self):
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-j', 'android', '-u', 'dummy_user',
-                                        '-n', 'dummy_job_name', '-i', '1'])
+        param = self.parser.parse_args(['-t', 'android', '-u', 'dummy_user',
+                                        '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
-        param = self.parser.parse_args(['-j', 'kernel-hwpack', '-t', 'dummy_tree', 
-                                        '-n', 'dummy_job_name'])
+        param = self.parser.parse_args(['-t', 'kernel-hwpack', '-r', 'dummy_tree', 
+                                        '-j', 'dummy_job_name'])
         self.publisher.validate_args(param)
 
     def test_validate_args_invalid_job_type(self):
         orig_stderr = sys.stderr
         stderr = sys.stderr = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-j', 'invalid_job_type', '-u', 'dummy_user', 
-                                        '-n', 'dummy_job_name', '-i', '1'])
+        param = self.parser.parse_args(['-t', 'invalid_job_type', '-u', 'dummy_user', 
+                                        '-j', 'dummy_job_name', '-n', '1'])
         try:
             self.publisher.validate_args(param)
         except SystemExit, err:
@@ -81,14 +81,14 @@ class TestSnapshotsPublisher(TestCase):
         stderr = sys.stderr = StringIO()
         self.publisher = SnapshotsPublisher()
         try:
-            param = self.parser.parse_args(['-i', "N"])
+            param = self.parser.parse_args(['-n', "N"])
             self.publisher.validate_args(param)
         except SystemExit, err:
             self.assertEqual(err.code, 2, "Invalid value passed")
         finally:
             sys.stderr = orig_stderr
         stderr.seek(0)
-        self.assertIn("argument -i/--build_num: invalid int value: 'N'", 
+        self.assertIn("argument -n/--build-num: invalid int value: 'N'", 
                       stderr.read())
 
     def test_validate_args_run_none_values(self):
@@ -96,65 +96,65 @@ class TestSnapshotsPublisher(TestCase):
         stderr = sys.stderr = StringIO()
         self.publisher = SnapshotsPublisher()
         try:
-            param = self.parser.parse_args(['-j', None , '-n', None, '-u', None, 
-                                            '-t', None , '-i' , 0])
+            param = self.parser.parse_args(['-t', None , '-r', None,  
+                                            '-j', None , '-n' , 0])
             self.publisher.validate_args(param)
         except SystemExit, err:
             self.assertEqual(err.code, 2, "None values are not acceptable")
         finally:
             sys.stderr = orig_stderr
         stderr.seek(0)
-        self.assertIn("You must specify job_type and job_name", 
+        self.assertIn("You must specify job-type and job-name", 
                       stderr.read())
 
-    def test_validate_paths_move_artifacts_invalid_uploads_path(self):
+    def test_validate_paths_invalid_uploads_path(self):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-j', 'android', '-u', 'dummy_user',
-                                        '-n', 'dummy_job_name', '-i', '1'])
+        param = self.parser.parse_args(['-t', 'android', '-u', 'dummy_user',
+                                        '-j', 'dummy_job_name', '-n', '1'])
 
         self.publisher.validate_args(param)
         self.uploads_path = "./dummy_uploads_path"
         try:
-            self.publisher.validate_paths_move_artifacts(param, self.uploads_path, 
-                                                        self.target_path)
+            self.publisher.validate_paths(param, self.uploads_path, self.target_path)
         finally:
             sys.stdout = orig_stdout
         stdout.seek(0)
         self.assertIn("Missing build path", stdout.read())
 
-    def test_validate_paths_move_artifacts_invalid_target_path(self):
+    def test_validate_paths_invalid_target_path(self):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-j', 'android', '-u', 'dummy_user',
-                                        '-n', 'dummy_job_name', '-i', '1'])
+        param = self.parser.parse_args(['-t', 'android', '-u', 'dummy_user',
+                                        '-j', 'dummy_job_name', '-n', '1'])
 
         self.publisher.validate_args(param)
         self.target_path = "./dummy_target_path"
         try:
-            self.publisher.validate_paths_move_artifacts(param, self.uploads_path, 
+            self.publisher.validate_paths(param, self.uploads_path, 
                                                         self.target_path)
         finally:
             sys.stdout = orig_stdout
         stdout.seek(0)
         self.assertIn("Missing target path", stdout.read())
 
-    def test_validate_paths_move_artifacts_successful_move(self):
+    def test_move_artifacts_successful_move(self):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-j', 'kernel-hwpack', '-n', 'dummy_job_name', 
-                                        '-t', 'dummy_kernel_tree'])
+        param = self.parser.parse_args(['-t', 'kernel-hwpack', '-j', 'dummy_job_name', 
+                                        '-r', 'dummy_kernel_tree'])
         self.publisher.validate_args(param)
         build_path = os.path.join(self.uploads_path, param.job_type, param.kernel_tree, 
                                   param.job_name)
         os.makedirs(build_path)
         tempfiles = tempfile.mkstemp(dir=build_path)
         try:
-            self.publisher.validate_paths_move_artifacts(param, self.uploads_path, 
-                                                        self.target_path)
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
+                                                self.uploads_path, self.target_path)
+            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
         finally:
             sys.stdout = orig_stdout
             pass
