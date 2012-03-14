@@ -18,7 +18,6 @@ class TestSnapshotsPublisher(TestCase):
     def setUp(self):
         self.parser =  argparse.ArgumentParser()
         self.parser.add_argument("-t", "--job-type", dest="job_type")
-        self.parser.add_argument("-u", "--user", dest="user_name")
         self.parser.add_argument("-r", "--ktree", dest="kernel_tree")
         self.parser.add_argument("-j", "--job-name", dest="job_name")
         self.parser.add_argument("-n", "--build-num", dest="build_num", type=int)
@@ -39,8 +38,7 @@ class TestSnapshotsPublisher(TestCase):
 
     def test_validate_args_valid_job_values(self):
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'android', '-u', 'dummy_user',
-                                        '-j', 'dummy_job_name', '-n', '1'])
+        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
         param = self.parser.parse_args(['-t', 'kernel-hwpack', '-r', 'dummy_tree', 
                                         '-j', 'dummy_job_name'])
@@ -50,8 +48,8 @@ class TestSnapshotsPublisher(TestCase):
         orig_stderr = sys.stderr
         stderr = sys.stderr = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'invalid_job_type', '-u', 'dummy_user', 
-                                        '-j', 'dummy_job_name', '-n', '1'])
+        param = self.parser.parse_args(['-t', 'invalid_job_type',  '-j', 'dummy_job_name', 
+                                        '-n', '1'])
         try:
             self.publisher.validate_args(param)
         except SystemExit, err:
@@ -111,8 +109,8 @@ class TestSnapshotsPublisher(TestCase):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'android', '-u', 'dummy_user',
-                                        '-j', 'dummy_job_name', '-n', '1'])
+        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', 
+                                        '-n', '1'])
 
         self.publisher.validate_args(param)
         self.uploads_path = "./dummy_uploads_path"
@@ -127,8 +125,8 @@ class TestSnapshotsPublisher(TestCase):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'android', '-u', 'dummy_user',
-                                        '-j', 'dummy_job_name', '-n', '1'])
+        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', 
+                                        '-n', '1'])
 
         self.publisher.validate_args(param)
         self.target_path = "./dummy_target_path"
@@ -140,7 +138,7 @@ class TestSnapshotsPublisher(TestCase):
         stdout.seek(0)
         self.assertIn("Missing target path", stdout.read())
 
-    def test_move_artifacts_successful_move(self):
+    def test_move_artifacts_kernel_successful_move(self):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
@@ -149,6 +147,28 @@ class TestSnapshotsPublisher(TestCase):
         self.publisher.validate_args(param)
         build_path = os.path.join(self.uploads_path, param.job_type, param.kernel_tree, 
                                   param.job_name)
+        os.makedirs(build_path)
+        tempfiles = tempfile.mkstemp(dir=build_path)
+        try:
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
+                                                self.uploads_path, self.target_path)
+            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+        finally:
+            sys.stdout = orig_stdout
+            pass
+         
+        stdout.seek(0)
+        self.assertIn("Moved the files from", stdout.read())
+
+    def test_move_artifacts_android_successful_move(self):
+        orig_stdout = sys.stdout
+        stdout = sys.stdout = StringIO()
+        self.publisher = SnapshotsPublisher()
+        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', 
+                                        '-n', '1'])
+        self.publisher.validate_args(param)
+        build_dir = '/'.join([param.job_type, param.job_name, str(param.build_num)])
+        build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
         tempfiles = tempfile.mkstemp(dir=build_path)
         try:

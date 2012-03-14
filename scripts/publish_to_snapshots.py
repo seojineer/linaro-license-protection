@@ -10,8 +10,6 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--job-type", dest="job_type",
                     help="Specify the job type (Ex: android/kernel-hwpack)")
-parser.add_argument("-u", "--user", dest="user_name",
-                    help="Specify the user who built the job")
 parser.add_argument("-r", "--ktree", dest="kernel_tree",
                     help="Specify the kernel tree built by the job")
 parser.add_argument("-j", "--job-name", dest="job_name",
@@ -39,9 +37,8 @@ class SnapshotsPublisher(object):
             parser.error("\nYou must specify job-type and job-name")
             return FAIL
 
-        if (args.job_type == "android" and (args.build_num == None or \
-            args.user_name == None)):
-            parser.error("You must specify build number and owner of the job")
+        if (args.job_type == "android" and args.build_num == None):
+            parser.error("You must specify build number")
             return FAIL
 
         if (args.job_type == "kernel-hwpack" and args.kernel_tree == None):
@@ -52,14 +49,27 @@ class SnapshotsPublisher(object):
             parser.error("Invalid job type")
             return FAIL
 
+    def jobname_to_target_subdir(self, args, jobname):
+        ret_val = None
+        if args.job_type == "android":
+            ret_val = jobname.split("_")    
+        return ret_val 
+
     def validate_paths(self, args, uploads_path, target_path):
         build_dir_path = target_dir_path = None
         if args.job_type == "android":
-           build_path = '/'.join([args.job_type, args.user_name, args.job_name])
-           build_dir_path = os.path.join(uploads_path, build_path, 
-                                         str(args.build_num))
-           target_dir_path = os.path.join(target_path, build_path,
-                                          str(args.build_num))
+           build_path = '/'.join([args.job_type, args.job_name,
+                                  str(args.build_num)])
+           build_dir_path = os.path.join(uploads_path, build_path) 
+           ret_val = self.jobname_to_target_subdir(args, args.job_name)
+           if ret_val != None:
+               user_name = ret_val[0]
+               job_name = '_'.join(ret_val[1:])
+               target_dir = '/'.join([args.job_type, user_name, job_name,
+                                      str(args.build_num)])
+               target_dir_path = os.path.join(target_path, target_dir)
+           else:
+               return None, None
         else:
            build_path = '/'.join([args.job_type, args.kernel_tree, args.job_name])
            build_dir_path = os.path.join(uploads_path, build_path)
