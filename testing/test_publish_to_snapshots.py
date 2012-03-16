@@ -18,7 +18,6 @@ class TestSnapshotsPublisher(TestCase):
     def setUp(self):
         self.parser =  argparse.ArgumentParser()
         self.parser.add_argument("-t", "--job-type", dest="job_type")
-        self.parser.add_argument("-r", "--ktree", dest="kernel_tree")
         self.parser.add_argument("-j", "--job-name", dest="job_name")
         self.parser.add_argument("-n", "--build-num", dest="build_num", type=int)
         if not os.path.isdir(self.uploads_path):
@@ -38,10 +37,11 @@ class TestSnapshotsPublisher(TestCase):
 
     def test_validate_args_valid_job_values(self):
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', '-n', '1'])
+        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', 
+                                        '-n', '1'])
         self.publisher.validate_args(param)
-        param = self.parser.parse_args(['-t', 'kernel-hwpack', '-r', 'dummy_tree', 
-                                        '-j', 'dummy_job_name'])
+        param = self.parser.parse_args(['-t', 'kernel-hwpack', '-j', 'dummy_job_name', 
+                                        '-n', '1'])
         self.publisher.validate_args(param)
 
     def test_validate_args_invalid_job_type(self):
@@ -94,15 +94,14 @@ class TestSnapshotsPublisher(TestCase):
         stderr = sys.stderr = StringIO()
         self.publisher = SnapshotsPublisher()
         try:
-            param = self.parser.parse_args(['-t', None , '-r', None,  
-                                            '-j', None , '-n' , 0])
+            param = self.parser.parse_args(['-t', None , '-j', None , '-n' , 0])
             self.publisher.validate_args(param)
         except SystemExit, err:
             self.assertEqual(err.code, 2, "None values are not acceptable")
         finally:
             sys.stderr = orig_stderr
         stderr.seek(0)
-        self.assertIn("You must specify job-type and job-name", 
+        self.assertIn("You must specify job-type, job-name and build-num", 
                       stderr.read())
 
     def test_validate_paths_invalid_uploads_path(self):
@@ -131,8 +130,7 @@ class TestSnapshotsPublisher(TestCase):
         self.publisher.validate_args(param)
         self.target_path = "./dummy_target_path"
         try:
-            self.publisher.validate_paths(param, self.uploads_path, 
-                                                        self.target_path)
+            self.publisher.validate_paths(param, self.uploads_path, self.target_path)
         finally:
             sys.stdout = orig_stdout
         stdout.seek(0)
@@ -143,10 +141,10 @@ class TestSnapshotsPublisher(TestCase):
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
         param = self.parser.parse_args(['-t', 'kernel-hwpack', '-j', 'dummy_job_name', 
-                                        '-r', 'dummy_kernel_tree'])
+                                        '-n', '1'])
         self.publisher.validate_args(param)
-        build_path = os.path.join(self.uploads_path, param.job_type, param.kernel_tree, 
-                                  param.job_name)
+        build_path = os.path.join(self.uploads_path, param.job_type, param.job_name,
+                                  str(param.build_num))
         os.makedirs(build_path)
         tempfiles = tempfile.mkstemp(dir=build_path)
         try:
