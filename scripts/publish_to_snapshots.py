@@ -16,6 +16,8 @@ parser.add_argument("-j", "--job-name", dest="job_name",
                     kernel-hwpack ${KERNEL_JOB_NAME}")
 parser.add_argument("-n", "--build-num", dest="build_num", type=int,
                     help="Specify the job build number for android builds only")
+parser.add_argument("-m", "--manifest", dest="manifest", action='store_true',
+                    help="Optional parameter to generate MANIFEST file")
 
 uploads_path = '/srv3/snapshots.linaro.org/uploads/'
 target_path = '/srv3/snapshots.linaro.org/www/'
@@ -83,29 +85,95 @@ class SnapshotsPublisher(object):
 
         return build_dir_path, target_dir_path
 
+    def get_latest_dir(self, target_dir):
+        all_subdirs = []
+
+        for d in os.listdir(target_dir):
+            target_dir_path = os.path.join(target_dir, d)
+            if os.path.isdir(target_dir_path):
+                all_subdirs.append(target_dir_path)
+
+        if len(all_subdirs) != 0:
+            return max(all_subdirs, key=os.path.getmtime)
+        else:
+            return None
+
+    def create_symlink(self, target_dir_path):
+        target_parent_dir = os.path.dirname(target_dir_path)
+        symlink_path = os.path.join(target_parent_dir, "lastSuccessful")
+
+        if os.path.islink(symlink_path):
+            os.unlink(symlink_path)
+
+        latest_subdir = self.get_latest_dir(target_parent_dir)
+        if latest_subdir != None:
+            os.symlink(latest_subdir, symlink_path)
+            print "The lastSuccessful build is now linked to ", latest_subdir
+            return PASS
+        else:
+            print "Empty directory, nothing to link"
+            return FAIL
+
+    def create_manifest_file(self, target_dir):
+        orig_dir=os.getcwd()
+        os.chdir(target_dir)
+        fn = os.path.join(target_dir, "MANIFEST")
+        lines = []
+
+        try:
+            for path, subdirs, files in os.walk("."):
+                for name in files:
+                    lines.append(os.path.join(path, name).split("./")[1] + "\n")
+            
+            if len(lines) != 0:
+                fd = open(fn, "w+")
+                for line in lines:
+                    if not "MANIFEST" in line:
+                        fd.write(line)
+                fd.close()
+            os.chdir(orig_dir)
+        except Exception, details:
+            print "Got Exception in create_manifest_file: ", details
+            return FAIL
+
+        return PASS
+
+    def move_dir_content(self, src_dir, dest_dir):
+        filelist = os.listdir(src_dir)
+        try:
+            for file in filelist:
+                src = os.path.join(src_dir, file)
+                dest = os.path.join(dest_dir, file)
+                if os.path.exists(dest):
+                    if os.path.isdir(dest):
+                        self.move_dir_content(src, dest)
+                        continue
+                    else:
+                        os.remove(dest)
+                shutil.move(src, dest)
+        except shutil.Error:
+            print "Error while moving the content"
 
     def move_artifacts(self, args, build_dir_path, target_dir_path):
         try:
-            # Make a note of the contents of src dir so that 
-            # it can be used to validate the move to destination
-            uploads_dir_list = os.listdir(build_dir_path)
-
             if not os.path.isdir(target_dir_path):
                 os.makedirs(target_dir_path)
                 if not os.path.isdir(target_dir_path):
                     raise OSError
 
-            for fname in uploads_dir_list:
-                fname = os.path.join(build_dir_path, fname)
-                shutil.copy2(fname, target_dir_path)
+            self.move_dir_content(build_dir_path, target_dir_path)
 
-            target_dir_list = os.listdir(target_dir_path)
-            for fname in uploads_dir_list:
-                if not fname in target_dir_list:
-                    print "Destination missing file", fname
-                    return FAIL
+            if args.job_type != "kernel-hwpack":
+                ret = self.create_symlink(target_dir_path)
+                if ret != PASS:
+                    return ret
 
-            shutil.rmtree(build_dir_path)
+            if args.manifest:
+                ret = self.create_manifest_file(target_dir_path)
+                if ret != PASS:
+                    print "Failed to create manifest file"
+                    return ret
+
             print "Moved the files from '",build_dir_path, "' to '",\
                   target_dir_path, "'"
             return PASS
@@ -113,9 +181,9 @@ class SnapshotsPublisher(object):
         except OSError, details:
             print "Failed to create the target path", target_dir_path, ":" , details 
             return FAIL
+
         except shutil.Error:
             print "Failed to move files destination path", target_dir_path
-            print "Target already exists, move failed"
             return FAIL
 
 def main():
