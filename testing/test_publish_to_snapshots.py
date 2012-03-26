@@ -12,14 +12,16 @@ from scripts.publish_to_snapshots import SnapshotsPublisher
 class TestSnapshotsPublisher(TestCase):
     '''Tests for publishing files to the snapshots.l.o www are.'''
 
-    uploads_path = "./uploads/"
-    target_path = "./www/"
+    uploads_path = "uploads/"
+    target_path = "www/"
+    orig_dir = os.getcwd()
 
     def setUp(self):
         self.parser =  argparse.ArgumentParser()
         self.parser.add_argument("-t", "--job-type", dest="job_type")
         self.parser.add_argument("-j", "--job-name", dest="job_name")
         self.parser.add_argument("-n", "--build-num", dest="build_num", type=int)
+        self.parser.add_argument("-m", "--manifest",  dest="manifest", action='store_true')
         if not os.path.isdir(self.uploads_path):
             os.mkdir(self.uploads_path)
         
@@ -28,6 +30,7 @@ class TestSnapshotsPublisher(TestCase):
         super(TestSnapshotsPublisher, self).setUp()
 
     def tearDown(self):
+        os.chdir(self.orig_dir)
         if os.path.isdir(self.uploads_path):
             shutil.rmtree(self.uploads_path)
 
@@ -112,9 +115,9 @@ class TestSnapshotsPublisher(TestCase):
                                         '-n', '1'])
 
         self.publisher.validate_args(param)
-        self.uploads_path = "./dummy_uploads_path"
+        uploads_path = "./dummy_uploads_path"
         try:
-            self.publisher.validate_paths(param, self.uploads_path, self.target_path)
+            self.publisher.validate_paths(param, uploads_path, self.target_path)
         finally:
             sys.stdout = orig_stdout
         stdout.seek(0)
@@ -150,6 +153,8 @@ class TestSnapshotsPublisher(TestCase):
         try:
             uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
                                                 self.uploads_path, self.target_path)
+            uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
+            target_dir_path = os.path.join(self.orig_dir, target_dir_path)
             self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
         finally:
             sys.stdout = orig_stdout
@@ -172,6 +177,8 @@ class TestSnapshotsPublisher(TestCase):
         try:
             uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
                                                 self.uploads_path, self.target_path)
+            uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
+            target_dir_path = os.path.join(self.orig_dir, target_dir_path)
             self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
         finally:
             sys.stdout = orig_stdout
@@ -179,3 +186,76 @@ class TestSnapshotsPublisher(TestCase):
          
         stdout.seek(0)
         self.assertIn("Moved the files from", stdout.read())
+
+    def test_create_symlink(self):
+        orig_stdout = sys.stdout
+        stdout = sys.stdout = StringIO()
+        self.publisher = SnapshotsPublisher()
+        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', 
+                                       '-n', '1'])
+        self.publisher.validate_args(param)
+        build_dir = '/'.join([param.job_type, param.job_name, str(param.build_num)])
+        build_path = os.path.join(self.uploads_path, build_dir)
+        os.makedirs(build_path)
+        tempfiles = tempfile.mkstemp(dir=build_path)
+        try:
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
+                                                self.uploads_path, self.target_path)
+            uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
+            target_dir_path = os.path.join(self.orig_dir, target_dir_path)
+            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+        finally:
+            sys.stdout = orig_stdout
+            pass
+        
+        stdout.seek(0)
+        msg = "The lastSuccessful build is now linked to  " +  target_dir_path
+        self.assertIn(msg, stdout.read())
+
+    def test_create_manifest_file_option(self):
+        orig_stdout = sys.stdout
+        stdout = sys.stdout = StringIO()
+        self.publisher = SnapshotsPublisher()
+        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', 
+                                        '-n', '1', '-m'])
+        self.publisher.validate_args(param)
+        build_dir = '/'.join([param.job_type, param.job_name, str(param.build_num)])
+        build_path = os.path.join(self.uploads_path, build_dir)
+        os.makedirs(build_path)
+        tempfiles = tempfile.mkstemp(dir=build_path)
+        lines = []
+        try:
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
+                                                self.uploads_path, self.target_path)
+            uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
+            target_dir_path = os.path.join(self.orig_dir, target_dir_path)
+            os.chdir(uploads_dir_path)
+            for path, subdirs, files in os.walk("."):
+                for name in files:
+                    lines.append(os.path.join(path, name).split("./")[1] + "\n")
+            os.chdir(self.orig_dir)
+            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+
+            manifest_file=os.path.join(target_dir_path, "MANIFEST")
+            dest = open(manifest_file, "r").read()
+
+            if len(lines) != 0:
+                tempfiles = tempfile.mkstemp(dir=target_dir_path)
+                fd = open(tempfiles[1], "w+")
+                for line in lines:
+                    fd.write(line)
+                fd.close()
+                orig = open(tempfiles[1], "r").read()
+             
+        except Exception, details:
+            pass
+
+        finally:
+            sys.stdout = orig_stdout
+        
+        stdout.seek(0)
+        res_output = stdout.read()
+        self.assertIn("Moved the files from", res_output)
+        msg = "Manifest file " + manifest_file + " generated"
+        self.assertIn(msg, res_output)
+        self.assertTrue(orig == dest)
