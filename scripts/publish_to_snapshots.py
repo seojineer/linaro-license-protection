@@ -85,33 +85,18 @@ class SnapshotsPublisher(object):
 
         return build_dir_path, target_dir_path
 
-    def get_latest_dir(self, target_dir):
-        all_subdirs = []
-
-        for d in os.listdir(target_dir):
-            target_dir_path = os.path.join(target_dir, d)
-            if os.path.isdir(target_dir_path):
-                all_subdirs.append(target_dir_path)
-
-        if len(all_subdirs) != 0:
-            return max(all_subdirs, key=os.path.getmtime)
-        else:
-            return None
-
     def create_symlink(self, target_dir_path):
         target_parent_dir = os.path.dirname(target_dir_path)
         symlink_path = os.path.join(target_parent_dir, "lastSuccessful")
+        try:
+            if os.path.islink(symlink_path):
+                os.unlink(symlink_path)
 
-        if os.path.islink(symlink_path):
-            os.unlink(symlink_path)
-
-        latest_subdir = self.get_latest_dir(target_parent_dir)
-        if latest_subdir != None:
-            os.symlink(latest_subdir, symlink_path)
-            print "The lastSuccessful build is now linked to ", latest_subdir
+            os.symlink(target_dir_path, symlink_path)
+            print "The lastSuccessful build is now linked to ", target_dir_path
             return PASS
-        else:
-            print "Empty directory, nothing to link"
+        except Exception, details:
+            print "Failed to create symlink", symlink_path, ":", details
             return FAIL
 
     def create_manifest_file(self, target_dir):
@@ -131,12 +116,19 @@ class SnapshotsPublisher(object):
                     if not "MANIFEST" in line:
                         fd.write(line)
                 fd.close()
+            else:
+                raise Exception("Uploads directory was empty, nothing got moved to destination")
+
             os.chdir(orig_dir)
+
+            if os.path.isfile(fn):
+                print "Manifest file", fn, "generated"
+                return PASS
         except Exception, details:
             print "Got Exception in create_manifest_file: ", details
+            os.chdir(orig_dir)
             return FAIL
 
-        return PASS
 
     def move_dir_content(self, src_dir, dest_dir):
         filelist = os.listdir(src_dir)
