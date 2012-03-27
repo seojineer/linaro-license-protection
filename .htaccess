@@ -1,7 +1,13 @@
-IndexIgnore HEADER* licenses
+IndexIgnore HEADER* licenses *EULA*
 IndexOptions FancyIndexing HTMLTable
 
 RewriteEngine On
+
+## LP_DOWNLOAD_DIR is set to the dir from REQUEST_URI
+## or to the dir containig file form REQUEST_URI
+RewriteCond %{REQUEST_FILENAME} !.*/licenses/.*
+RewriteCond %{REQUEST_FILENAME} (.*\/)(.*)$
+RewriteRule (.*\/)(.*) - [E=LP_DOWNLOAD_DIR:%1]
 
 ## CO_DOMAIN is set to host name or host address
 ## without port number for use in cookie domain
@@ -22,64 +28,84 @@ RewriteRule .* - [L]
 
 ## If license file is requested, and a download has been requested previously,
 ## pass through to the license file.
-# Samsung.
-RewriteCond %{REQUEST_URI} /licenses/samsung-v2.html$
+RewriteCond %{REQUEST_URI} /licenses/license.html$ [OR]
+RewriteCond %{REQUEST_URI} /licenses/ste.html$ [OR]
+RewriteCond %{REQUEST_URI} /licenses/samsung.html$ [OR]
+RewriteCond %{REQUEST_URI} /licenses/linaro.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested
-RewriteCond %{HTTP_COOKIE} !samsunglicenseaccepted-v1=true
-RewriteRule .* - [L]
-# ST-E.
-RewriteCond %{REQUEST_URI} /licenses/ste.html$
-RewriteCond %{HTTP_COOKIE} downloadrequested
-RewriteCond %{HTTP_COOKIE} !stelicenseaccepted-v1=true
+RewriteCond %{HTTP_COOKIE} !licenseaccepted=true
 RewriteRule .* - [L]
 
 ## When license files are requested directly, forward to
 ## the snapshots.l.o site itself.
-RewriteCond %{REQUEST_URI} /licenses/samsung-v2.html$ [OR]
-RewriteCond %{REQUEST_URI} /licenses/ste.html$ [OR]
-RewriteCond %{REQUEST_URI} /licenses/nolicense.html$
+RewriteCond %{REQUEST_URI} /licenses/license.html$ [OR]
+RewriteCond %{REQUEST_URI} /licenses/linaro.html$ [OR]
+RewriteCond %{REQUEST_URI} /licenses/samsung.html$ [OR]
+RewriteCond %{REQUEST_URI} /licenses/ste.html$
 RewriteCond %{HTTP_COOKIE} !downloadrequested=(.*)
 RewriteRule .* / [R,L]
 
-## If there is a cookie indicating license has been accepted, pass through.
-# Samsung.
-RewriteCond %{HTTP_COOKIE} samsunglicenseaccepted-v1=true
-RewriteCond %{REQUEST_URI} ^/.*origen.*
+## Exception for <iframe>
+RewriteCond %{REQUEST_URI} ^.*/EULA.txt$
 RewriteRule .* - [L]
-# ST-E.
-RewriteCond %{HTTP_COOKIE} stelicenseaccepted-v1=true
-RewriteCond %{REQUEST_URI} ^/.*snowball.*
+
+## If there is a cookie indicating license has been accepted, pass through.
+RewriteCond %{HTTP_COOKIE} licenseaccepted=true
 RewriteRule .* - [L]
 
 ## When license is accepted, set the cookie.
-# Samsung.
-RewriteCond %{REQUEST_URI} licenses/samsung-accepted.html$
+RewriteCond %{REQUEST_URI} licenses/.*-accepted.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=([^\;]*\/)([^/\;]*)
-RewriteRule .* %1%2 [CO=samsunglicenseaccepted-v1:true:.%{ENV:CO_DOMAIN}:5:%1,R,L]
-# ST-E.
-RewriteCond %{REQUEST_URI} licenses/ste-accepted.html$
-RewriteCond %{HTTP_COOKIE} downloadrequested=([^\;]*\/)([^/\;]*)
-RewriteRule .* %1%2 [CO=stelicenseaccepted-v1:true:.%{ENV:CO_DOMAIN}:60:%1,R,L]
+RewriteRule .* %1%2 [CO=licenseaccepted:true:.%{ENV:CO_DOMAIN}:5:%1,R,L]
 
 ## When license is being declined, show the notice that you have to accept it.
-# Samsung.
-RewriteCond %{REQUEST_URI} licenses/samsung-declined.html$
-RewriteCond %{HTTP_COOKIE} downloadrequested=(.*)
-RewriteRule .* /licenses/nolicense.html [L]
-# ST-E.
-RewriteCond %{REQUEST_URI} licenses/ste-declined.html$
+RewriteCond %{REQUEST_URI} licenses/.*-declined.html$
 RewriteCond %{HTTP_COOKIE} downloadrequested=(.*)
 RewriteRule .* /licenses/nolicense.html [L]
 
 ## Pass through any non-protected dirs.
-RewriteCond %{REQUEST_URI} !^/.*origen.*
-RewriteCond %{REQUEST_URI} !^/.*snowball.*
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME}/OPEN-EULA.txt -f 
 RewriteRule .* - [L]
 
-## Redirect to the license file protected builds.
-# Samsung.
-RewriteCond %{REQUEST_URI} ^/.*origen.*$
-RewriteRule .* /licenses/samsung-v2.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
-# ST-E.
-RewriteCond %{REQUEST_URI} ^/.*snowball.*
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{ENV:LP_DOWNLOAD_DIR}/OPEN-EULA.txt -f 
+RewriteRule .* - [L]
+
+## Redirect to the Samsung license file protected builds.
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME} .*origen.*
+RewriteCond %{REQUEST_FILENAME}/EULA.txt -f
+RewriteRule .* /licenses/samsung.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
+
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_FILENAME} .*origen.* 
+RewriteCond %{ENV:LP_DOWNLOAD_DIR}/EULA.txt -f
+RewriteRule .* /licenses/samsung.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
+
+## Redirect to the ST-E license file protected builds.
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME} .*snowball.* 
+RewriteCond %{REQUEST_FILENAME}/EULA.txt -f
 RewriteRule .* /licenses/ste.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
+
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_FILENAME} .*snowball.* 
+RewriteCond %{ENV:LP_DOWNLOAD_DIR}/EULA.txt -f
+RewriteRule .* /licenses/ste.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
+
+## Redirect to the Linaro license file protected builds.
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME}/EULA.txt -f
+RewriteRule .* /licenses/linaro.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
+
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{ENV:LP_DOWNLOAD_DIR}/EULA.txt -f
+RewriteRule .* /licenses/linaro.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
+
+## Return "Permission denied" if no EULA/OPEN-EULA exists
+RewriteCond %{REQUEST_URI} !^/$
+RewriteCond %{REQUEST_URI} !^/licenses/.*$
+RewriteCond %{ENV:LP_DOWNLOAD_DIR}/EULA.txt !-f
+RewriteCond %{ENV:LP_DOWNLOAD_DIR}/OPEN-EULA.txt !-f
+RewriteRule .* - [R=403,L]

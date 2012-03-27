@@ -17,6 +17,9 @@ ServerAdmin you@example.com
 
 DocumentRoot ""
 
+RewriteLog rewrite.log
+RewriteLogLevel 7
+
 AccessFileName .htaccess
 
 LoadModule authz_host_module /usr/lib/apache2/modules/mod_authz_host.so

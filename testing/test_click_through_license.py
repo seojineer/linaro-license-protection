@@ -19,11 +19,14 @@ local_rewrite = 'RewriteCond %{REMOTE_ADDR} 127.0.0.1 [OR]'
 
 host = 'http://127.0.0.1'
 port = '0'  # 0 == Pick a free port.
-samsung_license_path = '/licenses/samsung-v2.html'
+samsung_license_path = '/licenses/samsung.html'
 ste_license_path = '/licenses/ste.html'
+linaro_license_path = '/licenses/linaro.html'
 samsung_test_file = '/android/~linaro-android/staging-origen/test.txt'
-ste_test_file = '/android/~linaro-android/staging-snowball/test.txt'
-not_protected_test_file = '/android/~linaro-android/staging-panda/test.txt'
+ste_test_file = '/android/~linaro-android/staging-snowball/173/target/product/snowball/test.txt'
+never_available = '/android/~linaro-android/staging-imx53/test.txt'
+linaro_test_file = '/android/~linaro-android/staging-panda/test.txt'
+not_protected_test_file = '/android/~linaro-android/staging-vexpress-a9/test.txt'
 
 
 class Contains(object):
@@ -105,6 +108,8 @@ class TestLicense(TestCase):
             os.unlink("%s/click_through_license_access.log" % srvroot)
         if os.path.exists("%s/click_through_license_error.log" % srvroot):
             os.unlink("%s/click_through_license_error.log" % srvroot)
+        if os.path.exists("%s/rewrite.log" % srvroot):
+            os.unlink("%s/rewrite.log" % srvroot)
         os.rename("%s/dothtaccess" % docroot, "%s/.htaccess" % docroot)
 
     def setUp(self):
@@ -129,14 +134,24 @@ class TestLicense(TestCase):
         testfile = fetcher.get(host + ste_license_path)
         self.assertThat(testfile, Contains(search))
 
+    def test_licensefile_directly_linaro(self):
+        search = "Index of /"
+        testfile = fetcher.get(host + linaro_license_path)
+        self.assertThat(testfile, Contains(search))
+
     def test_redirect_to_license_samsung(self):
-        search = "SAMSUNG DEVELOPMENT TOOL KIT END-USER LICENSE AGREEMENT"
+        search = "LICENSE AGREEMENT"
         testfile = fetcher.get(host + samsung_test_file, ignore_license=True)
         self.assertThat(testfile, Contains(search))
 
     def test_redirect_to_license_ste(self):
-        search = "LIMITED LICENSE AGREEMENT FOR APPLICATION DEVELOPERS"
+        search = "LICENSE AGREEMENT"
         testfile = fetcher.get(host + ste_test_file, ignore_license=True)
+        self.assertThat(testfile, Contains(search))
+
+    def test_redirect_to_license_linaro(self):
+        search = "LICENSE AGREEMENT"
+        testfile = fetcher.get(host + linaro_test_file, ignore_license=True)
         self.assertThat(testfile, Contains(search))
 
     def test_decline_license_samsung(self):
@@ -149,9 +164,19 @@ class TestLicense(TestCase):
         testfile = fetcher.get(host + ste_test_file, accept_license=False)
         self.assertThat(testfile, Contains(search))
 
+    def test_decline_license_linaro(self):
+        search = "License has not been accepted"
+        testfile = fetcher.get(host + linaro_test_file, accept_license=False)
+        self.assertThat(testfile, Contains(search))
+
     def test_non_protected_dirs(self):
         search = "This is always available."
         testfile = fetcher.get(host + not_protected_test_file)
+        self.assertThat(testfile, Contains(search))
+
+    def test_never_available_dirs(self):
+        search = "Forbidden"
+        testfile = fetcher.get(host + never_available)
         self.assertThat(testfile, Contains(search))
 
     def test_accept_license_samsung_file(self):
