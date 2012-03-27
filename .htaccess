@@ -28,20 +28,20 @@ RewriteRule .* - [L]
 
 ## If license file is requested, and a download has been requested previously,
 ## pass through to the license file.
-RewriteCond %{REQUEST_URI} /licenses/license.html$ [OR]
 RewriteCond %{REQUEST_URI} /licenses/ste.html$ [OR]
 RewriteCond %{REQUEST_URI} /licenses/samsung.html$ [OR]
-RewriteCond %{REQUEST_URI} /licenses/linaro.html$
+RewriteCond %{REQUEST_URI} /licenses/linaro.html$ [OR]
+RewriteCond %{REQUEST_URI} /licenses/license.php$
 RewriteCond %{HTTP_COOKIE} downloadrequested
 RewriteCond %{HTTP_COOKIE} !licenseaccepted=true
 RewriteRule .* - [L]
 
 ## When license files are requested directly, forward to
 ## the snapshots.l.o site itself.
-RewriteCond %{REQUEST_URI} /licenses/license.html$ [OR]
 RewriteCond %{REQUEST_URI} /licenses/linaro.html$ [OR]
 RewriteCond %{REQUEST_URI} /licenses/samsung.html$ [OR]
-RewriteCond %{REQUEST_URI} /licenses/ste.html$
+RewriteCond %{REQUEST_URI} /licenses/ste.html$ [OR]
+RewriteCond %{REQUEST_URI} /licenses/license.php$
 RewriteCond %{HTTP_COOKIE} !downloadrequested=(.*)
 RewriteRule .* / [R,L]
 
@@ -76,32 +76,32 @@ RewriteRule .* - [L]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteCond %{REQUEST_FILENAME} .*origen.*
 RewriteCond %{REQUEST_FILENAME}/EULA.txt -f
-RewriteRule .* /licenses/samsung.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
+RewriteRule .* /licenses/license.php?samsung [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
 
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteCond %{REQUEST_FILENAME} .*origen.* 
 RewriteCond %{ENV:LP_DOWNLOAD_DIR}/EULA.txt -f
-RewriteRule .* /licenses/samsung.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
+RewriteRule .* /licenses/license.php?samsung [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
 
 ## Redirect to the ST-E license file protected builds.
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteCond %{REQUEST_FILENAME} .*snowball.* 
 RewriteCond %{REQUEST_FILENAME}/EULA.txt -f
-RewriteRule .* /licenses/ste.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
+RewriteRule .* /licenses/license.php?ste [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
 
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteCond %{REQUEST_FILENAME} .*snowball.* 
 RewriteCond %{ENV:LP_DOWNLOAD_DIR}/EULA.txt -f
-RewriteRule .* /licenses/ste.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
+RewriteRule .* /licenses/license.php?ste [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
 
 ## Redirect to the Linaro license file protected builds.
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteCond %{REQUEST_FILENAME}/EULA.txt -f
-RewriteRule .* /licenses/linaro.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
+RewriteRule .* /licenses/license.php?linaro [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
 
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteCond %{ENV:LP_DOWNLOAD_DIR}/EULA.txt -f
-RewriteRule .* /licenses/linaro.html [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
+RewriteRule .* /licenses/license.php?linaro [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
 
 ## Return "Permission denied" if no EULA/OPEN-EULA exists
 RewriteCond %{REQUEST_URI} !^/$
