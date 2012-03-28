@@ -50,7 +50,7 @@ class SnapshotsPublisher(object):
         elif args.job_type == "kernel-hwpack":
             ret_val = jobname.split('_')[0].replace(".", "_")
         elif args.job_type == "prebuilt":
-            ret_val = args.job_name
+            ret_val = '' #just need non-null since its isn't needed
         return ret_val
 
     def validate_paths(self, args, uploads_path, target_path):
@@ -75,10 +75,9 @@ class SnapshotsPublisher(object):
                                        args.job_name])
                 target_dir_path = os.path.join(target_path, target_dir)
             elif args.job_type == "prebuilt":
-                build_path = '%s-%s/%d' % (args.job_type, args.job_name,
-                                           args.build_num)
+                build_path = '%s/%d' % (args.job_name, args.build_num)
                 build_dir_path = os.path.join(uploads_path, build_path)
-                target_dir_path = os.path.join(target_path, ret_val)
+                target_dir_path = target_path
         else:
             return None, None
 
