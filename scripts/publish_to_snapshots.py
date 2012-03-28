@@ -26,6 +26,7 @@ FAIL = 1
 acceptable_job_types = [
     'android',
     'kernel-hwpack',
+    'prebuilt'
     ]
 
 class SnapshotsPublisher(object):
@@ -48,7 +49,9 @@ class SnapshotsPublisher(object):
             ret_val = jobname.split("_")    
         elif args.job_type == "kernel-hwpack":
             ret_val = jobname.split('_')[0].replace(".", "_")
-        return ret_val 
+        elif args.job_type == "prebuilt":
+            ret_val = args.job_name
+        return ret_val
 
     def validate_paths(self, args, uploads_path, target_path):
         build_dir_path = target_dir_path = None
@@ -71,6 +74,11 @@ class SnapshotsPublisher(object):
                 target_dir = '/'.join([args.job_type, kernel_tree, 
                                        args.job_name])
                 target_dir_path = os.path.join(target_path, target_dir)
+            elif args.job_type == "prebuilt":
+                build_path = '%s-%s/%d' % (args.job_type, args.job_name,
+                                           args.build_num)
+                build_dir_path = os.path.join(uploads_path, build_path)
+                target_dir_path = os.path.join(target_path, ret_val)
         else:
             return None, None
 
@@ -155,7 +163,7 @@ class SnapshotsPublisher(object):
 
             self.move_dir_content(build_dir_path, target_dir_path)
 
-            if args.job_type != "kernel-hwpack":
+            if args.job_type == "android":
                 ret = self.create_symlink(target_dir_path)
                 if ret != PASS:
                     return ret
