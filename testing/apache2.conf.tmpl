@@ -27,7 +27,7 @@ LoadModule cache_module /usr/lib/apache2/modules/mod_cache.so
 LoadModule mime_module /usr/lib/apache2/modules/mod_mime.so
 LoadModule autoindex_module /usr/lib/apache2/modules/mod_autoindex.so
 LoadModule rewrite_module /usr/lib/apache2/modules/mod_rewrite.so
-LoadModule rewrite_module /usr/lib/apache2/modules/php5.so
+LoadModule php5_module /usr/lib/apache2/modules/libphp5.so
 
 User daemon
 Group daemon
@@ -107,14 +107,6 @@ LogLevel warn
     <FilesMatch "\.phps$">
 	SetHandler application/x-httpd-php-source
     </FilesMatch>
-    # To re-enable php in user directories comment the following lines
-    # (from <IfModule ...> to </IfModule>.) Do NOT set it to On as it
-    # prevents .htaccess files from disabling it.
-    <IfModule mod_userdir.c>
-        <Directory /home/*/public_html>
-            php_admin_value engine Off
-        </Directory>
-    </IfModule>
 </IfModule>
 
 DefaultType text/plain
