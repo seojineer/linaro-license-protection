@@ -25,8 +25,10 @@ PASS = 0
 FAIL = 1
 acceptable_job_types = [
     'android',
+    'prebuilt',
     'kernel-hwpack',
-    'prebuilt'
+    'ubuntu-hwpacks',
+    'ubuntu-images'
     ]
 
 class SnapshotsPublisher(object):
@@ -49,6 +51,9 @@ class SnapshotsPublisher(object):
             ret_val = jobname.split("_")    
         elif args.job_type == "kernel-hwpack":
             ret_val = jobname.split('_')[0].replace(".", "_")
+        elif args.job_type == "ubuntu-hwpacks" or \
+             args.job_type == "ubuntu-images":
+            ret_val = jobname.split('-', 2)
         elif args.job_type == "prebuilt":
             ret_val = '' #just need non-null since its isn't needed
         return ret_val
@@ -73,6 +78,16 @@ class SnapshotsPublisher(object):
                 build_dir_path = os.path.join(uploads_path, build_path)
                 target_dir = '/'.join([args.job_type, kernel_tree, 
                                        args.job_name])
+                target_dir_path = os.path.join(target_path, target_dir)
+            elif args.job_type == "ubuntu-hwpacks" or \
+                 args.job_type == "ubuntu-images":
+                dist_name = ret_val[0]
+                hwpack_image = args.job_type.split("-")[1]
+                board_rootfs_name = ret_val[2]
+                build_dir_path = os.path.join(uploads_path, args.job_name, 
+                                              str(args.build_num))
+                target_dir = '/'.join([dist_name, hwpack_image, 
+                                       board_rootfs_name, str(args.build_num)])
                 target_dir_path = os.path.join(target_path, target_dir)
             elif args.job_type == "prebuilt":
                 build_path = '%s/%d' % (args.job_name, args.build_num)
@@ -149,6 +164,7 @@ class SnapshotsPublisher(object):
                         continue
                     else:
                         os.remove(dest)
+                print "Moving the src '", src, "'to dest'", dest, "'"
                 shutil.move(src, dest)
         except shutil.Error:
             print "Error while moving the content"
@@ -189,18 +205,21 @@ def main():
     publisher = SnapshotsPublisher()
     args = parser.parse_args()
     publisher.validate_args(args)
-    build_dir_path, target_dir_path = publisher.validate_paths(args, uploads_path, 
-                                                               target_path)
-    if build_dir_path == None or target_dir_path == None:
-        print "Problem with build/target path, move failed"
+    try:
+        build_dir_path, target_dir_path = publisher.validate_paths(args, uploads_path, 
+                                                                   target_path)
+        if build_dir_path == None or target_dir_path == None:
+            print "Problem with build/target path, move failed"
+            return FAIL
+        ret  = publisher.move_artifacts(args, build_dir_path, target_dir_path)
+        if ret != PASS:
+            print "Move Failed"
+            return FAIL
+        else:
+            print "Move succeeded"
+            return PASS
+    except Exception, details:
+        print "In main() Exception details:", details
         return FAIL
-
-    ret  = publisher.move_artifacts(args, build_dir_path, target_dir_path)
-    if ret != PASS:
-        print "Move Failed"
-        return FAIL
-    else:
-        print "Move succeeded"
-        return PASS
 if __name__ == '__main__':
     sys.exit(main())
