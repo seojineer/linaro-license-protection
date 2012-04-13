@@ -17,6 +17,9 @@ ServerAdmin you@example.com
 
 DocumentRoot ""
 
+RewriteLog rewrite.log
+RewriteLogLevel 7
+
 AccessFileName .htaccess
 
 LoadModule authz_host_module /usr/lib/apache2/modules/mod_authz_host.so
@@ -24,6 +27,7 @@ LoadModule cache_module /usr/lib/apache2/modules/mod_cache.so
 LoadModule mime_module /usr/lib/apache2/modules/mod_mime.so
 LoadModule autoindex_module /usr/lib/apache2/modules/mod_autoindex.so
 LoadModule rewrite_module /usr/lib/apache2/modules/mod_rewrite.so
+LoadModule php5_module /usr/lib/apache2/modules/libphp5.so
 
 User daemon
 Group daemon
@@ -94,6 +98,15 @@ LogLevel warn
 
     CustomLog "click_through_license_access.log" common
 
+</IfModule>
+
+<IfModule mod_php5.c>
+    <FilesMatch "\.ph(p3?|tml)$">
+	SetHandler application/x-httpd-php
+    </FilesMatch>
+    <FilesMatch "\.phps$">
+	SetHandler application/x-httpd-php-source
+    </FilesMatch>
 </IfModule>
 
 DefaultType text/plain
