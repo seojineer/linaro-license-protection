@@ -70,7 +70,7 @@ class SnapshotsPublisher(object):
                 build_dir_path = os.path.join(uploads_path, build_path) 
                 user_name = ret_val[0]
                 job_name = '_'.join(ret_val[1:])
-                target_dir = '/'.join([args.job_type, user_name, job_name,
+                target_dir = '/'.join([args.job_type, "~%s" % user_name, job_name,
                                        str(args.build_num)])
                 target_dir_path = os.path.join(target_path, target_dir)
             elif args.job_type == "kernel-hwpack":
