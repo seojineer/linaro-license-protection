@@ -50,6 +50,15 @@ class TestSnapshotsPublisher(TestCase):
         param = self.parser.parse_args(['-t', 'prebuilt', '-j', 'dummy_job_name',
                                         '-n', '1'])
         self.publisher.validate_args(param)
+        param = self.parser.parse_args(['-t', 'ubuntu-hwpacks', '-j', 'dummy_job_name',
+                                        '-n', '1'])
+        self.publisher.validate_args(param)
+        param = self.parser.parse_args(['-t', 'ubuntu-images', '-j', 'dummy_job_name',
+                                        '-n', '1'])
+        self.publisher.validate_args(param)
+        param = self.parser.parse_args(['-t', 'binaries', '-j', 'dummy_job_name',
+                                        '-n', '1'])
+        self.publisher.validate_args(param)
 
     def test_validate_args_invalid_job_type(self):
         orig_stderr = sys.stderr
@@ -63,6 +72,7 @@ class TestSnapshotsPublisher(TestCase):
             self.assertEqual(err.code, 2, "Expected result")
         finally:
             sys.stderr = orig_stderr
+
         stderr.seek(0)
         self.assertIn("Invalid job type", stderr.read())
 
@@ -78,6 +88,7 @@ class TestSnapshotsPublisher(TestCase):
             self.assertEqual(err.code, 2, "Invalid argument passed")
         finally:
             sys.stderr = orig_stderr
+
         stderr.seek(0)
         self.assertIn("unrecognized arguments: -a\n", stderr.read())
 
@@ -92,6 +103,7 @@ class TestSnapshotsPublisher(TestCase):
             self.assertEqual(err.code, 2, "Invalid value passed")
         finally:
             sys.stderr = orig_stderr
+
         stderr.seek(0)
         self.assertIn("argument -n/--build-num: invalid int value: 'N'", 
                       stderr.read())
@@ -107,6 +119,7 @@ class TestSnapshotsPublisher(TestCase):
             self.assertEqual(err.code, 2, "None values are not acceptable")
         finally:
             sys.stderr = orig_stderr
+
         stderr.seek(0)
         self.assertIn("You must specify job-type, job-name and build-num", 
                       stderr.read())
@@ -124,6 +137,7 @@ class TestSnapshotsPublisher(TestCase):
             self.publisher.validate_paths(param, uploads_path, self.target_path)
         finally:
             sys.stdout = orig_stdout
+
         stdout.seek(0)
         self.assertIn("Missing build path", stdout.read())
 
@@ -140,6 +154,7 @@ class TestSnapshotsPublisher(TestCase):
             self.publisher.validate_paths(param, self.uploads_path, self.target_path)
         finally:
             sys.stdout = orig_stdout
+
         stdout.seek(0)
         self.assertIn("Missing target path", stdout.read())
 
@@ -153,7 +168,7 @@ class TestSnapshotsPublisher(TestCase):
         build_path = os.path.join(self.uploads_path, param.job_type, param.job_name,
                                   str(param.build_num))
         os.makedirs(build_path)
-        tempfiles = tempfile.mkstemp(dir=build_path)
+        tempfile.mkstemp(dir=build_path)
         try:
             uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
                                                 self.uploads_path, self.target_path)
@@ -163,7 +178,7 @@ class TestSnapshotsPublisher(TestCase):
         finally:
             sys.stdout = orig_stdout
             pass
-         
+
         stdout.seek(0)
         self.assertIn("Moved the files from", stdout.read())
 
@@ -177,7 +192,7 @@ class TestSnapshotsPublisher(TestCase):
         build_dir = '/'.join([param.job_type, param.job_name, str(param.build_num)])
         build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
-        tempfiles = tempfile.mkstemp(dir=build_path)
+        tempfile.mkstemp(dir=build_path)
         try:
             uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
                                                 self.uploads_path, self.target_path)
@@ -187,7 +202,7 @@ class TestSnapshotsPublisher(TestCase):
         finally:
             sys.stdout = orig_stdout
             pass
-   
+
         stdout.seek(0)
         self.assertIn("Moved the files from", stdout.read())
 
@@ -201,13 +216,12 @@ class TestSnapshotsPublisher(TestCase):
         build_dir = '/'.join([param.job_name, str(param.build_num)])
         build_path = os.path.join(self.uploads_path, build_dir,'oneiric')
         os.makedirs(build_path)
-        tempfiles = tempfile.mkstemp(dir=build_path)
+        tempfile.mkstemp(dir=build_path)
         try:
             uploads_dir_path, target_dir_path = self.publisher.validate_paths(param,
                                                 self.uploads_path, self.target_path)
             uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
             target_dir_path = os.path.join(self.orig_dir, target_dir_path)
-            orig_stdout.write("andy: (%s) (%s)\n" % (uploads_dir_path, target_dir_path))
             self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
         finally:
             sys.stdout = orig_stdout
@@ -226,7 +240,7 @@ class TestSnapshotsPublisher(TestCase):
         build_dir = '/'.join([param.job_name, str(param.build_num)])
         build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
-        tempfiles = tempfile.mkstemp(dir=build_path)
+        tempfile.mkstemp(dir=build_path)
         try:
             uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
                                                 self.uploads_path, self.target_path)
@@ -236,7 +250,7 @@ class TestSnapshotsPublisher(TestCase):
         finally:
             sys.stdout = orig_stdout
             pass
-   
+
         stdout.seek(0)
         self.assertIn("Moved the files from", stdout.read())
 
@@ -250,9 +264,9 @@ class TestSnapshotsPublisher(TestCase):
         build_dir = '/'.join([param.job_name, str(param.build_num)])
         build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
-        tempfiles = tempfile.mkstemp(dir=build_path)
+        tempfile.mkstemp(dir=build_path)
         try:
-            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param,
                                                 self.uploads_path, self.target_path)
             uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
             target_dir_path = os.path.join(self.orig_dir, target_dir_path)
@@ -260,10 +274,39 @@ class TestSnapshotsPublisher(TestCase):
         finally:
             sys.stdout = orig_stdout
             pass
-   
+
         stdout.seek(0)
         self.assertIn("Moved the files from", stdout.read())
 
+    def test_move_artifacts_binaries_successful_move(self):
+        orig_stdout = sys.stdout
+        stdout = sys.stdout = StringIO()
+        self.publisher = SnapshotsPublisher()
+        param = self.parser.parse_args(['-t', 'binaries', '-j',
+                                        'snowball-binary-update', '-n', '1'])
+        self.publisher.validate_args(param)
+        build_path = os.path.join(self.uploads_path,
+                                  param.job_name,
+                                  str(param.build_num))
+        os.makedirs(build_path)
+        tempfile.mkstemp(dir=build_path)
+        ts_file = os.path.join(build_path, 'TIMESTAMP')
+        f = open(ts_file, "w")
+        f.write('20120416')
+        f.close()
+        try:
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param,
+                                                                              self.uploads_path,
+                                                                              self.target_path)
+            uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
+            target_dir_path = os.path.join(self.orig_dir, target_dir_path)
+            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+        finally:
+            sys.stdout = orig_stdout
+            pass
+
+        stdout.seek(0)
+        self.assertIn("Moved the files from", stdout.read())
 
     def test_move_artifacts_android_successful_move(self):
         orig_stdout = sys.stdout
@@ -275,7 +318,7 @@ class TestSnapshotsPublisher(TestCase):
         build_dir = '/'.join([param.job_type, param.job_name, str(param.build_num)])
         build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
-        tempfiles = tempfile.mkstemp(dir=build_path)
+        tempfile.mkstemp(dir=build_path)
         try:
             uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
                                                 self.uploads_path, self.target_path)
@@ -285,7 +328,7 @@ class TestSnapshotsPublisher(TestCase):
         finally:
             sys.stdout = orig_stdout
             pass
-   
+
         stdout.seek(0)
         self.assertIn("Moved the files from", stdout.read())
 
@@ -299,7 +342,7 @@ class TestSnapshotsPublisher(TestCase):
         build_dir = '/'.join([param.job_type, param.job_name, str(param.build_num)])
         build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
-        tempfiles = tempfile.mkstemp(dir=build_path)
+        tempfile.mkstemp(dir=build_path)
         try:
             uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
                                                 self.uploads_path, self.target_path)
@@ -309,7 +352,7 @@ class TestSnapshotsPublisher(TestCase):
         finally:
             sys.stdout = orig_stdout
             pass
-        
+
         stdout.seek(0)
         msg = "The lastSuccessful build is now linked to  " +  target_dir_path
         self.assertIn(msg, stdout.read())
@@ -324,7 +367,7 @@ class TestSnapshotsPublisher(TestCase):
         build_dir = '/'.join([param.job_type, param.job_name, str(param.build_num)])
         build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
-        tempfiles = tempfile.mkstemp(dir=build_path)
+        tempfile.mkstemp(dir=build_path)
         lines = []
         try:
             uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
@@ -354,7 +397,7 @@ class TestSnapshotsPublisher(TestCase):
 
         finally:
             sys.stdout = orig_stdout
-        
+
         stdout.seek(0)
         res_output = stdout.read()
         self.assertIn("Moved the files from", res_output)

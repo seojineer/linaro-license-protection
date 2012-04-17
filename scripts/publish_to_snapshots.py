@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-# This script moves the artifacts from tmp location to a
-# to a permanent location on s.l.o
+# Move artifacts from a temporary location to a permanent location on s.l.o
 
 import os
 import sys
@@ -12,10 +11,10 @@ parser.add_argument("-t", "--job-type", dest="job_type",
                     help="Specify the job type (Ex: android/kernel-hwpack)")
 parser.add_argument("-j", "--job-name", dest="job_name",
                     help="Specify the job name which resulted the archive to be stored.\
-                    Ex: ${JOB_NAME} should be specified for andriod and for \
+                    Ex: ${JOB_NAME} should be specified for android/ubuntu-hwpacks/ubuntu-images/binaries and for \
                     kernel-hwpack ${KERNEL_JOB_NAME}")
 parser.add_argument("-n", "--build-num", dest="build_num", type=int,
-                    help="Specify the job build number for android builds only")
+                    help="Specify the job build number for android/ubuntu-hwpacks/ubuntu-images/binaries")
 parser.add_argument("-m", "--manifest", dest="manifest", action='store_true',
                     help="Optional parameter to generate MANIFEST file")
 
@@ -28,11 +27,12 @@ acceptable_job_types = [
     'prebuilt',
     'kernel-hwpack',
     'ubuntu-hwpacks',
-    'ubuntu-images'
+    'ubuntu-images',
+    'binaries'
     ]
 
 class SnapshotsPublisher(object):
- 
+
     def validate_args(self, args):
         # Validate that all the required information 
         # is passed on the command line
@@ -56,6 +56,8 @@ class SnapshotsPublisher(object):
             ret_val = jobname.split('-', 2)
         elif args.job_type == "prebuilt":
             ret_val = '' #just need non-null since its isn't needed
+        elif args.job_type == "binaries":
+            ret_val = jobname.split('-', 2)
         return ret_val
 
     def validate_paths(self, args, uploads_path, target_path):
@@ -93,14 +95,29 @@ class SnapshotsPublisher(object):
                 build_path = '%s/%d' % (args.job_name, args.build_num)
                 build_dir_path = os.path.join(uploads_path, build_path)
                 target_dir_path = target_path
+            elif args.job_type == "binaries":
+                build_dir_path = os.path.join(uploads_path,
+                                              args.job_name,
+                                              str(args.build_num))
+                ts_file = os.path.join(build_dir_path, 'TIMESTAMP')
+                # FIXME: test file and content
+                f = open(ts_file)
+                timestamp = f.read().strip()
+                f.close()
+                os.remove(ts_file)
+                target_dir_path = os.path.join(target_path,
+                                               'android',
+                                               args.job_type,
+                                               ret_val[0],
+                                               timestamp)
         else:
             return None, None
 
-        if not (os.path.isdir(uploads_path) or os.path.isdir(build_dir_path)):
+        if not os.path.isdir(build_dir_path):
             build_paths = "'%s' or '%s'" % (uploads_path, build_dir_path)
             print "Missing build paths: ", build_paths
             return None, None
-       
+
         if not os.path.isdir(target_path):
             print "Missing target path", target_path
             return None, None
@@ -131,7 +148,7 @@ class SnapshotsPublisher(object):
             for path, subdirs, files in os.walk("."):
                 for name in files:
                     lines.append(os.path.join(path, name).split("./")[1] + "\n")
-            
+
             if len(lines) != 0:
                 fd = open(fn, "w+")
                 for line in lines:
@@ -150,7 +167,6 @@ class SnapshotsPublisher(object):
             print "Got Exception in create_manifest_file: ", details
             os.chdir(orig_dir)
             return FAIL
-
 
     def move_dir_content(self, src_dir, dest_dir):
         filelist = os.listdir(src_dir)
@@ -221,5 +237,6 @@ def main():
     except Exception, details:
         print "In main() Exception details:", details
         return FAIL
+
 if __name__ == '__main__':
     sys.exit(main())
