@@ -189,6 +189,8 @@ class SnapshotsPublisher(object):
         try:
             if not os.path.isdir(target_dir_path):
                 os.makedirs(target_dir_path)
+                # Set write permission to the group as default umask is 022
+                os.chmod(target_dir_path, 0775)
                 if not os.path.isdir(target_dir_path):
                     raise OSError
 
