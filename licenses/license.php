@@ -3,7 +3,6 @@
  $lic = $_SERVER["QUERY_STRING"];
  $host = $_SERVER["HTTP_HOST"];
  $doc = $_SERVER["DOCUMENT_ROOT"];
- $eula = $_COOKIE["eula"];
  $fn = $doc.$down;
  if (file_exists($fn) and is_file($fn)) {
     $repl = dirname($down);
@@ -11,15 +10,9 @@
     $repl = $down;
  }
 
- $handle = @fopen($doc."/licenses/".$lic.".html", "r");
- if ($handle) {
-    while (($buffer = fgets($handle, 4096)) !== false) {
-        $eula = str_replace("src=\"EULA.txt\"", "src=".$repl."/EULA.txt", $buffer);
-        echo $eula;
-    }
-    if (!feof($handle)) {
-        echo "Error: unexpected fgets() fail\n";
-    }
-    fclose($handle);
- }
+ $template_content = file_get_contents($doc."/licenses/".$lic.".html");
+ $eula_content = file_get_contents($doc."/licenses/".$lic.".txt");
+
+ $out = str_replace("EULA.txt", $eula_content, $template_content);
+ echo $out;
 ?>
