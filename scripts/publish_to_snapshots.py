@@ -188,7 +188,10 @@ class SnapshotsPublisher(object):
     def move_artifacts(self, args, build_dir_path, target_dir_path):
         try:
             if not os.path.isdir(target_dir_path):
-                os.makedirs(target_dir_path)
+                # umask 0 is required, otherwise mode value of makedirs won't take effect
+                os.umask(0)
+                # Set write permission to the group explicitly, as default umask is 022
+                os.makedirs(target_dir_path, 0775)
                 if not os.path.isdir(target_dir_path):
                     raise OSError
 
