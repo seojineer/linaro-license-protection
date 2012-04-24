@@ -202,7 +202,7 @@ class TestLicense(TestCase):
         testfile = fetcher.get(host + ste_test_file)
         fetcher.close()
         if os.path.exists("%s/cookies.txt" % docroot):
-             os.rename("%s/cookies.txt" % docroot, "%s/cookies.ste" % docroot)
+            os.rename("%s/cookies.txt" % docroot, "%s/cookies.ste" % docroot)
         self.assertThat(testfile, Contains(search))
 
     def test_accept_license_ste_dir(self):
@@ -259,7 +259,7 @@ class TestLicense(TestCase):
         testfile = fetcher.get(host + per_file_ste_test_file)
         fetcher.close()
         if os.path.exists("%s/cookies.txt" % docroot):
-             os.rename("%s/cookies.txt" % docroot, "%s/cookies.ste" % docroot)
+            os.rename("%s/cookies.txt" % docroot, "%s/cookies.ste" % docroot)
         self.assertThat(testfile, Contains(search))
 
     def test_per_file_license_accepted_samsung(self):
