@@ -188,9 +188,9 @@ class SnapshotsPublisher(object):
     def move_artifacts(self, args, build_dir_path, target_dir_path):
         try:
             if not os.path.isdir(target_dir_path):
-                os.makedirs(target_dir_path)
                 # Set write permission to the group as default umask is 022
-                os.chmod(target_dir_path, 0775)
+                os.umask(0)
+                os.makedirs(target_dir_path, 0775)
                 if not os.path.isdir(target_dir_path):
                     raise OSError
 
