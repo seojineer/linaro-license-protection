@@ -24,9 +24,14 @@ ste_license_path = '/licenses/ste.html'
 linaro_license_path = '/licenses/linaro.html'
 samsung_test_file = '/android/~linaro-android/staging-origen/test.txt'
 ste_test_file = '/android/~linaro-android/staging-snowball/173/target/product/snowball/test.txt'
+ste_open_test_file = '/android/~linaro-android/staging-snowball/173/test.txt'
 never_available = '/android/~linaro-android/staging-imx53/test.txt'
 linaro_test_file = '/android/~linaro-android/staging-panda/test.txt'
 not_protected_test_file = '/android/~linaro-android/staging-vexpress-a9/test.txt'
+per_file_samsung_test_file = '/android/images/origen-blob.txt'
+per_file_ste_test_file = '/android/images/snowball-blob.txt'
+per_file_not_protected_test_file = '/android/images/MANIFEST'
+dirs_only_dir = '/android/~linaro-android/'
 
 
 class Contains(object):
@@ -180,7 +185,7 @@ class TestLicense(TestCase):
         self.assertThat(testfile, Contains(search))
 
     def test_accept_license_samsung_file(self):
-        search = "This is a protected with click-through Samsung license."
+        search = "This is protected with click-through Samsung license."
         testfile = fetcher.get(host + samsung_test_file)
         fetcher.close()
         if os.path.exists("%s/cookies.txt" % docroot):
@@ -194,7 +199,7 @@ class TestLicense(TestCase):
         self.assertThat(testfile, Contains(search))
 
     def test_accept_license_ste_file(self):
-        search = "This is a protected with click-through ST-E license."
+        search = "This is protected with click-through ST-E license."
         testfile = fetcher.get(host + ste_test_file)
         fetcher.close()
         if os.path.exists("%s/cookies.txt" % docroot):
@@ -207,19 +212,19 @@ class TestLicense(TestCase):
         self.assertThat(testfile, Contains(search))
 
     def test_license_accepted_samsung(self):
-        search = "This is a protected with click-through Samsung license."
+        search = "This is protected with click-through Samsung license."
         os.rename("%s/cookies.samsung" % docroot, "%s/cookies.txt" % docroot)
         testfile = fetcher.get(host + samsung_test_file, ignore_license=True)
         self.assertThat(testfile, Contains(search))
 
     def test_license_accepted_ste(self):
-        search = "This is a protected with click-through ST-E license."
+        search = "This is protected with click-through ST-E license."
         os.rename("%s/cookies.ste" % docroot, "%s/cookies.txt" % docroot)
         testfile = fetcher.get(host + ste_test_file, ignore_license=True)
         self.assertThat(testfile, Contains(search))
 
     def test_internal_host_samsung(self):
-        search = "This is a protected with click-through Samsung license."
+        search = "This is protected with click-through Samsung license."
         subprocess.Popen(['sed', '-i', '/## Let internal hosts through '
             'always./ a %s' % local_rewrite, '%s/.htaccess' % docroot],
             stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT).wait()
@@ -228,10 +233,54 @@ class TestLicense(TestCase):
         self.assertThat(testfile, Contains(search))
 
     def test_internal_host_ste(self):
-        search = "This is a protected with click-through ST-E license."
+        search = "This is protected with click-through ST-E license."
         subprocess.Popen(['sed', '-i', '/## Let internal hosts through '
             'always./ a %s' % local_rewrite, '%s/.htaccess' % docroot],
             stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT).wait()
         testfile = fetcher.get(host + ste_test_file, ignore_license=True)
         shutil.copy("%s/dothtaccess" % docroot, "%s/.htaccess" % docroot)
+        self.assertThat(testfile, Contains(search))
+
+    def test_ste_open_file(self):
+        search = "This is always available."
+        testfile = fetcher.get(host + ste_open_test_file)
+        self.assertThat(testfile, Contains(search))
+
+    def test_per_file_accept_license_samsung_file(self):
+        search = "This is protected with click-through Samsung license."
+        testfile = fetcher.get(host + per_file_samsung_test_file)
+        fetcher.close()
+        if os.path.exists("%s/cookies.txt" % docroot):
+            os.rename("%s/cookies.txt" % docroot,
+                    "%s/cookies.samsung" % docroot)
+        self.assertThat(testfile, Contains(search))
+
+    def test_per_file_accept_license_ste_file(self):
+        search = "This is protected with click-through ST-E license."
+        testfile = fetcher.get(host + per_file_ste_test_file)
+        fetcher.close()
+        if os.path.exists("%s/cookies.txt" % docroot):
+            os.rename("%s/cookies.txt" % docroot, "%s/cookies.ste" % docroot)
+        self.assertThat(testfile, Contains(search))
+
+    def test_per_file_license_accepted_samsung(self):
+        search = "This is protected with click-through Samsung license."
+        os.rename("%s/cookies.samsung" % docroot, "%s/cookies.txt" % docroot)
+        testfile = fetcher.get(host + per_file_samsung_test_file, ignore_license=True)
+        self.assertThat(testfile, Contains(search))
+
+    def test_per_file_license_accepted_ste(self):
+        search = "This is protected with click-through ST-E license."
+        os.rename("%s/cookies.ste" % docroot, "%s/cookies.txt" % docroot)
+        testfile = fetcher.get(host + per_file_ste_test_file, ignore_license=True)
+        self.assertThat(testfile, Contains(search))
+
+    def test_per_file_non_protected_dirs(self):
+        search = "MANIFEST"
+        testfile = fetcher.get(host + per_file_not_protected_test_file)
+        self.assertThat(testfile, Contains(search))
+
+    def test_dir_containing_only_dirs(self):
+        search = "Index of /android/~linaro-android"
+        testfile = fetcher.get(host + dirs_only_dir)
         self.assertThat(testfile, Contains(search))

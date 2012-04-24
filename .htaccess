@@ -31,6 +31,7 @@ RewriteRule .* - [L]
 RewriteCond %{REQUEST_URI} /licenses/ste.html$ [OR]
 RewriteCond %{REQUEST_URI} /licenses/samsung.html$ [OR]
 RewriteCond %{REQUEST_URI} /licenses/linaro.html$ [OR]
+RewriteCond %{REQUEST_URI} /licenses/nolicense.html$ [OR]
 RewriteCond %{REQUEST_URI} /licenses/license.php$
 RewriteCond %{HTTP_COOKIE} downloadrequested
 RewriteCond %{HTTP_COOKIE} !licenseaccepted=true
@@ -45,13 +46,11 @@ RewriteCond %{REQUEST_URI} /licenses/license.php$
 RewriteCond %{HTTP_COOKIE} !downloadrequested=(.*)
 RewriteRule .* / [R,L]
 
-## Exception for <iframe>
-RewriteCond %{REQUEST_URI} ^.*/EULA.txt$
-RewriteRule .* - [L]
-
 ## If there is a cookie indicating license has been accepted, pass through.
+## Unset it to be able to process several protected files in the same dir
 RewriteCond %{HTTP_COOKIE} licenseaccepted=true
-RewriteRule .* - [L]
+RewriteCond %{HTTP_COOKIE} downloadrequested=([^\;]*\/)([^/\;]*)
+RewriteRule .* - [CO=licenseaccepted:INVALID:;:-1:%1,L]
 
 ## When license is accepted, set the cookie.
 RewriteCond %{REQUEST_URI} licenses/.*-accepted.html$
@@ -72,36 +71,13 @@ RewriteCond %{REQUEST_FILENAME} -f
 RewriteCond %{ENV:LP_DOWNLOAD_DIR}/OPEN-EULA.txt -f 
 RewriteRule .* - [L]
 
+## Unset cookie indicating redirect from license.php
+RewriteCond %{HTTP_COOKIE} redirectlicensephp=yes
+RewriteRule .* - [CO=redirectlicensephp:INVALID:;:-1,L]
+
 ## Redirect to the Samsung license file protected builds.
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteCond %{REQUEST_FILENAME} .*origen.*
-RewriteCond %{REQUEST_FILENAME}/EULA.txt -f
-RewriteRule .* /licenses/license.php?samsung [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
-
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteCond %{REQUEST_FILENAME} .*origen.* 
-RewriteCond %{ENV:LP_DOWNLOAD_DIR}/EULA.txt -f
-RewriteRule .* /licenses/license.php?samsung [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
-
-## Redirect to the ST-E license file protected builds.
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteCond %{REQUEST_FILENAME} .*snowball.* 
-RewriteCond %{REQUEST_FILENAME}/EULA.txt -f
-RewriteRule .* /licenses/license.php?ste [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
-
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteCond %{REQUEST_FILENAME} .*snowball.* 
-RewriteCond %{ENV:LP_DOWNLOAD_DIR}/EULA.txt -f
-RewriteRule .* /licenses/license.php?ste [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
-
-## Redirect to the Linaro license file protected builds.
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteCond %{REQUEST_FILENAME}/EULA.txt -f
-RewriteRule .* /licenses/license.php?linaro [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
-
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteCond %{ENV:LP_DOWNLOAD_DIR}/EULA.txt -f
-RewriteRule .* /licenses/license.php?linaro [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},R,L]
+RewriteCond %{REQUEST_URI} !^/$ 
+RewriteRule .* /licenses/license.php [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN},L,R]
 
 ## Return "Permission denied" if no EULA/OPEN-EULA exists
 RewriteCond %{REQUEST_URI} !^/$
