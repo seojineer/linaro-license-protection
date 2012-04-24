@@ -31,6 +31,7 @@ not_protected_test_file = '/android/~linaro-android/staging-vexpress-a9/test.txt
 per_file_samsung_test_file = '/android/images/origen-blob.txt'
 per_file_ste_test_file = '/android/images/snowball-blob.txt'
 per_file_not_protected_test_file = '/android/images/MANIFEST'
+dirs_only_dir = '/android/~linaro-android/'
 
 
 class Contains(object):
@@ -277,4 +278,9 @@ class TestLicense(TestCase):
     def test_per_file_non_protected_dirs(self):
         search = "MANIFEST"
         testfile = fetcher.get(host + per_file_not_protected_test_file)
+        self.assertThat(testfile, Contains(search))
+
+    def test_dir_containing_only_dirs(self):
+        search = "Index of /android/~linaro-android"
+        testfile = fetcher.get(host + dirs_only_dir)
         self.assertThat(testfile, Contains(search))
