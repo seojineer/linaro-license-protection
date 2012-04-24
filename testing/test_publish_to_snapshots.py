@@ -149,6 +149,9 @@ class TestSnapshotsPublisher(TestCase):
                                         '-n', '1'])
 
         self.publisher.validate_args(param)
+        build_path = os.path.join(self.uploads_path, param.job_type, param.job_name,
+                                  str(param.build_num))
+        os.makedirs(build_path)
         self.target_path = "./dummy_target_path"
         try:
             self.publisher.validate_paths(param, self.uploads_path, self.target_path)
