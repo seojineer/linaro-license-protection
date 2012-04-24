@@ -11,10 +11,10 @@ parser.add_argument("-t", "--job-type", dest="job_type",
                     help="Specify the job type (Ex: android/kernel-hwpack)")
 parser.add_argument("-j", "--job-name", dest="job_name",
                     help="Specify the job name which resulted the archive to be stored.\
-                    Ex: ${JOB_NAME} should be specified for android/ubuntu-hwpacks/ubuntu-images/binaries and for \
+                    Ex: ${JOB_NAME} should be specified for android/ubuntu-hwpacks/ubuntu-images/ubuntu-sysroots/binaries and for \
                     kernel-hwpack ${KERNEL_JOB_NAME}")
 parser.add_argument("-n", "--build-num", dest="build_num", type=int,
-                    help="Specify the job build number for android/ubuntu-hwpacks/ubuntu-images/binaries")
+                    help="Specify the job build number for android/ubuntu-hwpacks/ubuntu-images/ubuntu-sysroots/binaries")
 parser.add_argument("-m", "--manifest", dest="manifest", action='store_true',
                     help="Optional parameter to generate MANIFEST file")
 
@@ -28,6 +28,7 @@ acceptable_job_types = [
     'kernel-hwpack',
     'ubuntu-hwpacks',
     'ubuntu-images',
+    'ubuntu-sysroots',
     'binaries'
     ]
 
@@ -52,7 +53,8 @@ class SnapshotsPublisher(object):
         elif args.job_type == "kernel-hwpack":
             ret_val = jobname.split('_')[0].replace(".", "_")
         elif args.job_type == "ubuntu-hwpacks" or \
-             args.job_type == "ubuntu-images":
+             args.job_type == "ubuntu-images" or \
+             args.job_type == "ubuntu-sysroots":
             ret_val = jobname.split('-', 2)
         elif args.job_type == "prebuilt":
             ret_val = '' #just need non-null since its isn't needed
@@ -82,7 +84,8 @@ class SnapshotsPublisher(object):
                                        args.job_name])
                 target_dir_path = os.path.join(target_path, target_dir)
             elif args.job_type == "ubuntu-hwpacks" or \
-                 args.job_type == "ubuntu-images":
+                 args.job_type == "ubuntu-images" or \
+                 args.job_type == "ubuntu-sysroots":
                 dist_name = ret_val[0]
                 hwpack_image = args.job_type.split("-")[1]
                 board_rootfs_name = ret_val[2]
