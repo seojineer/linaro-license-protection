@@ -1,1 +1,1 @@
-This is a protected with click-through Linaro license.
+This is protected with click-through Linaro license.
