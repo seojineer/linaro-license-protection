@@ -56,6 +56,9 @@ class TestSnapshotsPublisher(TestCase):
         param = self.parser.parse_args(['-t', 'ubuntu-images', '-j', 'dummy_job_name',
                                         '-n', '1'])
         self.publisher.validate_args(param)
+        param = self.parser.parse_args(['-t', 'ubuntu-sysroots', '-j', 'dummy_job_name',
+                                        '-n', '1'])
+        self.publisher.validate_args(param)
         param = self.parser.parse_args(['-t', 'binaries', '-j', 'dummy_job_name',
                                         '-n', '1'])
         self.publisher.validate_args(param)
@@ -271,6 +274,30 @@ class TestSnapshotsPublisher(TestCase):
         try:
             uploads_dir_path, target_dir_path = self.publisher.validate_paths(param,
                                                 self.uploads_path, self.target_path)
+            uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
+            target_dir_path = os.path.join(self.orig_dir, target_dir_path)
+            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+        finally:
+            sys.stdout = orig_stdout
+            pass
+
+        stdout.seek(0)
+        self.assertIn("Moved the files from", stdout.read())
+
+    def test_move_artifacts_ubuntu_sysroots_successful_move(self):
+        orig_stdout = sys.stdout
+        stdout = sys.stdout = StringIO()
+        self.publisher = SnapshotsPublisher()
+        param = self.parser.parse_args(['-t', 'ubuntu-sysroots', '-j',
+                                        'precise-armhf-ubuntu-desktop-dev', '-n', '1'])
+        self.publisher.validate_args(param)
+        build_dir = '/'.join([param.job_name, str(param.build_num)])
+        build_path = os.path.join(self.uploads_path, build_dir)
+        os.makedirs(build_path)
+        tempfile.mkstemp(dir=build_path)
+        try:
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param,
+                self.uploads_path, self.target_path)
             uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
             target_dir_path = os.path.join(self.orig_dir, target_dir_path)
             self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)

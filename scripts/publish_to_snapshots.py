@@ -10,16 +10,20 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--job-type", dest="job_type",
                     help="Specify the job type (Ex: android/kernel-hwpack)")
 parser.add_argument("-j", "--job-name", dest="job_name",
-                    help="Specify the job name which resulted the archive to be stored.\
-                    Ex: ${JOB_NAME} should be specified for android/ubuntu-hwpacks/ubuntu-images/binaries and for \
-                    kernel-hwpack ${KERNEL_JOB_NAME}")
+                    help="Specify the job name which resulted the archive to "\
+                    "be stored. Ex: ${JOB_NAME} should be specified for "\
+                    "android/ubuntu-{hwpacks,images,sysroots}/binaries and for"\
+                    "kernel-hwpack ${KERNEL_JOB_NAME}")
 parser.add_argument("-n", "--build-num", dest="build_num", type=int,
-                    help="Specify the job build number for android/ubuntu-hwpacks/ubuntu-images/binaries")
+                    help="Specify the job build number for android/"\
+                    "ubuntu-{hwpacks,images,sysroots}/binaries")
 parser.add_argument("-m", "--manifest", dest="manifest", action='store_true',
                     help="Optional parameter to generate MANIFEST file")
 
 uploads_path = '/srv3/snapshots.linaro.org/uploads/'
 target_path = '/srv3/snapshots.linaro.org/www/'
+uploads_path = '/tmp/uploads/'
+target_path = '/tmp/www/'
 PASS = 0 
 FAIL = 1
 acceptable_job_types = [
@@ -28,6 +32,7 @@ acceptable_job_types = [
     'kernel-hwpack',
     'ubuntu-hwpacks',
     'ubuntu-images',
+    'ubuntu-sysroots',
     'binaries'
     ]
 
@@ -52,7 +57,8 @@ class SnapshotsPublisher(object):
         elif args.job_type == "kernel-hwpack":
             ret_val = jobname.split('_')[0].replace(".", "_")
         elif args.job_type == "ubuntu-hwpacks" or \
-             args.job_type == "ubuntu-images":
+             args.job_type == "ubuntu-images" or \
+             args.job_type == "ubuntu-sysroots":
             ret_val = jobname.split('-', 2)
         elif args.job_type == "prebuilt":
             ret_val = '' #just need non-null since its isn't needed
@@ -82,7 +88,8 @@ class SnapshotsPublisher(object):
                                        args.job_name])
                 target_dir_path = os.path.join(target_path, target_dir)
             elif args.job_type == "ubuntu-hwpacks" or \
-                 args.job_type == "ubuntu-images":
+                 args.job_type == "ubuntu-images" or \
+                 args.job_type == "ubuntu-sysroots":
                 dist_name = ret_val[0]
                 hwpack_image = args.job_type.split("-")[1]
                 board_rootfs_name = ret_val[2]
@@ -156,7 +163,8 @@ class SnapshotsPublisher(object):
                         fd.write(line)
                 fd.close()
             else:
-                raise Exception("Uploads directory was empty, nothing got moved to destination")
+                raise Exception("Uploads directory was empty, "\
+                                "nothing got moved to destination")
 
             os.chdir(orig_dir)
 
@@ -188,9 +196,11 @@ class SnapshotsPublisher(object):
     def move_artifacts(self, args, build_dir_path, target_dir_path):
         try:
             if not os.path.isdir(target_dir_path):
-                # umask 0 is required, otherwise mode value of makedirs won't take effect
+                # umask 0 is required, otherwise mode value of
+                #  makedirs won't take effect
                 os.umask(0)
-                # Set write permission to the group explicitly, as default umask is 022
+                # Set write permission to the group explicitly,
+                # as default umask is 022
                 os.makedirs(target_dir_path, 0775)
                 if not os.path.isdir(target_dir_path):
                     raise OSError
@@ -213,7 +223,8 @@ class SnapshotsPublisher(object):
             return PASS
 
         except OSError, details:
-            print "Failed to create the target path", target_dir_path, ":" , details 
+            print "Failed to create the target path", target_dir_path, \
+                   ":", details 
             return FAIL
 
         except shutil.Error:
