@@ -1,12 +1,20 @@
 <?php
 // Get list of files into array to process them later.
 // Used to find special licenses and dirs with only subdirs.
+function check_file($fn)
+{
+	if (is_file($fn) or is_link($fn)) {
+		return true;
+	}
+	return false;
+}
+
 function getFilesList($dirname)
 {
 	$files = array(); 
 	if ($handle = opendir($dirname)) {
 		while ($handle && false !== ($entry = readdir($handle))) {
-			if ($entry != "." && $entry != ".." && !is_dir($dirname.$entry) && !is_link($dirname.$entry)) {
+			if ($entry != "." && $entry != ".." && !is_dir($dirname.$entry) && $entry != "HEADER.html") {
 				$files[] = $entry;
 			}
 		}
@@ -97,7 +105,7 @@ if (preg_match("/.*openid.*/", $fn) or preg_match("/.*restricted.*/", $fn) or pr
 	status_ok($down, $domain);
 }
 
-if (file_exists($fn) and is_file($fn)) { // Requested download is file
+if (file_exists($fn) and check_file($fn)) { // Requested download is file
 	$search_dir = dirname($fn);
 	$repl = dirname($down);
 	$name_only = array(basename($down), '');
@@ -116,10 +124,10 @@ if (!empty($name_only)) {
 	$eula = findSpecialEULA($flist, $pattern);
 }
 
-if (is_file($fn)) {
-	if (is_file($doc."/".$repl."/".$eula)) { // Special EULA found
+if (check_file($fn)) {
+	if (check_file($doc."/".$repl."/".$eula)) { // Special EULA found
 		$theme = getTheme($eula, $down);
-	} elseif (is_file($doc."/".$repl."/EULA.txt")) { // No special EULA found
+	} elseif (check_file($doc."/".$repl."/EULA.txt")) { // No special EULA found
 		$theme = getTheme("EULA.txt", $down);
 	} elseif (findSpecialEULA($flist, "/.*EULA.txt.*/")) {
 		// If file is requested but no special EULA for it and no EULA.txt is present,
