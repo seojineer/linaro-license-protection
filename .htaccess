@@ -1,6 +1,5 @@
 IndexIgnore HEADER* licenses *EULA*
 IndexOptions FancyIndexing HTMLTable
-Options +MultiViews
 
 RewriteEngine On
 
