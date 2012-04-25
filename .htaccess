@@ -69,6 +69,11 @@ RewriteCond %{REQUEST_URI} /favicon.ico [OR]
 RewriteCond %{REQUEST_URI} .*\.png
 RewriteRule .* - [L]
 
+## Exception for restricted area
+RewriteCond %{REQUEST_URI} .*restricted.* [OR]
+RewriteCond %{REQUEST_URI} .*private.*
+RewriteRule .* - [L]
+
 ## Pass through any non-protected dirs.
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteCond %{REQUEST_FILENAME}/OPEN-EULA.txt -f 
