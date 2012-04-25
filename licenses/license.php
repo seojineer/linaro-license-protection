@@ -93,7 +93,7 @@ $fn = $doc.$down; // Filename on server
 $flist = array();
 $eula = '';
 
-if (preg_match("/.*restricted.*/", $fn) or preg_match("/.*private.*/", $fn)) {
+if (preg_match("/.*openid.*/", $fn) or preg_match("/.*restricted.*/", $fn) or preg_match("/.*private.*/", $fn)) {
 	status_ok($down, $domain);
 }
 
