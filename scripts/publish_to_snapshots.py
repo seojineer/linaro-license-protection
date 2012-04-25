@@ -22,8 +22,6 @@ parser.add_argument("-m", "--manifest", dest="manifest", action='store_true',
 
 uploads_path = '/srv3/snapshots.linaro.org/uploads/'
 target_path = '/srv3/snapshots.linaro.org/www/'
-uploads_path = '/tmp/uploads/'
-target_path = '/tmp/www/'
 PASS = 0 
 FAIL = 1
 acceptable_job_types = [
