@@ -100,7 +100,7 @@ if (preg_match("/.*openid.*/", $fn) or preg_match("/.*restricted.*/", $fn) or pr
 if (file_exists($fn) and is_file($fn)) { // Requested download is file
 	$search_dir = dirname($fn);
 	$repl = dirname($down);
-	$name_only = splitFilename(basename($down));
+	$name_only = array(basename($down), '');
 } elseif (is_dir($fn)) { // Requested download is directory
 	$search_dir = $fn;
 	$repl = $down;
