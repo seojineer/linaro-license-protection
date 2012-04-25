@@ -93,6 +93,10 @@ $fn = $doc.$down; // Filename on server
 $flist = array();
 $eula = '';
 
+if (preg_match("/.*restricted.*/", $fn) or preg_match("/.*private.*/", $fn)) {
+	status_ok($down, $domain);
+}
+
 if (file_exists($fn) and is_file($fn)) { // Requested download is file
 	$search_dir = dirname($fn);
 	$repl = dirname($down);

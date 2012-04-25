@@ -70,6 +70,7 @@ RewriteCond %{REQUEST_URI} .*\.png
 RewriteRule .* - [L]
 
 ## Exception for restricted area
+RewriteCond %{REQUEST_URI} .*openid.* [OR]
 RewriteCond %{REQUEST_URI} .*restricted.* [OR]
 RewriteCond %{REQUEST_URI} .*private.*
 RewriteRule .* - [L]
