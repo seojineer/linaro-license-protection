@@ -1,12 +1,20 @@
 <?php
 // Get list of files into array to process them later.
 // Used to find special licenses and dirs with only subdirs.
+function check_file($fn)
+{
+	if (is_file($fn) or is_link($fn)) {
+		return true;
+	}
+	return false;
+}
+
 function getFilesList($dirname)
 {
 	$files = array(); 
 	if ($handle = opendir($dirname)) {
 		while ($handle && false !== ($entry = readdir($handle))) {
-			if ($entry != "." && $entry != ".." && !is_dir($dirname.$entry) && !is_link($dirname.$entry)) {
+			if ($entry != "." && $entry != ".." && !is_dir($dirname.$entry) && $entry != "HEADER.html") {
 				$files[] = $entry;
 			}
 		}
@@ -55,31 +63,58 @@ function getTheme($eula, $down)
 		} else {
 			$theme = "linaro";
 		}
-	} 
+	}
 	return $theme;
+}
+
+function status_forbidden($dir)
+{
+	header("Status: 403");
+	header("HTTP/1.1 403 Forbidden");
+	echo "<h1>Forbidden</h1>";
+	echo "You don't have permission to access ".$dir." on this server.";
+	exit;
+}
+
+function status_ok($dir, $domain)
+{
+	header("Status: 200");
+	header("Location: ".$dir);
+	setcookie("redirectlicensephp", "yes", 0, "/", ".".$domain);
+	exit;
+}
+
+function status_not_found()
+{
+	header("Status: 404");
+	header("HTTP/1.0 404 Not Found");
+	echo "<h1>404 Not Found</h1>";
+	echo "The requested URL was not found on this server.";
+	exit;
 }
 
 $down = $_COOKIE["downloadrequested"];
 $host = $_SERVER["HTTP_HOST"];
 $doc = $_SERVER["DOCUMENT_ROOT"];
+$domain = $_SERVER["CO_DOMAIN"];
 $fn = $doc.$down; // Filename on server
 $flist = array();
 $eula = '';
 
-if (file_exists($fn) and is_file($fn)) { // Requested download is file
+if (preg_match("/.*openid.*/", $fn) or preg_match("/.*restricted.*/", $fn) or preg_match("/.*private.*/", $fn)) {
+	status_ok($down, $domain);
+}
+
+if (file_exists($fn) and check_file($fn)) { // Requested download is file
 	$search_dir = dirname($fn);
 	$repl = dirname($down);
-	$name_only = splitFilename(basename($down));
+	$name_only = array(basename($down), '');
 } elseif (is_dir($fn)) { // Requested download is directory
 	$search_dir = $fn;
 	$repl = $down;
 	$name_only = array();
 } else { // Requested download not found on server
-	header("HTTP/1.0 404 Not Found");
-	header("Status: 404");
-	echo "<h1>404 Not Found</h1>";
-	echo "The requested URL was not found on this server.";
-	exit;
+	status_not_found();
 }
 
 $flist = getFilesList($search_dir);
@@ -89,26 +124,26 @@ if (!empty($name_only)) {
 	$eula = findSpecialEULA($flist, $pattern);
 }
 
-if (is_file($doc."/".$repl."/".$eula)) { // Special EULA found
-	$theme = getTheme($eula, $down);
-} elseif (is_file($doc."/".$repl."/EULA.txt")) { // No special EULA found
-	$theme = getTheme("EULA.txt", $down);
-} elseif (file_exists($fn) and findSpecialEULA($flist, "/.*EULA.txt.*/")) {
-	// If file is requested but no special EULA for it and no EULA.txt is present,
-	// look for any EULA and if found decide that current file is not protected.
-	setcookie("redirectlicensephp", "yes", 0, "/");
-	header("Location: ".$down);
-	exit;
-} elseif (empty($flist)) { // Directory contains only subdirs
-	setcookie("redirectlicensephp", "yes", 0, "/");
-	header("Location: ".$down);
-	exit;
-} else { // No special EULA, no EULA.txt, no OPEN-EULA.txt found
-	header("HTTP/1.1 403 Forbidden");
-	header("Status: 403");
-	echo "<h1>Forbidden</h1>";
-	echo "You don't have permission to access ".$down." on this server.";
-	exit;
+if (check_file($fn)) {
+	if (check_file($doc."/".$repl."/".$eula)) { // Special EULA found
+		$theme = getTheme($eula, $down);
+	} elseif (check_file($doc."/".$repl."/EULA.txt")) { // No special EULA found
+		$theme = getTheme("EULA.txt", $down);
+	} elseif (findSpecialEULA($flist, "/.*EULA.txt.*/")) {
+		// If file is requested but no special EULA for it and no EULA.txt is present,
+		// look for any EULA and if found decide that current file is not protected.
+		status_ok($down, $domain);
+	} else {
+		status_forbidden($down);
+	}
+} elseif (is_dir($fn)) {
+	if (empty($flist) or findSpecialEULA($flist, "/.*EULA.txt.*/")) { // Directory contains only subdirs or any EULA
+		status_ok($down, $domain);
+	} else { // No special EULA, no EULA.txt, no OPEN-EULA.txt found
+		status_forbidden($down);
+	}
+} else {
+	status_forbidden($down);
 }
 
 $template_content = file_get_contents($doc."/licenses/".$theme.".html");
