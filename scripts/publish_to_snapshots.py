@@ -129,15 +129,22 @@ class SnapshotsPublisher(object):
 
         return build_dir_path, target_dir_path
 
-    def create_symlink(self, target_dir_path):
-        target_parent_dir = os.path.dirname(target_dir_path)
-        symlink_path = os.path.join(target_parent_dir, "lastSuccessful")
+    def create_symlink(self, args, target_dir_path):
+        header_path = os.path.join(target_path, "HEADER.html")
+        header_symlink_path = os.path.join(target_dir_path, "HEADER.html")
+
+        if args.job_type == "android":
+            symlink_path = os.path.join(os.path.dirname(target_dir_path), "lastSuccessful")
+        else:
+            symlink_path = os.path.join(os.path.dirname(target_dir_path), "latest")
+
         try:
             if os.path.islink(symlink_path):
                 os.unlink(symlink_path)
 
+            os.symlink(header_path, header_symlink_path)
             os.symlink(target_dir_path, symlink_path)
-            print "The lastSuccessful build is now linked to ", target_dir_path
+            print "The latest build is now linked to ", target_dir_path
             return PASS
         except Exception, details:
             print "Failed to create symlink", symlink_path, ":", details
@@ -157,7 +164,7 @@ class SnapshotsPublisher(object):
             if len(lines) != 0:
                 fd = open(fn, "w+")
                 for line in lines:
-                    if not "MANIFEST" in line:
+                    if not "MANIFEST" or not "HEADER.html" in line:
                         fd.write(line)
                 fd.close()
             else:
@@ -205,8 +212,11 @@ class SnapshotsPublisher(object):
 
             self.move_dir_content(build_dir_path, target_dir_path)
 
-            if args.job_type == "android":
-                ret = self.create_symlink(target_dir_path)
+            if args.job_type == "android" or\
+               args.job_type == "ubuntu-hwpacks" or\
+               args.job_type == "ubuntu-images" or\
+               args.job_type == "ubuntu-sysroots":
+                ret = self.create_symlink(args, target_dir_path)
                 if ret != PASS:
                     return ret
 
