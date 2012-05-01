@@ -384,7 +384,7 @@ class TestSnapshotsPublisher(TestCase):
             pass
 
         stdout.seek(0)
-        msg = "The lastSuccessful build is now linked to  " +  target_dir_path
+        msg = "The latest build is now linked to  " +  target_dir_path
         self.assertIn(msg, stdout.read())
 
     def test_create_manifest_file_option(self):
