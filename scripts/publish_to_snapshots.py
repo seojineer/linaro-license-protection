@@ -133,10 +133,11 @@ class SnapshotsPublisher(object):
         header_path = os.path.join(target_path, "HEADER.html")
         header_symlink_path = os.path.join(target_dir_path, "HEADER.html")
 
+        symlink_path = os.path.dirname(target_dir_path)
         if args.job_type == "android":
-            symlink_path = os.path.join(os.path.dirname(target_dir_path), "lastSuccessful")
+            symlink_path = os.path.join(symlink_path, "lastSuccessful")
         else:
-            symlink_path = os.path.join(os.path.dirname(target_dir_path), "latest")
+            symlink_path = os.path.join(symlink_path, "latest")
 
         try:
             if os.path.islink(symlink_path):
