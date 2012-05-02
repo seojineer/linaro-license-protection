@@ -25,7 +25,7 @@ RewriteRule .* - [E=CO_DOMAIN:%1]
 # android-build.linaro.org.
 RewriteCond %{REMOTE_ADDR} 50.17.250.69 [OR]
 # validation.linaro.org.
-RewriteCond %{REMOTE_ADDR} 213.123.120.124
+RewriteCond %{REMOTE_ADDR} 82.69.11.23
 RewriteRule .* - [L]
 
 ## If license file is requested, and a download has been requested previously,
