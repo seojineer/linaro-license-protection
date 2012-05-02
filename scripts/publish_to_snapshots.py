@@ -30,6 +30,7 @@ acceptable_job_types = [
     'kernel-hwpack',
     'ubuntu-hwpacks',
     'ubuntu-images',
+    'ubuntu-restricted',
     'ubuntu-sysroots',
     'binaries'
     ]
@@ -55,7 +56,8 @@ class SnapshotsPublisher(object):
         elif args.job_type == "kernel-hwpack":
             ret_val = jobname.split('_')[0].replace(".", "_")
         elif args.job_type == "ubuntu-hwpacks" or \
-             args.job_type == "ubuntu-images" or \
+             args.job_type == "ubuntu-images" or\
+             args.job_type == "ubuntu-restricted" or\
              args.job_type == "ubuntu-sysroots":
             ret_val = jobname.split('-', 2)
         elif args.job_type == "prebuilt":
@@ -86,7 +88,8 @@ class SnapshotsPublisher(object):
                                        args.job_name])
                 target_dir_path = os.path.join(target_path, target_dir)
             elif args.job_type == "ubuntu-hwpacks" or \
-                 args.job_type == "ubuntu-images" or \
+                 args.job_type == "ubuntu-images" or\
+                 args.job_type == "ubuntu-restricted" or\
                  args.job_type == "ubuntu-sysroots":
                 dist_name = ret_val[0]
                 hwpack_image = args.job_type.split("-")[1]
@@ -218,6 +221,7 @@ class SnapshotsPublisher(object):
             if args.job_type == "android" or\
                args.job_type == "ubuntu-hwpacks" or\
                args.job_type == "ubuntu-images" or\
+               args.job_type == "ubuntu-restricted" or\
                args.job_type == "ubuntu-sysroots":
                 ret = self.create_symlink(args, target_dir_path)
                 if ret != PASS:
