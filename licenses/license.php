@@ -14,7 +14,7 @@ function getFilesList($dirname)
 	$files = array(); 
 	if ($handle = opendir($dirname)) {
 		while ($handle && false !== ($entry = readdir($handle))) {
-			if ($entry != "." && $entry != ".." && !is_dir($dirname.$entry) && $entry != "HEADER.html") {
+			if ($entry != "." && $entry != ".." && !is_dir($dirname."/".$entry) && $entry != "HEADER.html") {
 				$files[] = $entry;
 			}
 		}

@@ -3,11 +3,6 @@ IndexOptions FancyIndexing HTMLTable
 
 RewriteEngine On
 
-## Add trailing slashes
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule .*[^/]$ $0/ [L,R=301]
-
 ## LP_DOWNLOAD_DIR is set to the dir from REQUEST_URI
 ## or to the dir containig file form REQUEST_URI
 RewriteCond %{REQUEST_FILENAME} !.*/licenses/.*
