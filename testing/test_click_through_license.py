@@ -130,32 +130,32 @@ class TestLicense(TestCase):
             os.unlink("%s/cookies.txt" % docroot)
 
     def test_licensefile_directly_samsung(self):
-        search = "Index of /"
+        search = "LICENSE AGREEMENT"
         testfile = fetcher.get(host + samsung_license_path)
         self.assertThat(testfile, Contains(search))
 
     def test_licensefile_directly_ste(self):
-        search = "Index of /"
+        search = "LICENSE AGREEMENT"
         testfile = fetcher.get(host + ste_license_path)
         self.assertThat(testfile, Contains(search))
 
     def test_licensefile_directly_linaro(self):
-        search = "Index of /"
+        search = "LICENSE AGREEMENT"
         testfile = fetcher.get(host + linaro_license_path)
         self.assertThat(testfile, Contains(search))
 
     def test_redirect_to_license_samsung(self):
-        search = "LICENSE AGREEMENT"
+        search = "This is protected with click-through Samsung license."
         testfile = fetcher.get(host + samsung_test_file, ignore_license=True)
         self.assertThat(testfile, Contains(search))
 
     def test_redirect_to_license_ste(self):
-        search = "LICENSE AGREEMENT"
+        search = "This is protected with click-through ST-E license."
         testfile = fetcher.get(host + ste_test_file, ignore_license=True)
         self.assertThat(testfile, Contains(search))
 
     def test_redirect_to_license_linaro(self):
-        search = "LICENSE AGREEMENT"
+        search = "This is protected with click-through Linaro license."
         testfile = fetcher.get(host + linaro_test_file, ignore_license=True)
         self.assertThat(testfile, Contains(search))
 
