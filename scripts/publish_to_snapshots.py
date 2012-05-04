@@ -20,8 +20,8 @@ parser.add_argument("-n", "--build-num", dest="build_num", type=int,
 parser.add_argument("-m", "--manifest", dest="manifest", action='store_true',
                     help="Optional parameter to generate MANIFEST file")
 
-uploads_path = '/srv3/snapshots.linaro.org/uploads/'
-target_path = '/srv3/snapshots.linaro.org/www/'
+uploads_path = '/srv/snapshots.linaro.org/uploads/'
+target_path = '/srv/snapshots.linaro.org/www/'
 PASS = 0 
 FAIL = 1
 acceptable_job_types = [
