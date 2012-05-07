@@ -15,6 +15,10 @@ class LicenseHelper
 
   public static function getFilesList($dirname)
   {
+    if (!is_dir($dirname)) {
+      throw new InvalidArgumentException('Method argument should be a directory path');
+    }
+
     $files = array(); 
     if ($handle = opendir($dirname)) {
       while ($handle && false !== ($entry = readdir($handle))) {

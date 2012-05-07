@@ -49,8 +49,14 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
    */
   public function testGetFilesList_file()
   {
-    $file_list = LicenseHelper::getFilesList(__FILE__);
-    $this->assertEmpty($file_list);
+    try {
+      $file_list = LicenseHelper::getFilesList(__FILE__);
+      $this->assertTrue(FALSE);
+    } catch (InvalidArgumentException $e) {
+      $this->assertTrue(TRUE);
+    } catch (Exception $e) {
+      $this->assertTrue(FALSE);
+    }
   }
 
   /**
@@ -84,7 +90,31 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
   {
     $file_list = array("test.txt", "new_file.pdf");
     $pattern = "/test/";
-    $this->assertEquals("test.txt", LicenseHelper::findFileByPattern($file_list, $pattern));
+    $this->assertEquals("test.txt", 
+			LicenseHelper::findFileByPattern($file_list, $pattern));
+  }
+
+  /**
+   * Test with no eula present.
+   */
+  public function testGetTheme_noEula()
+  {
+    $eula = "EULA.txt";
+    $filename = "snowball.build.tar.bz2";
+    $this->assertEquals("ste", LicenseHelper::getTheme($eula, $filename));
+    $filename = "origen.build.tar.bz2";
+    $this->assertEquals("samsung", LicenseHelper::getTheme($eula, $filename));
+    $filename = "build.tar.bz2";
+    $this->assertEquals("linaro", LicenseHelper::getTheme($eula, $filename));
+  }
+
+  /**
+   * Test with eula present.
+   */
+  public function testGetTheme_eula()
+  {
+    $eula = "EULA.txt.test";
+    $this->assertEquals("test", LicenseHelper::getTheme($eula, ""));
   }
 
 }
