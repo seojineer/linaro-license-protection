@@ -78,12 +78,15 @@ Unit tests
 ----------
 
 There's currently only one unit test file, LicenseHelperTest.php under testing directory. You first need to install the phpunit package from ubuntu repos:
-$ sudo apt-get install phpunit
+$ sudo apt-get install php-pear
+$ sudo pear config-set auto_discover 1
+$ sudo pear install pear.phpunit.de/PHPUnit
 
 Then to run the test from the 'testing' directory:
+$ cd testing/
 $ phpunit LicenseHelperTest
 
-In case the tests fail with PHP_CodeCoverage error, do the following:
+In case the tests fail with PHP_CodeCoverage error, do the following to install the phpunit properly:
 
 $ sudo apt-get remove phpunit
 $ sudo apt-get upgrade pear

@@ -10,9 +10,6 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
   {
     require_once("../licenses/LicenseHelper.php");
     symlink(__FILE__, "test_link");
-    touch("file_with_no_dot");
-    touch("file.with.more.dots");
-    touch("file_with_one.dot");
   }
 
   /**
@@ -21,9 +18,6 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
   protected function tearDown() 
   {
     unlink("test_link");
-    unlink("file_with_no_dot");
-    unlink("file_with_one.dot");
-    unlink("file.with.more.dots");
   }
 
   /**
@@ -67,42 +61,30 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
     $file_list = LicenseHelper::getFilesList(dirname(__FILE__));
     $this->assertNotEmpty($file_list);
     $this->assertContains(basename(__FILE__), $file_list);
-
-    $expected_count = count(scandir(dirname(__FILE__))) - 2; // remove '.' and '..'
+    
+    // Remove '.' and '..'.
+    $expected_count = count(scandir(dirname(__FILE__))) - 2;
     $this->assertCount($expected_count, $file_list);
   }
 
   /**
-   * Split filename with no dot
+   * Test with pattern which will not match any filename.
    */
-  public function testSplitFilename_noDot()
+  public function testFindFileByPattern_noMatch()
   {
-    $filename_array = LicenseHelper::splitFilename("file_with_no_dot");
-    $this->assertCount(2, $filename_array);
-    $this->assertEquals("file_with_no_dot", $filename_array[0]);
-    $this->assertEmpty($filename_array[1]);
+    $file_list = array("test.txt", "new_file.pdf");
+    $pattern = "/^abc/";
+    $this->assertFalse(LicenseHelper::findFileByPattern($file_list, $pattern));
   }
 
   /**
-   * Split filename with multiple dots
+   * Test with pattern which will match a filename.
    */
-  public function testSplitFilename_moreDots()
+  public function testFindFileByPattern_match()
   {
-    $filename_array = LicenseHelper::splitFilename("file.with.more.dots");
-    $this->assertCount(2, $filename_array);
-    $this->assertEquals("file.with.more", $filename_array[0]);
-    $this->assertEquals("dots", $filename_array[1]);
-  }
-
-  /**
-   * Split filename with one dot
-   */
-  public function testSplitFilename_oneDot()
-  {
-    $filename_array = LicenseHelper::splitFilename("file_with_one.dot");
-    $this->assertCount(2, $filename_array);
-    $this->assertEquals("file_with_one", $filename_array[0]);
-    $this->assertEquals("dot", $filename_array[1]);
+    $file_list = array("test.txt", "new_file.pdf");
+    $pattern = "/test/";
+    $this->assertEquals("test.txt", LicenseHelper::findFileByPattern($file_list, $pattern));
   }
 
 }
