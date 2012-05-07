@@ -42,7 +42,7 @@ www area directly, we set-up two different users on the system with SSH keys:
 
  * android-build-linaro:
 
-   chrooted to /srv3/snapshots.linaro.org/www/android/ and allows sftp
+   chrooted to /srv/snapshots.linaro.org/www/android/ and allows sftp
    access to push files over;  home directory
 
  * android-build-linaro-trigger:
