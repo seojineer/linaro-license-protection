@@ -3,115 +3,168 @@
 class LicenseHelperTest extends PHPUnit_Framework_TestCase
 {
 
+    private $temp_filename;
+
     /**
-     * Includes test class, creates some help files for testing
+     * Include test class, create some help files for testing.
      */
     protected function setUp()
     {
         require_once("../licenses/LicenseHelper.php");
-        symlink(__FILE__, "test_link");
+        $this->temp_filename = tempnam(dirname(__FILE__), "unittest");
     }
 
+
     /**
-     * Removes help files
+     * Remove helper files used in testing.
      */
     protected function tearDown()
     {
-        unlink("test_link");
+        unlink($this->temp_filename);
     }
 
     /**
-     * Test with directory
+     * Running checkFile on a directory path returns false.
      */
-    public function testCheckFile_nonFile()
+    public function test_checkFile_nonFile()
     {
         $this->assertFalse(LicenseHelper::checkFile(dirname(__FILE__)));
     }
 
     /**
-     * Test with link
+     * Running checkFile on a symbolic link to an existing file returns true.
      */
-    public function testCheckFile_link()
+    public function test_checkFile_link()
     {
-        $this->assertTrue(LicenseHelper::checkFile("test_link"));
+        try {
+            symlink($this->temp_filename, "test_link");
+            $this->assertTrue(LicenseHelper::checkFile("test_link"));
+            unlink("test_link");
+            // PHP doesn't support finally block, ergo using this hack.
+        } catch (Exception $e) {
+            unlink("test_link");
+            throw $e;
+        }
     }
 
     /**
-     * Test with file
+     * Running checkFile on a regular file returns true.
      */
-    public function testCheckFile_file()
+    public function test_checkFile_file()
     {
         $this->assertTrue(LicenseHelper::checkFile(__FILE__));
     }
 
     /**
-     * Get file list from a file
+     * getFileList throws an InvalidArgumentException when passed
+     * an argument pointing to a file.
+     * @expectedException InvalidArgumentException
      */
-    public function testGetFilesList_file()
+    public function test_getFilesList_file()
     {
+        $file_list = LicenseHelper::getFilesList(__FILE__);
+    }
+
+    /**
+     * getFileList returns a list of filenames in that directory.
+     */
+    public function test_getFilesList_dir()
+    {
+        $temp_dir_name = tempnam(dirname(__FILE__), "unittest");
+        if (file_exists($temp_dir_name)) {
+            unlink($temp_dir_name);
+        }
+        mkdir($temp_dir_name);
+
+        $temp_file_name_1 = tempnam($temp_dir_name, "unittest");
+        $temp_file_name_2 = tempnam($temp_dir_name, "unittest");
+
         try {
-            $file_list = LicenseHelper::getFilesList(__FILE__);
-            $this->assertTrue(FALSE);
-        } catch (InvalidArgumentException $e) {
-            $this->assertTrue(TRUE);
+            $file_list = LicenseHelper::getFilesList($temp_dir_name);
+            $this->assertCount(2, $file_list);
+
+            $this->assertEquals(basename($temp_file_name_1), $file_list[0]);
+            $this->assertEquals(basename($temp_file_name_2), $file_list[1]);
+
+            unlink($temp_file_name_1);
+            unlink($temp_file_name_2);
+            rmdir($temp_dir_name);
+            // PHP doesn't support finally block, ergo using this hack.
         } catch (Exception $e) {
-            $this->assertTrue(FALSE);
+            unlink($temp_file_name_1);
+            unlink($temp_file_name_2);
+            rmdir($temp_dir_name);
+            throw $e;
         }
     }
 
     /**
-     * Get file list from a directory
+     * Running findFileByPattern on an array without matches returns false.
      */
-    public function testGetFilesList_dir()
-    {
-        $file_list = LicenseHelper::getFilesList(dirname(__FILE__));
-        $this->assertNotEmpty($file_list);
-        $this->assertContains(basename(__FILE__), $file_list);
-
-        // Remove '.' and '..'.
-        $expected_count = count(scandir(dirname(__FILE__))) - 2;
-        $this->assertCount($expected_count, $file_list);
-    }
-
-    /**
-     * Test with pattern which will not match any filename.
-     */
-    public function testFindFileByPattern_noMatch()
+    public function test_findFileByPattern_noMatch()
     {
         $file_list = array("test.txt", "new_file.pdf");
         $pattern = "/^abc/";
-        $this->assertFalse(LicenseHelper::findFileByPattern($file_list, $pattern));
+        $this->assertFalse(
+            LicenseHelper::findFileByPattern($file_list, $pattern));
     }
 
     /**
-     * Test with pattern which will match a filename.
+     * Running findFileByPattern on an array with matches returns first
+     * matching element.
      */
-    public function testFindFileByPattern_match()
+    public function test_findFileByPattern_match()
     {
         $file_list = array("test.txt", "new_file.pdf");
         $pattern = "/test/";
         $this->assertEquals("test.txt",
-                            LicenseHelper::findFileByPattern($file_list, $pattern));
+                            LicenseHelper::findFileByPattern($file_list,
+                                                             $pattern));
     }
 
     /**
-     * Test with no eula present.
+     * getTheme returns a generic Linaro-branded template when
+     * no EULA is present (indicated by eula filename being named
+     * EULA.txt or not).
      */
-    public function testGetTheme_noEula()
+    public function test_getTheme_noEula_snowball()
     {
         $eula = "EULA.txt";
         $filename = "snowball.build.tar.bz2";
         $this->assertEquals("ste", LicenseHelper::getTheme($eula, $filename));
-        $filename = "origen.build.tar.bz2";
-        $this->assertEquals("samsung", LicenseHelper::getTheme($eula, $filename));
-        $filename = "build.tar.bz2";
-        $this->assertEquals("linaro", LicenseHelper::getTheme($eula, $filename));
     }
 
     /**
-     * Test with eula present.
+     * getTheme returns a generic Linaro-branded template when
+     * no EULA is present (indicated by eula filename being named
+     * EULA.txt or not).
      */
-    public function testGetTheme_eula()
+    public function test_getTheme_noEula_origen()
+    {
+        $eula = "EULA.txt";
+        $filename = "origen.build.tar.bz2";
+        $this->assertEquals("samsung",
+                            LicenseHelper::getTheme($eula, $filename));
+    }
+
+    /**
+     * getTheme returns a generic Linaro-branded template when
+     * no EULA is present (indicated by eula filename being named
+     * EULA.txt or not).
+     */
+    public function test_getTheme_noEula_generic()
+    {
+        $eula = "EULA.txt";
+        $filename = "build.tar.bz2";
+        $this->assertEquals("linaro",
+                            LicenseHelper::getTheme($eula, $filename));
+    }
+
+    /**
+     * Running geTheme with eula file present (indicated by eula filename
+     * being named EULA.txt or not) returns extension of eula file.
+     */
+    public function test_getTheme_eula()
     {
         $eula = "EULA.txt.test";
         $this->assertEquals("test", LicenseHelper::getTheme($eula, ""));
