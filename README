@@ -74,8 +74,6 @@ To ensure serialization of steps, and allow LAVA submission, these happen as
 build steps, and not as publishing steps.
 
 
-
-
 Tests
 -----
 
@@ -91,7 +89,7 @@ Tests for PHP license-matching logic
 
 There's currently only one unit test file, LicenseHelperTest.php under testing directory. You first need to install the phpunit package from ubuntu repos:
   $ sudo apt-get install php-unit
-  
+
 
 Recent (as of 2012-05-08) Ubuntu/Debian releases have a broken phpunit package and thus require installation in a different manner:
   $ sudo apt-get install php-pear
@@ -99,5 +97,5 @@ Recent (as of 2012-05-08) Ubuntu/Debian releases have a broken phpunit package a
   $ sudo pear install pear.phpunit.de/PHPUnit
 
 Then to run the test from the 'testing' directory:
-$ cd testing/
-$ phpunit LicenseHelperTest
+  $ cd testing/
+  $ phpunit LicenseHelperTest

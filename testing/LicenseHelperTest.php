@@ -1,27 +1,11 @@
 <?php
 
+require_once("../licenses/LicenseHelper.php");
+
 class LicenseHelperTest extends PHPUnit_Framework_TestCase
 {
 
     private $temp_filename;
-
-    /**
-     * Include test class, create some help files for testing.
-     */
-    protected function setUp()
-    {
-        require_once("../licenses/LicenseHelper.php");
-        $this->temp_filename = tempnam(dirname(__FILE__), "unittest");
-    }
-
-
-    /**
-     * Remove helper files used in testing.
-     */
-    protected function tearDown()
-    {
-        unlink($this->temp_filename);
-    }
 
     /**
      * Running checkFile on a directory path returns false.
@@ -36,15 +20,13 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
      */
     public function test_checkFile_link()
     {
-        try {
-            symlink($this->temp_filename, "test_link");
-            $this->assertTrue(LicenseHelper::checkFile("test_link"));
-            unlink("test_link");
-            // PHP doesn't support finally block, ergo using this hack.
-        } catch (Exception $e) {
-            unlink("test_link");
-            throw $e;
-        }
+        $this->temp_filename = tempnam(sys_get_temp_dir(), "unittest");
+        symlink($this->temp_filename, "test_link");
+
+        $this->assertTrue(LicenseHelper::checkFile("test_link"));
+
+        unlink("test_link");
+        unlink($this->temp_filename);
     }
 
     /**
@@ -70,32 +52,24 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
      */
     public function test_getFilesList_dir()
     {
-        $temp_dir_name = tempnam(dirname(__FILE__), "unittest");
+        $temp_dir_name = tempnam(sys_get_temp_dir(), "unittest");
         if (file_exists($temp_dir_name)) {
             unlink($temp_dir_name);
         }
         mkdir($temp_dir_name);
 
-        $temp_file_name_1 = tempnam($temp_dir_name, "unittest");
-        $temp_file_name_2 = tempnam($temp_dir_name, "unittest");
+        touch($temp_dir_name . "/unittest1");
+        touch($temp_dir_name . "/unittest2");
 
-        try {
-            $file_list = LicenseHelper::getFilesList($temp_dir_name);
-            $this->assertCount(2, $file_list);
+        $file_list = LicenseHelper::getFilesList($temp_dir_name);
+        $this->assertCount(2, $file_list);
 
-            $this->assertEquals(basename($temp_file_name_1), $file_list[0]);
-            $this->assertEquals(basename($temp_file_name_2), $file_list[1]);
+        $this->assertEquals("unittest1", $file_list[0]);
+        $this->assertEquals("unittest2", $file_list[1]);
 
-            unlink($temp_file_name_1);
-            unlink($temp_file_name_2);
-            rmdir($temp_dir_name);
-            // PHP doesn't support finally block, ergo using this hack.
-        } catch (Exception $e) {
-            unlink($temp_file_name_1);
-            unlink($temp_file_name_2);
-            rmdir($temp_dir_name);
-            throw $e;
-        }
+        unlink($temp_dir_name . "/unittest1");
+        unlink($temp_dir_name . "/unittest2");
+        rmdir($temp_dir_name);
     }
 
     /**
@@ -123,7 +97,7 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * getTheme returns a generic Linaro-branded template when
+     * getTheme returns a ST-E Linaro-branded template when
      * no EULA is present (indicated by eula filename being named
      * EULA.txt or not).
      */
@@ -135,7 +109,7 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * getTheme returns a generic Linaro-branded template when
+     * getTheme returns a Samsung Linaro-branded template when
      * no EULA is present (indicated by eula filename being named
      * EULA.txt or not).
      */
@@ -161,7 +135,7 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Running geTheme with eula file present (indicated by eula filename
+     * Running getTheme with eula file present (indicated by eula filename
      * being named EULA.txt or not) returns extension of eula file.
      */
     public function test_getTheme_eula()
