@@ -124,7 +124,7 @@ class LicenseProtectedFileFetcher:
 
         return self.body
 
-    def get(self, url, file_name=None, ignore_license=False, accept_license=True):
+    def get(self, url, file_name=None):
         """Fetch the requested URL, accepting licenses
 
         Fetches the file at url. If a redirect is encountered, it is
@@ -135,23 +135,13 @@ class LicenseProtectedFileFetcher:
         """
 
         self.file_name = file_name
-        if ignore_license:
-            self._get(url)
-            return self.body
-
         license_details = self._get_license(url)
 
         if license_details:
-            # Found a license.
-            if accept_license:
-                # Accept the license without looking at it and
-                # start fetching the file we originally wanted.
-                accept_url = license_details[1]
-                self.get_protected_file(accept_url, url)
-            else:
-                # We want to decline the license and return the notice.
-                decline_url = license_details[2]
-                self._get(decline_url)
+            # Found a license. Accept the license without looking at it and
+            # start fetching the file we originally wanted.
+            accept_url = license_details[1]
+            self.get_protected_file(accept_url, url)
 
         else:
             # If we got here, there wasn't a license protecting the file
@@ -161,10 +151,7 @@ class LicenseProtectedFileFetcher:
         return self.body
 
     def _get_license(self, url):
-        """Return (license, accept URL, decline URL) if found,
-        else return None.
-
-        """
+        """Return (license, accept URL) if found, else return None"""
 
         self.get_headers(url)
 
@@ -183,21 +170,12 @@ class LicenseProtectedFileFetcher:
 
             # Look for a link with accepted.html in the page name. Follow it.
             for line in self.body.splitlines():
-                accept_search = re.search(
-                    r"""href=.*?["'](.*?-accepted.html)""",
-                    line)
-                decline_search = re.search(
-                    r"""href=.*?["'](.*?-declined.html)""",
-                    line)
-
-                if accept_search and decline_search:
+                link_search = re.search("""href=.*?["'](.*?-accepted.html)""",
+                                        line)
+                if link_search:
                     # Have found license accept URL!
-                    new_file = accept_search.group(1)
+                    new_file = link_search.group(1)
                     accept_url = re.sub(file, new_file, location)
-
-                    # Found decline URL as well.
-                    new_file_decline = decline_search.group(1)
-                    decline_url = re.sub(file, new_file_decline, location)
 
                     # Parse the HTML using BeautifulSoup
                     soup = BeautifulSoup(self.body)
@@ -212,7 +190,7 @@ class LicenseProtectedFileFetcher:
 
                     text_license = html2text.html2text(html_license)
 
-                    return text_license, accept_url, decline_url
+                    return text_license, accept_url
 
         return None
 
