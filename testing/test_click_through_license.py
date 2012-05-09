@@ -9,7 +9,7 @@ import socket
 
 from testtools import TestCase
 from testtools.matchers import Mismatch
-from filefetcher import LicenseProtectedFileFetcher
+from license_protected_file_downloader import LicenseProtectedFileFetcher
 
 fetcher = LicenseProtectedFileFetcher()
 cwd = os.getcwd()
