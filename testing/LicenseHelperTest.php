@@ -30,6 +30,21 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Running checkFile on a broken symbolic link returns true.
+     * This is because PHP function is_link returns true on broken soft links.
+     */
+    public function test_checkFile_brokenLink()
+    {
+        $this->temp_filename = tempnam(sys_get_temp_dir(), "unittest");
+        symlink($this->temp_filename, "test_link");
+        unlink($this->temp_filename);
+
+        $this->assertTrue(LicenseHelper::checkFile("test_link"));
+
+        unlink("test_link");
+    }
+
+    /**
      * Running checkFile on a regular file returns true.
      */
     public function test_checkFile_file()
