@@ -79,6 +79,9 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
         $file_list = LicenseHelper::getFilesList($temp_dir_name);
         $this->assertCount(2, $file_list);
 
+        // Sort the file list, this function returns the files as they are
+        // written on the filesystem.
+        sort($file_list);
         $this->assertEquals("unittest1", $file_list[0]);
         $this->assertEquals("unittest2", $file_list[1]);
 
