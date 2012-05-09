@@ -82,3 +82,20 @@ Python and Apache2:
 
   $ testr init
   $ testr run
+
+
+Tests for PHP license-matching logic
+....................................
+
+There's currently only one unit test file, LicenseHelperTest.php under testing directory. You first need to install the phpunit package from ubuntu repos:
+  $ sudo apt-get install php-unit
+
+
+Recent (as of 2012-05-08) Ubuntu/Debian releases have a broken phpunit package and thus require installation in a different manner:
+  $ sudo apt-get install php-pear
+  $ sudo pear config-set auto_discover 1
+  $ sudo pear install pear.phpunit.de/PHPUnit
+
+Then to run the test from the 'testing' directory:
+  $ cd testing/
+  $ phpunit LicenseHelperTest
