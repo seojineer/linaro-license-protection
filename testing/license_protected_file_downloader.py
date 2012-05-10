@@ -190,29 +190,29 @@ class LicenseProtectedFileFetcher:
                     r"""href=.*?["'](.*?-declined.html)""",
                     line)
 
-                if accept_search and decline_search:
-                    # Have found license accept URL!
-                    new_file = accept_search.group(1)
-                    accept_url = re.sub(file, new_file, location)
+            if accept_search and decline_search:
+                # Have found license accept URL!
+                new_file = accept_search.group(1)
+                accept_url = re.sub(file, new_file, location)
 
-                    # Found decline URL as well.
-                    new_file_decline = decline_search.group(1)
-                    decline_url = re.sub(file, new_file_decline, location)
+                # Found decline URL as well.
+                new_file_decline = decline_search.group(1)
+                decline_url = re.sub(file, new_file_decline, location)
 
-                    # Parse the HTML using BeautifulSoup
-                    soup = BeautifulSoup(self.body)
+                # Parse the HTML using BeautifulSoup
+                soup = BeautifulSoup(self.body)
 
-                    # The license is in a div with the ID license-text, so we
-                    # use this to pull just the license out of the HTML.
-                    html_license = u""
-                    for chunk in soup.findAll(id="license-text"):
-                        # Output of chunk.prettify is UTF8, but comes back
-                        # as a str, so convert it here.
-                        html_license += chunk.prettify().decode("utf-8")
+                # The license is in a div with the ID license-text, so we
+                # use this to pull just the license out of the HTML.
+                html_license = u""
+                for chunk in soup.findAll(id="license-text"):
+                    # Output of chunk.prettify is UTF8, but comes back
+                    # as a str, so convert it here.
+                    html_license += chunk.prettify().decode("utf-8")
 
-                    text_license = html2text.html2text(html_license)
+                text_license = html2text.html2text(html_license)
 
-                    return text_license, accept_url, decline_url
+                return text_license, accept_url, decline_url
 
         return None
 
