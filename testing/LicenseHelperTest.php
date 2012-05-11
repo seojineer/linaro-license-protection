@@ -1,6 +1,6 @@
 <?php
 
-require_once("../licenses/LicenseHelper.php");
+require_once("licenses/LicenseHelper.php");
 
 class LicenseHelperTest extends PHPUnit_Framework_TestCase
 {
