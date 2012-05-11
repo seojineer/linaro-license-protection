@@ -28,6 +28,7 @@ ste_open_test_file = '/android/~linaro-android/staging-snowball/173/test.txt'
 never_available = '/android/~linaro-android/staging-imx53/test.txt'
 linaro_test_file = '/android/~linaro-android/staging-panda/test.txt'
 not_protected_test_file = '/android/~linaro-android/staging-vexpress-a9/test.txt'
+not_found_test_file = '/android/~linaro-android/staging-vexpress-a9/notfound.txt'
 per_file_samsung_test_file = '/android/images/origen-blob.txt'
 per_file_ste_test_file = '/android/images/snowball-blob.txt'
 per_file_not_protected_test_file = '/android/images/MANIFEST'
@@ -283,4 +284,9 @@ class TestLicense(TestCase):
     def test_dir_containing_only_dirs(self):
         search = "Index of /android/~linaro-android"
         testfile = fetcher.get(host + dirs_only_dir)
+        self.assertThat(testfile, Contains(search))
+
+    def test_not_found_file(self):
+        search = "Not Found"
+        testfile = fetcher.get(host + not_found_test_file)
         self.assertThat(testfile, Contains(search))

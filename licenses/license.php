@@ -11,7 +11,7 @@ $flist = array();
 $eula = '';
 
 if (preg_match("/.*openid.*/", $fn) or preg_match("/.*restricted.*/", $fn) or preg_match("/.*private.*/", $fn)) {
-	LicenseHelper::status_ok($down, $domain);
+	LicenseHelper::redirect_with_status($down, $domain, 200);
 }
 
 if (file_exists($fn) and LicenseHelper::checkFile($fn)) { // Requested download is file
@@ -23,7 +23,7 @@ if (file_exists($fn) and LicenseHelper::checkFile($fn)) { // Requested download 
 	$repl = $down;
 	$name_only = array();
 } else { // Requested download not found on server
-	LicenseHelper::status_not_found();
+	LicenseHelper::redirect_with_status($down, $domain, 404);
 }
 
 $flist = LicenseHelper::getFilesList($search_dir);
@@ -41,18 +41,18 @@ if (LicenseHelper::checkFile($fn)) {
 	} elseif (LicenseHelper::findFileByPattern($flist, "/.*EULA.txt.*/")) {
 		// If file is requested but no special EULA for it and no EULA.txt is present,
 		// look for any EULA and if found decide that current file is not protected.
-		LicenseHelper::status_ok($down, $domain);
+		LicenseHelper::redirect_with_status($down, $domain, 200);
 	} else {
-		LicenseHelper::status_forbidden($down);
+		LicenseHelper::redirect_with_status($down, $domain, 403);
 	}
 } elseif (is_dir($fn)) {
 	if (empty($flist) or LicenseHelper::findFileByPattern($flist, "/.*EULA.txt.*/")) { // Directory contains only subdirs or any EULA
-		LicenseHelper::status_ok($down, $domain);
+		LicenseHelper::redirect_with_status($down, $domain, 200);
 	} else { // No special EULA, no EULA.txt, no OPEN-EULA.txt found
-		LicenseHelper::status_forbidden($down);
+		LicenseHelper::redirect_with_status($down, $domain, 403);
 	}
 } else {
-	LicenseHelper::status_forbidden($down);
+	LicenseHelper::redirect_with_status($down, $domain, 403);
 }
 
 $template_content = file_get_contents($doc."/licenses/".$theme.".html");
