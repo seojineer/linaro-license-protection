@@ -75,16 +75,15 @@ class LicenseHelper
 
     public static function redirect_with_status($dir, $domain, $status)
     {
-     	static $http = array (
-	     200 => "HTTP/1.1 200 OK",
-	     403 => "HTTP/1.1 403 Forbidden",
-	     404 => "HTTP/1.1 404 Not Found"
-     	);
+        static $http = array (
+            200 => "HTTP/1.1 200 OK",
+            403 => "HTTP/1.1 403 Forbidden",
+            404 => "HTTP/1.1 404 Not Found"
+        );
         header($http[$status]);
         header ("Location: $dir");
         header("Status: ".$status);
-	setcookie("redirectlicensephp", $status, 0, "/", ".".$domain);
+        setcookie("redirectlicensephp", $status, 0, "/", ".".$domain);
         exit;
     }
 }
-
