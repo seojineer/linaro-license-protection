@@ -15,6 +15,13 @@ This tree is the base for snapshots.linaro.org and releases.linaro.org www roots
 
 Currently, all directories/files containing either 'origen' or 'snowball' in the URL path are protected with appropriate license (Samsung or ST-E) click-through.
 
+Dependencies
+............
+
+libapache2-mod-php5
+
+Testing: phpunit, testrepository, python-html2text
+
 
 Technical details
 -----------------
