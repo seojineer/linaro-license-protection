@@ -104,5 +104,4 @@ Recent (as of 2012-05-08) Ubuntu/Debian releases have a broken phpunit package a
   $ sudo pear install pear.phpunit.de/PHPUnit
 
 Then to run the test from the 'testing' directory:
-  $ cd testing/
-  $ phpunit LicenseHelperTest
+  $ phpunit testing/LicenseHelperTest
