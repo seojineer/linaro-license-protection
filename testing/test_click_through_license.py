@@ -145,19 +145,19 @@ class TestLicense(TestCase):
         self.assertThat(testfile, Contains(search))
 
     def test_redirect_to_license_samsung(self):
-        search = "LICENSE AGREEMENT"
-        testfile = fetcher.get(host + samsung_test_file, ignore_license=True)
-        self.assertThat(testfile, Contains(search))
+        search = "PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY"
+        testfile = fetcher.get_or_return_license(host + samsung_test_file)
+        self.assertThat(testfile[0], Contains(search))
 
     def test_redirect_to_license_ste(self):
-        search = "LICENSE AGREEMENT"
-        testfile = fetcher.get(host + ste_test_file, ignore_license=True)
-        self.assertThat(testfile, Contains(search))
+        search = "PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY"
+        testfile = fetcher.get_or_return_license(host + ste_test_file)
+        self.assertThat(testfile[0], Contains(search))
 
     def test_redirect_to_license_linaro(self):
-        search = "LICENSE AGREEMENT"
-        testfile = fetcher.get(host + linaro_test_file, ignore_license=True)
-        self.assertThat(testfile, Contains(search))
+        search = "Linaro license."
+        testfile = fetcher.get_or_return_license(host + linaro_test_file)
+        self.assertThat(testfile[0], Contains(search))
 
     def test_decline_license_samsung(self):
         search = "License has not been accepted"
@@ -214,13 +214,13 @@ class TestLicense(TestCase):
     def test_license_accepted_samsung(self):
         search = "This is protected with click-through Samsung license."
         os.rename("%s/cookies.samsung" % docroot, "%s/cookies.txt" % docroot)
-        testfile = fetcher.get(host + samsung_test_file, ignore_license=True)
+        testfile = fetcher.get(host + samsung_test_file)
         self.assertThat(testfile, Contains(search))
 
     def test_license_accepted_ste(self):
         search = "This is protected with click-through ST-E license."
         os.rename("%s/cookies.ste" % docroot, "%s/cookies.txt" % docroot)
-        testfile = fetcher.get(host + ste_test_file, ignore_license=True)
+        testfile = fetcher.get(host + ste_test_file)
         self.assertThat(testfile, Contains(search))
 
     def test_internal_host_samsung(self):

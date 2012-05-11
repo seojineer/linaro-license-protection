@@ -182,12 +182,15 @@ class LicenseProtectedFileFetcher:
             file = os.path.split(file)[-1]
 
             # Look for a link with accepted.html in the page name. Follow it.
+            accept_search, decline_search = None, None
             for line in self.body.splitlines():
-                accept_search = re.search(
-                    r"""href=.*?["'](.*?-accepted.html)""",
+                if not accept_search:
+                    accept_search = re.search(
+                    """href=.*?["'](.*?-accepted.html)""",
                     line)
-                decline_search = re.search(
-                    r"""href=.*?["'](.*?-declined.html)""",
+                if not decline_search:
+                    decline_search = re.search(
+                    """href=.*?["'](.*?-declined.html)""",
                     line)
 
             if accept_search and decline_search:
