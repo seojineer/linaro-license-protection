@@ -73,30 +73,18 @@ class LicenseHelper
         return $theme;
     }
 
-    public static function status_forbidden($dir)
+    public static function redirect_with_status($dir, $domain, $status)
     {
-        header("Status: 403");
-        header("HTTP/1.1 403 Forbidden");
-        echo "<h1>Forbidden</h1>";
-        echo "You don't have permission to access ".$dir." on this server.";
+     	static $http = array (
+	     200 => "HTTP/1.1 200 OK",
+	     403 => "HTTP/1.1 403 Forbidden",
+	     404 => "HTTP/1.1 404 Not Found"
+     	);
+        header($http[$status]);
+        header ("Location: $dir");
+        header("Status: ".$status);
+	setcookie("redirectlicensephp", $status, 0, "/", ".".$domain);
         exit;
     }
-
-    public static function status_ok($dir, $domain)
-    {
-        header("Status: 200");
-        header("Location: ".$dir);
-        setcookie("redirectlicensephp", "yes", 0, "/", ".".$domain);
-        exit;
-    }
-
-    public static function status_not_found()
-    {
-        header("Status: 404");
-        header("HTTP/1.0 404 Not Found");
-        echo "<h1>404 Not Found</h1>";
-        echo "The requested URL was not found on this server.";
-        exit;
-    }
-
 }
+

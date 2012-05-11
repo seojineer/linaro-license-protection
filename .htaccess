@@ -85,7 +85,12 @@ RewriteCond %{ENV:LP_DOWNLOAD_DIR}/OPEN-EULA.txt -f
 RewriteRule .* - [L]
 
 ## Unset cookie indicating redirect from license.php
-RewriteCond %{HTTP_COOKIE} redirectlicensephp=yes
+## and redirect to reqested locations with status
+RewriteCond %{HTTP_COOKIE} redirectlicensephp=403
+RewriteRule .* - [CO=redirectlicensephp:INVALID:.%{ENV:CO_DOMAIN}:-1,L,F]
+
+RewriteCond %{HTTP_COOKIE} redirectlicensephp=200 [OR]
+RewriteCond %{HTTP_COOKIE} redirectlicensephp=404
 RewriteRule .* - [CO=redirectlicensephp:INVALID:.%{ENV:CO_DOMAIN}:-1,L]
 
 ## Redirect to the Samsung license file protected builds.
