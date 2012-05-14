@@ -103,5 +103,5 @@ Recent (as of 2012-05-08) Ubuntu/Debian releases have a broken phpunit package a
   $ sudo pear config-set auto_discover 1
   $ sudo pear install pear.phpunit.de/PHPUnit
 
-Then to run the test from the 'testing' directory:
+PHPUnit tests execution is already included in the python integration tests, but if you wish to run unit tests separately, do the following:
   $ phpunit testing/LicenseHelperTest
