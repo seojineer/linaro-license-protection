@@ -1,5 +1,6 @@
 import os
 import unittest
+import doctest
 
 from testing.test_click_through_license import *
 from testing.test_publish_to_snapshots import *
@@ -12,5 +13,6 @@ def test_suite():
         ]
     loader = unittest.TestLoader()
     suite = loader.loadTestsFromNames(module_names)
+    suite.addTest(doctest.DocFileSuite('docs/snapshots.txt', module_relative = False, optionflags = doctest.ELLIPSIS))
     return suite
 

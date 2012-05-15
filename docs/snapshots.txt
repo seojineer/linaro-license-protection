@@ -1,0 +1,29 @@
+Test snapshots.linaro.org production server
+===========================================
+
+Navigate to the regular license-protected download file
+-------------------------------------------------------
+
+Include class we will use for this test and init fetcher.
+
+    >>> from testing.license_protected_file_downloader import LicenseProtectedFileFetcher
+    >>> from testing.doctest_production_helper import DoctestProductionHelper
+    >>> fetcher = LicenseProtectedFileFetcher()
+    >>> helper = DoctestProductionHelper("http://snapshots.linaro.org")
+
+Visiting homepage and checking for title, android link and footer.
+
+    >>> page = fetcher.get(helper.host_address)
+    >>> print page
+    <!DOCTYPE...<title>Linaro Snapshots</title>...<a href="android/">android/</a>...Server at snapshots.linaro.org...
+    ...
+
+Now, consecutively open links as per set guidelines and in the end return the link to the build file if there is any in the resulting directory.
+    >>> file_path = helper.follow_links_to_file("/", ["android/","android/","snowball"])
+    >>> print file_path
+    /android/~linaro-android/landing-snowball/138/target/product/snowball/boot.tar.bz2
+
+
+Mock the file download.
+    >>> fetcher.get(helper.host_address)
+
