@@ -13,6 +13,7 @@ def test_suite():
         ]
     loader = unittest.TestLoader()
     suite = loader.loadTestsFromNames(module_names)
-    suite.addTest(doctest.DocFileSuite('docs/snapshots.txt', module_relative = False, optionflags = doctest.ELLIPSIS))
+    for filename in os.listdir("docs/"):
+        suite.addTest(doctest.DocFileSuite('docs/'+filename, module_relative = False, optionflags = doctest.ELLIPSIS))
     return suite
 

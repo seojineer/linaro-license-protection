@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from BeautifulSoup import BeautifulSoup
 
 from license_protected_file_downloader import LicenseProtectedFileFetcher
@@ -11,9 +9,9 @@ class DoctestProductionHelper():
         self.host_address = host_address
         self.fetcher = LicenseProtectedFileFetcher()
 
-    def get_url_from_link(self, link):
-        """Append link to host and return it."""
-        return self.host_address + "/" + link
+    def get_url_from_path(self, path):
+        """Append path to host and return it."""
+        return self.host_address + path
 
     def is_dir(self, link):
         """Check if the link has the slash as last char, thus pointing to the
@@ -52,7 +50,7 @@ class DoctestProductionHelper():
         """
         next_link_is_dir = True
         while (next_link_is_dir):
-            page = self.fetcher.get(self.get_url_from_link(next_link))
+            page = self.fetcher.get(self.get_url_from_path(next_link))
             links = self.find_links(page)
             # Find link which satisfies the given guidelines.
             good_link = self.find_directory_with_condition(links, guidelines)
@@ -101,12 +99,4 @@ class DoctestProductionHelper():
             if link[-7:] == "tar.bz2":
                 return link
         return None
-
-def main():
-    helper = DoctestProductionHelper("http://snapshots.linaro.org")
-    helper.follow_links_to_file("/",["android/","android/","snowball"])
-
-
-if __name__ == "__main__":
-    main()
 

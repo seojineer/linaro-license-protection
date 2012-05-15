@@ -1,8 +1,8 @@
 Test snapshots.linaro.org production server
 ===========================================
 
-Navigate to the regular license-protected download file
--------------------------------------------------------
+Navigate to the regular license-protected file and initiate download
+--------------------------------------------------------------------
 
 Include class we will use for this test and init fetcher.
 
@@ -19,11 +19,19 @@ Visiting homepage and checking for title, android link and footer.
     ...
 
 Now, consecutively open links as per set guidelines and in the end return the link to the build file if there is any in the resulting directory.
+
     >>> file_path = helper.follow_links_to_file("/", ["android/","android/","snowball"])
-    >>> print file_path
-    /android/~linaro-android/landing-snowball/138/target/product/snowball/boot.tar.bz2
+    >>> print helper.get_url_from_path(file_path)
+    http://snapshots.linaro.org/android/~linaro-android/landing-snowball/.../target/product/snowball/boot.tar.bz2
 
 
-Mock the file download.
-    >>> fetcher.get(helper.host_address)
+Try to get the file from the location from above. Check if the ST-E license is encountered.
 
+    >>> fetcher.get_or_return_license(helper.get_url_from_path(file_path))[0]
+    u'This Agreement is a legally binding...ST-Ericsson...GOVERNING LAW AND JURISDICTION...
+
+Mock the file download and check for headers only.
+
+    >>> file = fetcher.get(helper.get_url_from_path(file_path))
+    >>> print fetcher.header
+    {'Content-Length':...'Location':...tar.bz2'...'Content-Type': 'application/x-bzip2'...
