@@ -44,17 +44,25 @@ then snowball links, respectively.
     >>> print browser.get_content_title()
     Index of /android/~linaro-android/...snowball...product...snowball...
 
-Finally, mock the boot.tar.bz2 file download and check the license. Check if the ST-E license is encountered.
+Finally, mock the boot.tar.bz2 file download and check the license.
+Check if the ST-E license is encountered.
 
     >>> browser.browse_to_relative("boot.tar.bz2")
-    >>> print browser.get_license()
-    This Agreement is a legally binding...ST-Ericsson...GOVERNING LAW AND JURISDICTION...
+    >>> print browser.get_license_text()
+    This Agreement is a legal...ST-Ericsson...GOVERNING LAW AND JURISDICTION...
     ...
 
-Now check if the headers of the requested file are in order.
+Now, emulate clicking on the Accept Licence link which redirects us to the
+download file. Check if the headers of the requested file are in order.
 
-    >>> print browser.get_header_when_redirected()
+    >>> print browser.accept_license_get_header()
     Accept-Ranges:...
     Content-Type: application/x-bzip2...
     Location: http://snapshots...boot.tar.bz2...
     ...
+
+Now, emulate clicking on the Decline Licence link which redirects us to the
+decline page.
+
+    >>> print browser.decline_license()
+    License has not been accepted

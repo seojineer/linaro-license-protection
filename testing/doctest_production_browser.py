@@ -24,8 +24,8 @@ class DoctestProductionBrowser():
         """Get header from the current url."""
         return self.fetcher.get_header(self.current_url)
 
-    def get_license(self):
-        """Get license from the current URL if it redirects to lincense."""
+    def get_license_text(self):
+        """Get license from the current URL if it redirects to license."""
         license = self.fetcher.get_or_return_license(self.current_url)
         if license[0]:
             return license[0]
@@ -38,18 +38,40 @@ class DoctestProductionBrowser():
 
     def get_content_title(self):
         """Get content title from the current url."""
-        html = self.fetcher.get(self.current_url)
-        soup = BeautifulSoup(html)
-        titles_all = soup.findAll('title')
-        return titles_all[0].contents[0]
+        return self.get_title(self.fetcher.get(self.current_url))
 
     def get_header_when_redirected(self):
         """Get header when the client is redirected to the license."""
-        page = self.fetcher.get(self.current_url)
-        header_lines = ""
-        for key in sorted(self.fetcher.header.iterkeys()):
-            header_lines += "%s: %s\n" % (key, self.fetcher.header[key])
-        return header_lines
+        self.fetcher.get(self.current_url)
+        return self.parse_header(self.fetcher.header)
+
+    def accept_license_get_header(self):
+        """Accept license and get header of the file it redirects to."""
+        license = self.fetcher.get_or_return_license(self.current_url)
+        # Second element in result is the accept link.
+        if license[1]:
+            self.fetcher.get_protected_file(license[1],self.current_url)
+            return self.parse_header(self.fetcher.header)
+        else:
+            raise NoLicenseException("License expected here.")
+
+    def decline_license(self):
+        """Decline license. Return title of the page."""
+        return self.get_title(
+            self.fetcher.get(self.current_url, accept_license=False)
+            )
+
+    def parse_header(self, header):
+        """Formats headers from dict form to the multi-line string."""
+        header_str = ""
+        for key in sorted(header.iterkeys()):
+            header_str += "%s: %s\n" % (key, header[key])
+        return header_str
+
+    def get_title(self, html):
+        soup = BeautifulSoup(html)
+        titles_all = soup.findAll('title')
+        return titles_all[0].contents[0]
 
     def browse_to_relative(self, path):
         """Change current url relatively."""
