@@ -1,7 +1,7 @@
 Test snapshots.linaro.org production server
 ===========================================
 
-Navigate to the regular license-protected file and initiate download
+Navigate to the regular ST-E license-protected file and initiate download
 --------------------------------------------------------------------
 
 Include class we will use for this test and init fetcher.
@@ -58,7 +58,7 @@ download file. Check if the headers of the requested file are in order.
     >>> print browser.accept_license_get_header()
     Accept-Ranges:...
     Content-Type: application/x-bzip2...
-    Location: http://snapshots...boot.tar.bz2...
+    Location: http://snapshots...snowball...boot.tar.bz2...
     ...
 
 Now, emulate clicking on the Decline Licence link which redirects us to the
@@ -66,3 +66,103 @@ decline page.
 
     >>> print browser.decline_license()
     License has not been accepted
+
+
+Navigate to the regular Samsung license-protected file and initiate download
+----------------------------------------------------------------------------
+
+Browsing back into the android/~linaro-android/*origen*. It should work
+without any license popping out.
+
+    >>> browser.browse_to_absolute("android/")
+    >>> print browser.get_content_title()
+    Index of /android
+    >>> browser.browse_to_relative("~linaro-android/")
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android
+    >>> browser.browse_to_next("origen")
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...origen...
+
+Go to build number page. We don't know which are the build numbers so we
+will visit the first directory link available. Next, go to target, then product
+then origen links, respectively.
+
+    >>> browser.browse_to_next("")
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...origen...
+    >>> browser.browse_to_relative("target/")
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...origen...target
+    >>> browser.browse_to_relative("product/")
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...origen...target...product...
+    >>> browser.browse_to_relative("origen/")
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...origen...product...origen...
+
+Finally, mock the userdata.tar.bz2 file download and check the license.
+Check if the Samsung license is encountered.
+
+    >>> browser.browse_to_relative("userdata.tar.bz2")
+    >>> print browser.get_license_text()
+    IMPORTANT...SAMSUNG ELECTRONICS...Entire Agreement...
+    ...
+
+Now, emulate clicking on the Accept Licence link which redirects us to the
+download file. Check if the headers of the requested file are in order.
+
+    >>> print browser.accept_license_get_header()
+    Accept-Ranges:...
+    Content-Type: application/x-bzip2...
+    Location: http://snapshots...origen...userdata.tar.bz2...
+    ...
+
+Now, emulate clicking on the Decline Licence link which redirects us to the
+decline page.
+
+    >>> print browser.decline_license()
+    License has not been accepted
+
+
+Navigate to the non-license-protected file and initiate download
+----------------------------------------------------------------
+
+Browsing back into the android/~linaro-android/*panda*. It should work
+without any license popping out.
+
+    >>> browser.browse_to_absolute("android/")
+    >>> print browser.get_content_title()
+    Index of /android
+    >>> browser.browse_to_relative("~linaro-android/")
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android
+    >>> browser.browse_to_next("panda")
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...panda...
+
+Go to build number page. We don't know which are the build numbers so we
+will visit the first directory link available. Next, go to target, then product
+then pandaboard links, respectively.
+
+    >>> browser.browse_to_next("")
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...panda...
+    >>> browser.browse_to_relative("target/")
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...panda...target
+    >>> browser.browse_to_relative("product/")
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...panda...target...product...
+    >>> browser.browse_to_next("panda")
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...panda...product...panda...
+
+Finally, mock the boot.tar.bz2 file download. There should not be any
+license encountered.
+
+    >>> browser.browse_to_relative("boot.tar.bz2")
+    >>> print browser.get_unprotected_file_header()
+    Accept-Ranges:...
+    Content-Type: application/x-bzip2...
+    ...

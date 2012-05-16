@@ -8,6 +8,9 @@ class EmptyDirectoryException(Exception):
 class NoLicenseException(Exception):
     ''' No license protecting the file. '''
 
+class UnexpectedLicenseException(Exception):
+    ''' License protecting non-licensed the file. '''
+
 class DoctestProductionBrowser():
     """Doctest production testing browser class."""
 
@@ -22,7 +25,7 @@ class DoctestProductionBrowser():
 
     def get_header(self):
         """Get header from the current url."""
-        return self.fetcher.get_header(self.current_url)
+        return self.parse_header(self.fetcher.get_headers(self.current_url))
 
     def get_license_text(self):
         """Get license from the current URL if it redirects to license."""
@@ -31,6 +34,16 @@ class DoctestProductionBrowser():
             return license[0]
         else:
             raise NoLicenseException("License expected here.")
+
+    def get_unprotected_file_header(self):
+        """Get headers from unprotected file."""
+        page = self.fetcher.get_or_return_license(self.current_url)
+        # Check if license with accept and decline links is returned.
+        if len(page) == 3:
+            raise UnexpectedLicenseException("License not expected here.")
+        else:
+            #return self.parse_header(self.fetcher.header)
+            return self.fetcher.header
 
     def get_content(self):
         """Get contents from the current url."""
