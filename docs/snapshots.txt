@@ -11,59 +11,38 @@ Include class we will use for this test and init fetcher.
 
 Visiting homepage and checking for title, android link and footer.
 
-    >>> print browser.get_content()
-    <!DOCTYPE...<title>Linaro Snapshots</title>...<a href="android/">android/</a>...Server at snapshots.linaro.org...
-    ...
+    >>> print browser.get_content_title()
+    Index of /
 
-Now visit the android link.
+Browsing into the android/~linaro-android/*snowball* should work without any
+license popping out.
 
     >>> browser.browse_to_relative("android/")
-    >>> print browser.get_content()
-    <!DOCTYPE...<title>Index of /android</title>...<a href="~linaro-android/">~linaro-android/</a>...Server at snapshots.linaro.org...
-    ...
-
-Visit the ~linaro-android link.
-
+    >>> print browser.get_content_title()
+    Index of /android
     >>> browser.browse_to_relative("~linaro-android/")
-    >>> print browser.get_content()
-    <!DOCTYPE...<title>Index of /android/~linaro-android</title>...<a href="landing-panda/">landing-panda/</a>...<a href="landing-snowball/">landing-snowball/</a>...Server at snapshots.linaro.org...
-    ...
-
-Now, visit the directory which contains "snowball" in the name.
-
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android
     >>> browser.browse_to_next("snowball")
-    >>> print browser.get_content()
-    <!DOCTYPE...<title>Index of /android/~linaro-android/...snowball...</title>...Server at snapshots.linaro.org...
-    ...
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...snowball...
 
 Go to build number page. We don't know which are the build numbers so we
-will visit the first directory link available.
+will visit the first directory link available. Next, go to target, then product
+then snowball links, respectively.
 
     >>> browser.browse_to_next("")
-    >>> print browser.get_content()
-    <!DOCTYPE...<title>Index of /android/~linaro-android/...snowball...</title>...<a href="target/">target/</a>...Server at snapshots.linaro.org...
-    ...
-
-Now "click" on the "target/" link.
-
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...snowball...
     >>> browser.browse_to_relative("target/")
-    >>> print browser.get_content()
-    <!DOCTYPE...<title>Index of /android/~linaro-android/...snowball...</title>...<a href="product/">product/</a>...Server at snapshots.linaro.org...
-    ...
-
-Now "click" on the "product/" link.
-
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...snowball...target
     >>> browser.browse_to_relative("product/")
-    >>> print browser.get_content()
-    <!DOCTYPE...<title>Index of /android/~linaro-android/...snowball...</title>...<a href="snowball/">snowball/</a>...Server at snapshots.linaro.org...
-    ...
-
-Now "click" on the "snowball/" link.
-
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...snowball...target...product...
     >>> browser.browse_to_relative("snowball/")
-    >>> print browser.get_content()
-    <!DOCTYPE...<title>Index of /android/~linaro-android/...snowball...</title>...<a href="boot.tar.bz2">boot.tar.bz2</a>...Server at snapshots.linaro.org...
-    ...
+    >>> print browser.get_content_title()
+    Index of /android/~linaro-android/...snowball...product...snowball...
 
 Finally, mock the boot.tar.bz2 file download and check the license. Check if the ST-E license is encountered.
 
@@ -75,5 +54,7 @@ Finally, mock the boot.tar.bz2 file download and check the license. Check if the
 Now check if the headers of the requested file are in order.
 
     >>> print browser.get_header_when_redirected()
-    {'Content-Length':...'Location':...boot.tar.bz2'...'Content-Type': 'application/x-bzip2'...
-
+    Accept-Ranges:...
+    Content-Type: application/x-bzip2...
+    Location: http://snapshots...boot.tar.bz2...
+    ...

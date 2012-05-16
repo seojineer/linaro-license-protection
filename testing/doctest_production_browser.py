@@ -36,10 +36,20 @@ class DoctestProductionBrowser():
         """Get contents from the current url."""
         return self.fetcher.get(self.current_url)
 
+    def get_content_title(self):
+        """Get content title from the current url."""
+        html = self.fetcher.get(self.current_url)
+        soup = BeautifulSoup(html)
+        titles_all = soup.findAll('title')
+        return titles_all[0].contents[0]
+
     def get_header_when_redirected(self):
         """Get header when the client is redirected to the license."""
         page = self.fetcher.get(self.current_url)
-        return self.fetcher.header
+        header_lines = ""
+        for key in sorted(self.fetcher.header.iterkeys()):
+            header_lines += "%s: %s\n" % (key, self.fetcher.header[key])
+        return header_lines
 
     def browse_to_relative(self, path):
         """Change current url relatively."""
