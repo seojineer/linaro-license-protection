@@ -87,7 +87,10 @@ class DoctestProductionBrowser():
     def get_title(self, html):
         soup = BeautifulSoup(html)
         titles_all = soup.findAll('title')
-        return titles_all[0].contents[0]
+        if len(titles_all) > 0:
+            return titles_all[0].contents[0]
+        else:
+            return ""
 
     def browse_to_relative(self, path):
         """Change current url relatively."""

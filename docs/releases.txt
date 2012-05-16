@@ -115,3 +115,30 @@ license encountered.
     Accept-Ranges:...
     Content-Type: application/x-bzip2...
     ...
+
+
+Try accessing the leb-snowball link in platform latest android dir
+------------------------------------------------------------------
+
+Browsing back into the platform/latest/android/latest. It should work
+without any license popping out.
+
+    >>> browser.browse_to_absolute("platform/")
+    >>> print browser.get_content_title()
+    Index of /platform
+    >>> browser.browse_to_relative("latest/")
+    >>> print browser.get_content_title()
+    Index of /platform/latest
+    >>> browser.browse_to_relative("android/")
+    >>> print browser.get_content_title()
+    Index of /platform/latest/android
+    >>> browser.browse_to_relative("latest/")
+    >>> print browser.get_content_title()
+    Index of /platform/latest/android/latest
+
+
+Now try opening the leb-snowball link.
+
+    >>> browser.browse_to_relative("leb-snowball/")
+    >>> print browser.get_content_title()
+    Index of /platform/latest/android/latest/leb-snowball
