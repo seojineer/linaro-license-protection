@@ -8,6 +8,7 @@ import urlparse
 import html2text
 from BeautifulSoup import BeautifulSoup
 
+
 class LicenseProtectedFileFetcher:
     """Fetch a file from the web that may be protected by a license redirect
 
@@ -124,7 +125,8 @@ class LicenseProtectedFileFetcher:
 
         return self.body
 
-    def get(self, url, file_name=None, ignore_license=False, accept_license=True):
+    def get(self, url, file_name=None, ignore_license=False,
+            accept_license=True):
         """Fetch the requested URL, accepting licenses
 
         Fetches the file at url. If a redirect is encountered, it is
@@ -241,7 +243,7 @@ class LicenseProtectedFileFetcher:
 
         # Only buffer first 1MB of body. This should be plenty for anything
         # we wish to parse internally.
-        if len(self.body) < 1024*1024*1024:
+        if len(self.body) < 1024 * 1024 * 1024:
             # XXX Would be nice to stop keeping the file in RAM at all and
             # passing large buffers around. Perhaps only keep in RAM if
             # file_name == None? (used for getting directory listings
@@ -259,6 +261,7 @@ class LicenseProtectedFileFetcher:
     def close(self):
         """Wrapper to close curl - this will allow curl to write out cookies"""
         self.curl.close()
+
 
 def main():
     """Download file specified on command line"""

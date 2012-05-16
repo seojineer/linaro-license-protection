@@ -2,14 +2,18 @@ from BeautifulSoup import BeautifulSoup
 
 from license_protected_file_downloader import LicenseProtectedFileFetcher
 
+
 class EmptyDirectoryException(Exception):
     ''' Directory at the current URL is empty. '''
+
 
 class NoLicenseException(Exception):
     ''' No license protecting the file. '''
 
+
 class UnexpectedLicenseException(Exception):
     ''' License protecting non-licensed the file. '''
+
 
 class DoctestProductionBrowser():
     """Doctest production testing browser class."""
@@ -62,7 +66,7 @@ class DoctestProductionBrowser():
         license = self.fetcher.get_or_return_license(self.current_url)
         # Second element in result is the accept link.
         if license[1]:
-            self.fetcher.get_protected_file(license[1],self.current_url)
+            self.fetcher.get_protected_file(license[1], self.current_url)
             return self.parse_header(self.fetcher.header)
         else:
             raise NoLicenseException("License expected here.")
@@ -163,4 +167,3 @@ class DoctestProductionBrowser():
             if link[-7:] == "tar.bz2":
                 return link
         return None
-

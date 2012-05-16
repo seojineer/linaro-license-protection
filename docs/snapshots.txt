@@ -4,7 +4,7 @@ Test snapshots.linaro.org production server
 Navigate to the regular ST-E license-protected file and initiate download
 -------------------------------------------------------------------------
 
-Include class we will use for this test and init fetcher.
+Import class we will use for this test and init browser object.
 
     >>> from testing.doctest_production_browser import DoctestProductionBrowser
     >>> browser = DoctestProductionBrowser("http://snapshots.linaro.org/")
