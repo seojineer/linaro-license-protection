@@ -6,32 +6,74 @@ Navigate to the regular license-protected file and initiate download
 
 Include class we will use for this test and init fetcher.
 
-    >>> from testing.license_protected_file_downloader import LicenseProtectedFileFetcher
-    >>> from testing.doctest_production_helper import DoctestProductionHelper
-    >>> fetcher = LicenseProtectedFileFetcher()
-    >>> helper = DoctestProductionHelper("http://snapshots.linaro.org")
+    >>> from testing.doctest_production_browser import DoctestProductionBrowser
+    >>> browser = DoctestProductionBrowser("http://snapshots.linaro.org/")
 
 Visiting homepage and checking for title, android link and footer.
 
-    >>> page = fetcher.get(helper.host_address)
-    >>> print page
+    >>> print browser.get_content()
     <!DOCTYPE...<title>Linaro Snapshots</title>...<a href="android/">android/</a>...Server at snapshots.linaro.org...
     ...
 
-Now, consecutively open links as per set guidelines and in the end return the link to the build file if there is any in the resulting directory.
+Now visit the android link.
 
-    >>> file_path = helper.follow_links_to_file("/", ["android/","android/","snowball"])
-    >>> print helper.get_url_from_path(file_path)
-    http://snapshots.linaro.org/android/~linaro-android/landing-snowball/.../target/product/snowball/boot.tar.bz2
+    >>> browser.browse_to_relative("android/")
+    >>> print browser.get_content()
+    <!DOCTYPE...<title>Index of /android</title>...<a href="~linaro-android/">~linaro-android/</a>...Server at snapshots.linaro.org...
+    ...
 
+Visit the ~linaro-android link.
 
-Try to get the file from the location from above. Check if the ST-E license is encountered.
+    >>> browser.browse_to_relative("~linaro-android/")
+    >>> print browser.get_content()
+    <!DOCTYPE...<title>Index of /android/~linaro-android</title>...<a href="landing-panda/">landing-panda/</a>...<a href="landing-snowball/">landing-snowball/</a>...Server at snapshots.linaro.org...
+    ...
 
-    >>> fetcher.get_or_return_license(helper.get_url_from_path(file_path))[0]
-    u'This Agreement is a legally binding...ST-Ericsson...GOVERNING LAW AND JURISDICTION...
+Now, visit the directory which contains "snowball" in the name.
 
-Mock the file download and check for headers only.
+    >>> browser.browse_to_next("snowball")
+    >>> print browser.get_content()
+    <!DOCTYPE...<title>Index of /android/~linaro-android/...snowball...</title>...Server at snapshots.linaro.org...
+    ...
 
-    >>> file = fetcher.get(helper.get_url_from_path(file_path))
-    >>> print fetcher.header
-    {'Content-Length':...'Location':...tar.bz2'...'Content-Type': 'application/x-bzip2'...
+Go to build number page. We don't know which are the build numbers so we
+will visit the first directory link available.
+
+    >>> browser.browse_to_next("")
+    >>> print browser.get_content()
+    <!DOCTYPE...<title>Index of /android/~linaro-android/...snowball...</title>...<a href="target/">target/</a>...Server at snapshots.linaro.org...
+    ...
+
+Now "click" on the "target/" link.
+
+    >>> browser.browse_to_relative("target/")
+    >>> print browser.get_content()
+    <!DOCTYPE...<title>Index of /android/~linaro-android/...snowball...</title>...<a href="product/">product/</a>...Server at snapshots.linaro.org...
+    ...
+
+Now "click" on the "product/" link.
+
+    >>> browser.browse_to_relative("product/")
+    >>> print browser.get_content()
+    <!DOCTYPE...<title>Index of /android/~linaro-android/...snowball...</title>...<a href="snowball/">snowball/</a>...Server at snapshots.linaro.org...
+    ...
+
+Now "click" on the "snowball/" link.
+
+    >>> browser.browse_to_relative("snowball/")
+    >>> print browser.get_content()
+    <!DOCTYPE...<title>Index of /android/~linaro-android/...snowball...</title>...<a href="boot.tar.bz2">boot.tar.bz2</a>...Server at snapshots.linaro.org...
+    ...
+
+Finally, mock the boot.tar.bz2 file download and check the license. Check if the ST-E license is encountered.
+
+    >>> browser.browse_to_relative("boot.tar.bz2")
+    >>> print browser.get_license()
+    This Agreement is a legally binding...ST-Ericsson...GOVERNING LAW AND JURISDICTION...
+    ...
+
+Now check if the headers of the requested file are in order.
+
+    >>> print browser.get_header_when_redirected()
+    {'Content-Length':...'Location':...boot.tar.bz2'...'Content-Type': 'application/x-bzip2'...
+
