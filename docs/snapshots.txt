@@ -2,14 +2,14 @@ Test snapshots.linaro.org production server
 ===========================================
 
 Navigate to the regular ST-E license-protected file and initiate download
---------------------------------------------------------------------
+-------------------------------------------------------------------------
 
 Include class we will use for this test and init fetcher.
 
     >>> from testing.doctest_production_browser import DoctestProductionBrowser
     >>> browser = DoctestProductionBrowser("http://snapshots.linaro.org/")
 
-Visiting homepage and checking for title, android link and footer.
+Visiting homepage and check for title.
 
     >>> print browser.get_content_title()
     Index of /
@@ -101,10 +101,10 @@ then origen links, respectively.
     >>> print browser.get_content_title()
     Index of /android/~linaro-android/...origen...product...origen...
 
-Finally, mock the userdata.tar.bz2 file download and check the license.
+Finally, mock the boot.tar.bz2 file download and check the license.
 Check if the Samsung license is encountered.
 
-    >>> browser.browse_to_relative("userdata.tar.bz2")
+    >>> browser.browse_to_relative("boot.tar.bz2")
     >>> print browser.get_license_text()
     IMPORTANT...SAMSUNG ELECTRONICS...Entire Agreement...
     ...
@@ -115,7 +115,7 @@ download file. Check if the headers of the requested file are in order.
     >>> print browser.accept_license_get_header()
     Accept-Ranges:...
     Content-Type: application/x-bzip2...
-    Location: http://snapshots...origen...userdata.tar.bz2...
+    Location: http://snapshots...origen...boot.tar.bz2...
     ...
 
 Now, emulate clicking on the Decline Licence link which redirects us to the

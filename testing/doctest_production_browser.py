@@ -42,8 +42,7 @@ class DoctestProductionBrowser():
         if len(page) == 3:
             raise UnexpectedLicenseException("License not expected here.")
         else:
-            #return self.parse_header(self.fetcher.header)
-            return self.fetcher.header
+            return self.parse_header(self.fetcher.header)
 
     def get_content(self):
         """Get contents from the current url."""
