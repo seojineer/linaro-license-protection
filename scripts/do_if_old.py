@@ -5,6 +5,7 @@ import re
 import time
 import sys
 
+
 def search_and_run(root_dir, command, trigger_age_string):
     """Run command on old directories
 
@@ -43,6 +44,7 @@ def search_and_run(root_dir, command, trigger_age_string):
 
             if (time.time() - mod_time) > trigger_age_seconds:
                 os.system(command + " " + path)
+
 
 if __name__ == '__main__':
     """Run command on directories that are older than trigger-age."""
