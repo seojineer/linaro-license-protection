@@ -14,7 +14,7 @@ from license_protected_file_downloader import LicenseProtectedFileFetcher
 fetcher = LicenseProtectedFileFetcher()
 cwd = os.getcwd()
 docroot = cwd
-srvroot = os.path.abspath(os.path.join(*([cwd] + ['testing'])))
+srvroot = os.path.abspath(os.path.join(*([cwd] + ['tests'])))
 local_rewrite = 'RewriteCond %{REMOTE_ADDR} 127.0.0.1 [OR]'
 
 host = 'http://127.0.0.1'

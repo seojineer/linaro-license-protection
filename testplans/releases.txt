@@ -6,7 +6,7 @@ Navigate to the regular ST-E license-protected file and initiate download
 
 Import class we will use for this test and init browser object.
 
-    >>> from testing.doctest_production_browser import DoctestProductionBrowser
+    >>> from tests.doctest_production_browser import DoctestProductionBrowser
     >>> browser = DoctestProductionBrowser("http://releases.linaro.org/")
 
 Visiting homepage and check for title.

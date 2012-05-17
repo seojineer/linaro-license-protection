@@ -133,4 +133,4 @@ detailed output, you may need to run phpunit directly.
 
 To run the tests separately, do the following:
 
-  $ phpunit testing/LicenseHelperTest
+  $ phpunit tests/LicenseHelperTest
