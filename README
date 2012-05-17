@@ -90,6 +90,12 @@ Python and Apache2:
   $ testr init
   $ testr run
 
+To run the production test plans (NOTE: They will take a bit more time to run)
+execute the following:
+
+  $ testr init
+  $ testr run testplans.test_suite
+
 
 Tests for PHP license-matching logic
 ....................................
