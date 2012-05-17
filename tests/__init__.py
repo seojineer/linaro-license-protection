@@ -1,8 +1,4 @@
-import os
 import unittest
-
-from tests.test_click_through_license import *
-from tests.test_publish_to_snapshots import *
 
 
 def test_suite():

@@ -7,6 +7,9 @@ from testtools import TestCase
 from testtools.matchers import Equals
 from testtools.matchers import AllMatch
 
+from tests.test_click_through_license import CommandNotFoundException
+
+
 class PhpUnitTest(TestCase):
     '''Tests for executing the PHP Unit tests'''
 
