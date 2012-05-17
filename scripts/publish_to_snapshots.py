@@ -43,7 +43,7 @@ class SnapshotsPublisher(object):
     def validate_args(self, args):
         # Validate that all the required information
         # is passed on the command line
-        if (args.job_type == None or  args.job_name == None or
+        if (args.job_type == None or args.job_name == None or
             args.build_num == None):
             parser.error(
                 "\nYou must specify job-type, job-name and build-num")
