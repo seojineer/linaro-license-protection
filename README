@@ -32,7 +32,9 @@ Dependencies
 
 libapache2-mod-php5
 
-Testing: phpunit, testrepository, python-html2text
+Testing:
+  phpunit, python 2.7, testrepository (>=0.0.6), python-html2text,
+  python-subunit, python-beautifulsoup
 
 Recent (as of 2012-05-08) Ubuntu/Debian releases have a broken phpunit
 package and thus require installation of phpunit through PEAR:
