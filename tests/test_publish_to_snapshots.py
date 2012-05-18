@@ -9,22 +9,25 @@ from StringIO import StringIO
 from testtools import TestCase
 from scripts.publish_to_snapshots import SnapshotsPublisher
 
+
 class TestSnapshotsPublisher(TestCase):
-    '''Tests for publishing files to the snapshots.l.o www are.'''
+    '''Tests for publishing files to the snapshots.l.o www area.'''
 
     uploads_path = "uploads/"
     target_path = "www/"
     orig_dir = os.getcwd()
 
     def setUp(self):
-        self.parser =  argparse.ArgumentParser()
+        self.parser = argparse.ArgumentParser()
         self.parser.add_argument("-t", "--job-type", dest="job_type")
         self.parser.add_argument("-j", "--job-name", dest="job_name")
-        self.parser.add_argument("-n", "--build-num", dest="build_num", type=int)
-        self.parser.add_argument("-m", "--manifest",  dest="manifest", action='store_true')
+        self.parser.add_argument("-n", "--build-num", dest="build_num",
+                                 type=int)
+        self.parser.add_argument("-m", "--manifest",  dest="manifest",
+                                 action='store_true')
         if not os.path.isdir(self.uploads_path):
             os.mkdir(self.uploads_path)
-        
+
         if not os.path.isdir(self.target_path):
             os.mkdir(self.target_path)
         super(TestSnapshotsPublisher, self).setUp()
@@ -40,38 +43,38 @@ class TestSnapshotsPublisher(TestCase):
 
     def test_validate_args_valid_job_values(self):
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', 
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'android', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
-        param = self.parser.parse_args(['-t', 'kernel-hwpack', '-j', 'dummy_job_name', 
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'kernel-hwpack', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
 
-        param = self.parser.parse_args(['-t', 'prebuilt', '-j', 'dummy_job_name',
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'prebuilt', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
-        param = self.parser.parse_args(['-t', 'ubuntu-hwpacks', '-j', 'dummy_job_name',
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'ubuntu-hwpacks', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
-        param = self.parser.parse_args(['-t', 'ubuntu-images', '-j', 'dummy_job_name',
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'ubuntu-images', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
-        param = self.parser.parse_args(['-t', 'ubuntu-restricted', '-j', 'dummy_job_name',
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'ubuntu-restricted', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
-        param = self.parser.parse_args(['-t', 'ubuntu-sysroots', '-j', 'dummy_job_name',
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'ubuntu-sysroots', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
-        param = self.parser.parse_args(['-t', 'binaries', '-j', 'dummy_job_name',
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'binaries', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
 
     def test_validate_args_invalid_job_type(self):
         orig_stderr = sys.stderr
         stderr = sys.stderr = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'invalid_job_type',  '-j', 'dummy_job_name', 
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'invalid_job_type',  '-j', 'dummy_job_name', '-n', '1'])
         try:
             self.publisher.validate_args(param)
         except SystemExit, err:
@@ -81,7 +84,6 @@ class TestSnapshotsPublisher(TestCase):
 
         stderr.seek(0)
         self.assertIn("Invalid job type", stderr.read())
-
 
     def test_validate_args_run_invalid_argument(self):
         orig_stderr = sys.stderr
@@ -111,7 +113,7 @@ class TestSnapshotsPublisher(TestCase):
             sys.stderr = orig_stderr
 
         stderr.seek(0)
-        self.assertIn("argument -n/--build-num: invalid int value: 'N'", 
+        self.assertIn("argument -n/--build-num: invalid int value: 'N'",
                       stderr.read())
 
     def test_validate_args_run_none_values(self):
@@ -119,7 +121,8 @@ class TestSnapshotsPublisher(TestCase):
         stderr = sys.stderr = StringIO()
         self.publisher = SnapshotsPublisher()
         try:
-            param = self.parser.parse_args(['-t', None , '-j', None , '-n' , 0])
+            param = self.parser.parse_args(
+                ['-t', None, '-j', None, '-n', 0])
             self.publisher.validate_args(param)
         except SystemExit, err:
             self.assertEqual(err.code, 2, "None values are not acceptable")
@@ -127,20 +130,21 @@ class TestSnapshotsPublisher(TestCase):
             sys.stderr = orig_stderr
 
         stderr.seek(0)
-        self.assertIn("You must specify job-type, job-name and build-num", 
+        self.assertIn("You must specify job-type, job-name and build-num",
                       stderr.read())
 
     def test_validate_paths_invalid_uploads_path(self):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', 
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'android', '-j', 'dummy_job_name', '-n', '1'])
 
         self.publisher.validate_args(param)
         uploads_path = "./dummy_uploads_path"
         try:
-            self.publisher.validate_paths(param, uploads_path, self.target_path)
+            self.publisher.validate_paths(param, uploads_path,
+                                          self.target_path)
         finally:
             sys.stdout = orig_stdout
 
@@ -151,16 +155,18 @@ class TestSnapshotsPublisher(TestCase):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', 
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'android', '-j', 'dummy_job_name', '-n', '1'])
 
         self.publisher.validate_args(param)
-        build_path = os.path.join(self.uploads_path, param.job_type, param.job_name,
-                                  str(param.build_num))
+        build_path = os.path.join(
+            self.uploads_path, param.job_type, param.job_name,
+            str(param.build_num))
         os.makedirs(build_path)
         self.target_path = "./dummy_target_path"
         try:
-            self.publisher.validate_paths(param, self.uploads_path, self.target_path)
+            self.publisher.validate_paths(param, self.uploads_path,
+                                          self.target_path)
         finally:
             sys.stdout = orig_stdout
 
@@ -171,19 +177,21 @@ class TestSnapshotsPublisher(TestCase):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'kernel-hwpack', '-j', 'dummy_job_name', 
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'kernel-hwpack', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
-        build_path = os.path.join(self.uploads_path, param.job_type, param.job_name,
-                                  str(param.build_num))
+        build_path = os.path.join(
+            self.uploads_path, param.job_type, param.job_name,
+            str(param.build_num))
         os.makedirs(build_path)
         tempfile.mkstemp(dir=build_path)
         try:
-            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
-                                                self.uploads_path, self.target_path)
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(
+                param, self.uploads_path, self.target_path)
             uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
             target_dir_path = os.path.join(self.orig_dir, target_dir_path)
-            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+            self.publisher.move_artifacts(param, uploads_dir_path,
+                                          target_dir_path)
         finally:
             sys.stdout = orig_stdout
             pass
@@ -195,19 +203,21 @@ class TestSnapshotsPublisher(TestCase):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', 
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'android', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
-        build_dir = '/'.join([param.job_type, param.job_name, str(param.build_num)])
+        build_dir = '/'.join(
+            [param.job_type, param.job_name, str(param.build_num)])
         build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
         tempfile.mkstemp(dir=build_path)
         try:
-            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
-                                                self.uploads_path, self.target_path)
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(
+                param, self.uploads_path, self.target_path)
             uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
             target_dir_path = os.path.join(self.orig_dir, target_dir_path)
-            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+            self.publisher.move_artifacts(param, uploads_dir_path,
+                                          target_dir_path)
         finally:
             sys.stdout = orig_stdout
             pass
@@ -219,19 +229,20 @@ class TestSnapshotsPublisher(TestCase):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'prebuilt', '-j', 'dummy_job_name',
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'prebuilt', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
         build_dir = '/'.join([param.job_name, str(param.build_num)])
-        build_path = os.path.join(self.uploads_path, build_dir,'oneiric')
+        build_path = os.path.join(self.uploads_path, build_dir, 'oneiric')
         os.makedirs(build_path)
         tempfile.mkstemp(dir=build_path)
         try:
-            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param,
-                                                self.uploads_path, self.target_path)
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(
+                param, self.uploads_path, self.target_path)
             uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
             target_dir_path = os.path.join(self.orig_dir, target_dir_path)
-            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+            self.publisher.move_artifacts(param, uploads_dir_path,
+                                          target_dir_path)
         finally:
             sys.stdout = orig_stdout
             pass
@@ -243,7 +254,7 @@ class TestSnapshotsPublisher(TestCase):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'ubuntu-hwpacks', '-j', 
+        param = self.parser.parse_args(['-t', 'ubuntu-hwpacks', '-j',
                                         'precise-armhf-lt-panda', '-n', '1'])
         self.publisher.validate_args(param)
         build_dir = '/'.join([param.job_name, str(param.build_num)])
@@ -251,11 +262,12 @@ class TestSnapshotsPublisher(TestCase):
         os.makedirs(build_path)
         tempfile.mkstemp(dir=build_path)
         try:
-            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
-                                                self.uploads_path, self.target_path)
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(
+                param, self.uploads_path, self.target_path)
             uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
             target_dir_path = os.path.join(self.orig_dir, target_dir_path)
-            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+            self.publisher.move_artifacts(param, uploads_dir_path,
+                                          target_dir_path)
         finally:
             sys.stdout = orig_stdout
             pass
@@ -267,19 +279,21 @@ class TestSnapshotsPublisher(TestCase):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'ubuntu-images', '-j', 
-                                        'precise-armhf-ubuntu-desktop', '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'ubuntu-images', '-j', 'precise-armhf-ubuntu-desktop',
+             '-n', '1'])
         self.publisher.validate_args(param)
         build_dir = '/'.join([param.job_name, str(param.build_num)])
         build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
         tempfile.mkstemp(dir=build_path)
         try:
-            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param,
-                                                self.uploads_path, self.target_path)
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(
+                param, self.uploads_path, self.target_path)
             uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
             target_dir_path = os.path.join(self.orig_dir, target_dir_path)
-            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+            self.publisher.move_artifacts(param, uploads_dir_path,
+                                          target_dir_path)
         finally:
             sys.stdout = orig_stdout
             pass
@@ -291,20 +305,21 @@ class TestSnapshotsPublisher(TestCase):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'ubuntu-restricted', '-j',
-                                        'precise-armhf-integrated-big.little-fastmodels',
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'ubuntu-restricted', '-j',
+             'precise-armhf-integrated-big.little-fastmodels', '-n', '1'])
         self.publisher.validate_args(param)
         build_dir = '/'.join([param.job_name, str(param.build_num)])
         build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
         tempfile.mkstemp(dir=build_path)
         try:
-            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param,
-                self.uploads_path, self.target_path)
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(
+                param, self.uploads_path, self.target_path)
             uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
             target_dir_path = os.path.join(self.orig_dir, target_dir_path)
-            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+            self.publisher.move_artifacts(param, uploads_dir_path,
+                                          target_dir_path)
         finally:
             sys.stdout = orig_stdout
             pass
@@ -316,19 +331,21 @@ class TestSnapshotsPublisher(TestCase):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'ubuntu-sysroots', '-j',
-                                        'precise-armhf-ubuntu-desktop-dev', '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'ubuntu-sysroots', '-j',
+             'precise-armhf-ubuntu-desktop-dev', '-n', '1'])
         self.publisher.validate_args(param)
         build_dir = '/'.join([param.job_name, str(param.build_num)])
         build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
         tempfile.mkstemp(dir=build_path)
         try:
-            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param,
-                self.uploads_path, self.target_path)
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(
+                param, self.uploads_path, self.target_path)
             uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
             target_dir_path = os.path.join(self.orig_dir, target_dir_path)
-            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+            self.publisher.move_artifacts(param, uploads_dir_path,
+                                          target_dir_path)
         finally:
             sys.stdout = orig_stdout
             pass
@@ -353,12 +370,12 @@ class TestSnapshotsPublisher(TestCase):
         f.write('20120416')
         f.close()
         try:
-            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param,
-                                                                              self.uploads_path,
-                                                                              self.target_path)
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(
+                param, self.uploads_path, self.target_path)
             uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
             target_dir_path = os.path.join(self.orig_dir, target_dir_path)
-            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+            self.publisher.move_artifacts(param, uploads_dir_path,
+                                          target_dir_path)
         finally:
             sys.stdout = orig_stdout
             pass
@@ -366,23 +383,25 @@ class TestSnapshotsPublisher(TestCase):
         stdout.seek(0)
         self.assertIn("Moved the files from", stdout.read())
 
-    def test_move_artifacts_android_successful_move(self):
+    def test_move_artifacts_android_successful_move2(self):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', 
-                                        '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'android', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
-        build_dir = '/'.join([param.job_type, param.job_name, str(param.build_num)])
+        build_dir = '/'.join(
+            [param.job_type, param.job_name, str(param.build_num)])
         build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
         tempfile.mkstemp(dir=build_path)
         try:
-            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
-                                                self.uploads_path, self.target_path)
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(
+                param, self.uploads_path, self.target_path)
             uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
             target_dir_path = os.path.join(self.orig_dir, target_dir_path)
-            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+            self.publisher.move_artifacts(param, uploads_dir_path,
+                                          target_dir_path)
         finally:
             sys.stdout = orig_stdout
             pass
@@ -394,52 +413,57 @@ class TestSnapshotsPublisher(TestCase):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', 
-                                       '-n', '1'])
+        param = self.parser.parse_args(
+            ['-t', 'android', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
-        build_dir = '/'.join([param.job_type, param.job_name, str(param.build_num)])
+        build_dir = '/'.join(
+            [param.job_type, param.job_name, str(param.build_num)])
         build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
         tempfile.mkstemp(dir=build_path)
         try:
-            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
-                                                self.uploads_path, self.target_path)
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(
+                param, self.uploads_path, self.target_path)
             uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
             target_dir_path = os.path.join(self.orig_dir, target_dir_path)
-            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+            self.publisher.move_artifacts(param, uploads_dir_path,
+                                          target_dir_path)
         finally:
             sys.stdout = orig_stdout
             pass
 
         stdout.seek(0)
-        msg = "The latest build is now linked to  " +  target_dir_path
+        msg = "The latest build is now linked to  " + target_dir_path
         self.assertIn(msg, stdout.read())
 
     def test_create_manifest_file_option(self):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
         self.publisher = SnapshotsPublisher()
-        param = self.parser.parse_args(['-t', 'android', '-j', 'dummy_job_name', 
-                                        '-n', '1', '-m'])
+        param = self.parser.parse_args(
+            ['-t', 'android', '-j', 'dummy_job_name', '-n', '1', '-m'])
         self.publisher.validate_args(param)
-        build_dir = '/'.join([param.job_type, param.job_name, str(param.build_num)])
+        build_dir = '/'.join(
+            [param.job_type, param.job_name, str(param.build_num)])
         build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
         tempfile.mkstemp(dir=build_path)
         lines = []
         try:
-            uploads_dir_path, target_dir_path = self.publisher.validate_paths(param, 
-                                                self.uploads_path, self.target_path)
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(
+                param, self.uploads_path, self.target_path)
             uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
             target_dir_path = os.path.join(self.orig_dir, target_dir_path)
             os.chdir(uploads_dir_path)
             for path, subdirs, files in os.walk("."):
                 for name in files:
-                    lines.append(os.path.join(path, name).split("./")[1] + "\n")
+                    lines.append(
+                        os.path.join(path, name).split("./")[1] + "\n")
             os.chdir(self.orig_dir)
-            self.publisher.move_artifacts(param, uploads_dir_path, target_dir_path)
+            self.publisher.move_artifacts(param, uploads_dir_path,
+                                          target_dir_path)
 
-            manifest_file=os.path.join(target_dir_path, "MANIFEST")
+            manifest_file = os.path.join(target_dir_path, "MANIFEST")
             dest = open(manifest_file, "r").read()
 
             if len(lines) != 0:
@@ -449,8 +473,8 @@ class TestSnapshotsPublisher(TestCase):
                     fd.write(line)
                 fd.close()
                 orig = open(tempfiles[1], "r").read()
-             
-        except Exception, details:
+
+        except:
             pass
 
         finally:

@@ -7,6 +7,9 @@ from testtools import TestCase
 from testtools.matchers import Equals
 from testtools.matchers import AllMatch
 
+from tests.test_click_through_license import CommandNotFoundException
+
+
 class PhpUnitTest(TestCase):
     '''Tests for executing the PHP Unit tests'''
 
@@ -14,7 +17,7 @@ class PhpUnitTest(TestCase):
         super(PhpUnitTest, self).setUp()
         self.xml_path = tempfile.mkstemp()[1]
         if subprocess.Popen(['phpunit', '--log-junit',
-                             self.xml_path, 'testing/LicenseHelperTest'],
+                             self.xml_path, 'tests/LicenseHelperTest'],
                 stdout=open('/dev/null', 'w'),
                 stderr=subprocess.STDOUT).wait():
             raise CommandNotFoundException("phpunit command not found. Please "

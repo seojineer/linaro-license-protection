@@ -1,26 +1,47 @@
 Linaro downloads license protection
 ===================================
 
-Linaro builds sometimes contain "binary blobs"—pieces of binary-only code which enable extra features like accelerated graphics or multimedia.  These pieces are distributed under a separate license, and downloading images or collections containing them requires some sort of license protection.
+Linaro builds sometimes contain "binary blobs"—pieces of binary-only code
+which enable extra features like accelerated graphics or multimedia.
+These pieces are distributed under a separate license, and downloading
+images or collections containing them requires some sort of license
+protection.
 
-This code provides such license protection on the hosting web server: other parts of infrastructure need to properly integrate with it (see eg. android-build.linaro.org section).  At the moment, it's implemented as a click-through license acceptance on the Apache side.
+This code provides such license protection on the hosting web server:
+other parts of infrastructure need to properly integrate with it (see
+eg. android-build.linaro.org section).  At the moment, it's implemented as
+a click-through license acceptance on the Apache side.
 
-To ensure and prove this keeps working, we are also using automated tests with this code.
+To ensure and prove this keeps working, we are also using automated tests
+with this code.
 
 
 Setup
 -----
 
-This tree is the base for snapshots.linaro.org and releases.linaro.org www roots as served by Apache.  It makes heavy use of mod_rewrite from within the .htaccess file.
+This tree is the base for snapshots.linaro.org and releases.linaro.org www
+roots as served by Apache.  It makes heavy use of mod_rewrite from within
+the .htaccess file.
 
-Currently, all directories/files containing either 'origen' or 'snowball' in the URL path are protected with appropriate license (Samsung or ST-E) click-through.
+Currently, all directories/files containing either 'origen' or 'snowball'
+in the URL path are protected with appropriate license (Samsung or ST-E)
+click-through.
 
 Dependencies
 ............
 
 libapache2-mod-php5
 
-Testing: phpunit, testrepository, python-html2text
+Testing:
+  phpunit, python 2.7, testrepository (>=0.0.6), python-html2text,
+  python-subunit, python-beautifulsoup
+
+Recent (as of 2012-05-08) Ubuntu/Debian releases have a broken phpunit
+package and thus require installation of phpunit through PEAR:
+
+  $ sudo apt-get install php-pear
+  $ sudo pear config-set auto_discover 1
+  $ sudo pear install pear.phpunit.de/PHPUnit
 
 
 Technical details
@@ -32,7 +53,9 @@ releases.linaro.org
 Root directory for releases.linaro.org includes .htaccess and licenses/*.
 It has mod_rewrite enabled.
 
-It allows a few hard-coded hosts to bypass the click-through protection, by their IPs:
+It allows a few hard-coded hosts to bypass the click-through protection,
+by their IPs:
+
  * android-build.linaro.org (50.17.250.69)
  * validation.linaro.org (213.123.120.124)
 
@@ -57,7 +80,8 @@ www area directly, we set-up two different users on the system with SSH keys:
    limited to executing only a single command through
    /etc/ssh/user-authorized-keys/android-build-linaro-trigger
 
-     command="/home/android-build-linaro-trigger/scripts/trigger-android-build-linaro.sh ${SSH_ORIGINAL_COMMAND#* }"
+     command="/home/android-build-linaro-trigger/scripts
+              /trigger-android-build-linaro.sh ${SSH_ORIGINAL_COMMAND#* }"
 
    (this passes the arguments received from the remote end as well)
 
@@ -72,7 +96,8 @@ www area directly, we set-up two different users on the system with SSH keys:
 android-build.linaro.org
 ........................
 
-Runs Jenkins and uses SFTP plugin to access the above two users.  Private keys live in
+Runs Jenkins and uses SFTP plugin to access the above two users.  Private
+keys live in
 
   /home/ubuntu/snapshots-sync/snapshots-sync — android-build-linaro
   /home/ubuntu/snapshots-sync/snapshots-filemove — android-build-linaro-trigger
@@ -90,24 +115,24 @@ Python and Apache2:
   $ testr init
   $ testr run
 
-To run the production test plans (NOTE: They will take a bit more time to run)
-execute the following:
+Test plans
+..........
+
+To run the test plans from testplans/ subdirectory against
+snapshots.linaro.org and releases.linaro.org, execute the following:
 
   $ testr init
   $ testr run testplans.test_suite
 
+These tests require an internet connection.
 
 Tests for PHP license-matching logic
 ....................................
 
-There's currently only one unit test file, LicenseHelperTest.php under testing directory. You first need to install the phpunit package from ubuntu repos:
-  $ sudo apt-get install php-unit
+Unit tests for the license-matching logic written in PHP are automatically
+ran as part of the full test suite (testr run).  However, for a more
+detailed output, you may need to run phpunit directly.
 
+To run the tests separately, do the following:
 
-Recent (as of 2012-05-08) Ubuntu/Debian releases have a broken phpunit package and thus require installation in a different manner:
-  $ sudo apt-get install php-pear
-  $ sudo pear config-set auto_discover 1
-  $ sudo pear install pear.phpunit.de/PHPUnit
-
-PHPUnit tests execution is already included in the python integration tests, but if you wish to run unit tests separately, do the following:
-  $ phpunit testing/LicenseHelperTest
+  $ phpunit tests/LicenseHelperTest
