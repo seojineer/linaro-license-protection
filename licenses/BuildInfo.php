@@ -5,20 +5,10 @@ class BuildInfo
     private $text_array = array();
     private $multiline_vars = array("License-Text");
 
-    public function __construct($text_file)
+    public function readFile($fn)
     {
-        if (file_exists($text_file)) {
-            $this->text_array = $this->readFile($text_file);
-        }
-        else {
-            throw new Exception("File $text_file not found");
-        }
-    }
-
-    private function readFile($fn)
-    {
-        $text_ar = array();
         $field = '';
+        if (is_dir($fn) or !is_file($fn)) return false;
         $file = fopen($fn, "r") or exit("Unable to open file $fn!");
         while(!feof($file)) {
             $line = fgets($file);
@@ -27,52 +17,73 @@ class BuildInfo
             $fields = explode(":", $line, "2");
             if (isset($fields[1])) {
                 $field = $fields[0];
-                $text_ar[$field] = trim($fields[1]);
+                $this->text_array[$field] = trim($fields[1]);
             }
             elseif (in_array($field, $this->multiline_vars)) {
                 while(!feof($file)) {
                     $line = fgets($file);
-                    $text_ar[$field] = $text_ar[$field]."\n".rtrim($line);
+                    $this->text_array[$field] = $this->text_array[$field]."\n".rtrim($line);
                 }
             }
         }
         fclose($file);
 
-        return $text_ar;
+        return true;
     }
 
     public function getFormatVersion()
     {
-        return $this->text_array["Format-Version"];
+        if (array_key_exists('Format-Version', $this->text_array))
+            return $this->text_array["Format-Version"];
+        else
+            return false;
     }
 
     public function getBuildName()
     {
-        return $this->text_array["Build-Name"];
+        if (array_key_exists('Build-Name', $this->text_array))
+            return $this->text_array["Build-Name"];
+        else
+            return false;
     }
 
     public function getTheme()
     {
-        return $this->text_array["Theme"];
+        if (array_key_exists('Theme', $this->text_array))
+            return $this->text_array["Theme"];
+        else
+            return false;
     }
 
     public function getLicenseType()
     {
-        return $this->text_array["License-Type"];
+        if (array_key_exists('License-Type', $this->text_array))
+            return $this->text_array["License-Type"];
+        else
+            return false;
     }
 
     public function getLaunchpadTeams()
     {
-        $this->text_array["OpenID-Launchpad-Teams"];
+        if (array_key_exists('OpenID-Launchpad-Teams', $this->text_array))
+            return $this->text_array["OpenID-Launchpad-Teams"];
+        else
+            return false;
     }
 
     public function getCollectUserData()
     {
-        return $this->text_array["Collect-User-Data"];
+        if (array_key_exists('Collect-User-Data', $this->text_array))
+            return $this->text_array["Collect-User-Data"];
+        else
+            return false;
     }
 
     public function getLicenseText()
     {
-        return $this->text_array["License-Text"];
+        if (array_key_exists('License-Text', $this->text_array))
+            return $this->text_array["License-Text"];
+        else
+            return false;
     }
 }
