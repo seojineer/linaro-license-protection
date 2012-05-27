@@ -1,4 +1,4 @@
-IndexIgnore HEADER* licenses *EULA*
+IndexIgnore HEADER* licenses *EULA* BUILD-INFO.txt
 IndexOptions FancyIndexing HTMLTable
 
 RewriteEngine On

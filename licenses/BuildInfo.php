@@ -7,9 +7,11 @@ class BuildInfo
         "Build-Name", "Theme", "License-Type", "OpenID-Launchpad-Teams",
         "Collect-User-Data", "License-Text");
     private $multiline_vars = array("License-Text");
+    private $search_path = '';
 
     public function readFile($fn)
     {
+        $this->search_path = dirname($fn);
         $field = '';
         $fp_read = 0;
         if (is_dir($fn) or !is_file($fn)) return false;
@@ -71,6 +73,16 @@ class BuildInfo
         return true;
     }
 
+    private function getInfoForPattern($pat) {
+        foreach (array_keys($this->text_array) as $key)
+            if ($key != 'Format-Version') {
+                $files = glob($this->search_path."/".$pat);
+                foreach ($files as $file)
+                    if ($file == $this->search_path."/".$pat)
+                        return $this->text_array[$key];
+            }
+    }
+
     public function getFormatVersion()
     {
         if (array_key_exists('Format-Version', $this->text_array))
@@ -79,50 +91,56 @@ class BuildInfo
             return false;
     }
 
-    public function getBuildName()
+    public function getBuildName($pat)
     {
-        if (array_key_exists('Build-Name', $this->text_array))
-            return $this->text_array["Build-Name"];
+        $info = $this->getInfoForPattern($pat);
+        if (array_key_exists('Build-Name', $info))
+            return $info["Build-Name"];
         else
             return false;
     }
 
-    public function getTheme()
+    public function getTheme($pat)
     {
-        if (array_key_exists('Theme', $this->text_array))
-            return $this->text_array["Theme"];
+        $info = $this->getInfoForPattern($pat);
+        if (array_key_exists('Theme', $info))
+            return $info["Theme"];
         else
             return false;
     }
 
-    public function getLicenseType()
+    public function getLicenseType($pat)
     {
-        if (array_key_exists('License-Type', $this->text_array))
-            return $this->text_array["License-Type"];
+        $info = $this->getInfoForPattern($pat);
+        if (array_key_exists('License-Type', $info))
+            return $info["License-Type"];
         else
             return false;
     }
 
-    public function getLaunchpadTeams()
+    public function getLaunchpadTeams($pat)
     {
-        if (array_key_exists('OpenID-Launchpad-Teams', $this->text_array))
-            return $this->text_array["OpenID-Launchpad-Teams"];
+        $info = $this->getInfoForPattern($pat);
+        if (array_key_exists('OpenID-Launchpad-Teams', $info))
+            return $info["OpenID-Launchpad-Teams"];
         else
             return false;
     }
 
-    public function getCollectUserData()
+    public function getCollectUserData($pat)
     {
-        if (array_key_exists('Collect-User-Data', $this->text_array))
-            return $this->text_array["Collect-User-Data"];
+        $info = $this->getInfoForPattern($pat);
+        if (array_key_exists('Collect-User-Data', $info))
+            return $info["Collect-User-Data"];
         else
             return false;
     }
 
-    public function getLicenseText()
+    public function getLicenseText($pat)
     {
-        if (array_key_exists('License-Text', $this->text_array))
-            return $this->text_array["License-Text"];
+        $info = $this->getInfoForPattern($pat);
+        if (array_key_exists('License-Text', $info))
+            return $info["License-Text"];
         else
             return false;
     }
