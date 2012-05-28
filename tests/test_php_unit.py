@@ -16,10 +16,11 @@ class PhpUnitTest(TestCase):
     def setUp(self):
         super(PhpUnitTest, self).setUp()
         self.xml_path = tempfile.mkstemp()[1]
-        if subprocess.Popen(['phpunit', '--log-junit',
-                             self.xml_path, 'tests/LicenseHelperTest'],
-                stdout=open('/dev/null', 'w'),
-                stderr=subprocess.STDOUT).wait():
+        returncode = subprocess.Popen(['phpunit', '--log-junit',
+                          self.xml_path, 'tests/LicenseHelperTest'],
+                          stdout=open('/dev/null', 'w'),
+                          stderr=subprocess.STDOUT).wait()
+        if returncode == -1:
             raise CommandNotFoundException("phpunit command not found. Please "
                 "install phpunit package and rerun tests.")
         self.xml_data = xml.etree.ElementTree.parse(self.xml_path)

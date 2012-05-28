@@ -17,10 +17,11 @@ class BuildInfoTest(TestCase):
         super(BuildInfoTest, self).setUp()
 
         self.build_info_xml_path = tempfile.mkstemp()[1]
-        if subprocess.Popen(['phpunit', '--log-junit',
+        rc = subprocess.Popen(['phpunit', '--log-junit',
                              self.build_info_xml_path, 'tests/BuildInfoTest'],
                 stdout=open('/dev/null', 'w'),
-                stderr=subprocess.STDOUT).wait():
+                stderr=subprocess.STDOUT).wait()
+        if rc == -1:
             raise CommandNotFoundException("phpunit command not found. Please "
                 "install phpunit package and rerun tests.")
         self.build_info_xml_data = xml.etree.ElementTree.parse(self.build_info_xml_path)
