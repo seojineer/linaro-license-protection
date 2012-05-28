@@ -79,7 +79,7 @@ class BuildInfo
     private function getInfoForFile($fname) {
         foreach (array_keys($this->text_array) as $key)
             if ($key != 'Format-Version') {
-                $files = glob($this->search_path."/".$fname);
+                $files = glob($this->search_path."/".$key);
                 foreach ($files as $file)
                     if ($file == $this->search_path."/".$fname)
                         return $this->text_array[$key];
