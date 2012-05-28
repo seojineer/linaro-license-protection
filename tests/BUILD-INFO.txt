@@ -1,4 +1,5 @@
 Format-Version: 0.1
+Files-Pattern: *.txt
 Build-Name: landing-snowball
 Theme: stericsson
 License-Type: open

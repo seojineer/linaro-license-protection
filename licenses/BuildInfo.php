@@ -14,12 +14,15 @@ class BuildInfo
         $this->search_path = dirname($fn);
         $field = '';
         $fp_read = 0;
-        if (is_dir($fn) or !is_file($fn)) return false;
+        if (is_dir($fn) or !is_file($fn) or filesize($fn) == 0) return false;
         $file = fopen($fn, "r") or exit("Unable to open file $fn!");
         // Get the 'Format-Version' field.
         $line = fgets($file);
         $fields = explode(":", $line, "2");
-        $this->text_array[$fields[0]] = trim($fields[1]);
+        if (isset($fields[1]))
+            $this->text_array[$fields[0]] = trim($fields[1]);
+        else
+            $this->text_array[$fields[0]] = '';
         // Get the rest fileds.
         while(!feof($file)) {
             if ($fp_read) {
@@ -73,14 +76,15 @@ class BuildInfo
         return true;
     }
 
-    private function getInfoForPattern($pat) {
+    private function getInfoForFile($fname) {
         foreach (array_keys($this->text_array) as $key)
             if ($key != 'Format-Version') {
-                $files = glob($this->search_path."/".$pat);
+                $files = glob($this->search_path."/".$fname);
                 foreach ($files as $file)
-                    if ($file == $this->search_path."/".$pat)
+                    if ($file == $this->search_path."/".$fname)
                         return $this->text_array[$key];
             }
+        return array();
     }
 
     public function getFormatVersion()
@@ -91,54 +95,54 @@ class BuildInfo
             return false;
     }
 
-    public function getBuildName($pat)
+    public function getBuildName($fname)
     {
-        $info = $this->getInfoForPattern($pat);
+        $info = $this->getInfoForFile($fname);
         if (array_key_exists('Build-Name', $info))
             return $info["Build-Name"];
         else
             return false;
     }
 
-    public function getTheme($pat)
+    public function getTheme($fname)
     {
-        $info = $this->getInfoForPattern($pat);
+        $info = $this->getInfoForFile($fname);
         if (array_key_exists('Theme', $info))
             return $info["Theme"];
         else
             return false;
     }
 
-    public function getLicenseType($pat)
+    public function getLicenseType($fname)
     {
-        $info = $this->getInfoForPattern($pat);
+        $info = $this->getInfoForFile($fname);
         if (array_key_exists('License-Type', $info))
             return $info["License-Type"];
         else
             return false;
     }
 
-    public function getLaunchpadTeams($pat)
+    public function getLaunchpadTeams($fname)
     {
-        $info = $this->getInfoForPattern($pat);
+        $info = $this->getInfoForFile($fname);
         if (array_key_exists('OpenID-Launchpad-Teams', $info))
             return $info["OpenID-Launchpad-Teams"];
         else
             return false;
     }
 
-    public function getCollectUserData($pat)
+    public function getCollectUserData($fname)
     {
-        $info = $this->getInfoForPattern($pat);
+        $info = $this->getInfoForFile($fname);
         if (array_key_exists('Collect-User-Data', $info))
             return $info["Collect-User-Data"];
         else
             return false;
     }
 
-    public function getLicenseText($pat)
+    public function getLicenseText($fname)
     {
-        $info = $this->getInfoForPattern($pat);
+        $info = $this->getInfoForFile($fname);
         if (array_key_exists('License-Text', $info))
             return $info["License-Text"];
         else

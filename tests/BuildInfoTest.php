@@ -8,6 +8,7 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
     private $temp_filename;
     private $good_bi;
     private $bi;
+    private $fname;
 
     public function __construct()
     {
@@ -16,10 +17,11 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
         $this->temp_filename = tempnam(sys_get_temp_dir(), "build-info");
         $this->bi = new BuildInfo();
         $this->bi->readFile($this->temp_filename);
+        $this->fname = "BUILD-INFO.txt";
     }
 
     /**
-     * Running readFile on a directory path returns false.
+     * Running readFile on a directory fnameh returns false.
      */
     public function test_readFile_nonFile()
     {
@@ -40,7 +42,7 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
     public function test_readFile_file()
     {
         $bi = new BuildInfo();
-        $this->assertTrue($bi->readFile(__FILE__));
+        $this->assertTrue($bi->readFile("tests/BUILD-INFO.txt"));
     }
 
     /**
@@ -61,62 +63,62 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
 
     public function test_getBuildName_empty()
     {
-        $this->assertFalse($this->bi->getBuildName());
+        $this->assertFalse($this->bi->getBuildName($this->fname));
     }
 
     public function test_getBuildName()
     {
-        $this->assertInternalType('string', $this->good_bi->getBuildName());
+        $this->assertInternalType('string', $this->good_bi->getBuildName($this->fname));
     }
 
     public function test_getTheme_empty()
     {
-        $this->assertFalse($this->bi->getTheme());
+        $this->assertFalse($this->bi->getTheme($this->fname));
     }
 
     public function test_getTheme()
     {
-        $this->assertInternalType('string', $this->good_bi->getTheme());
+        $this->assertInternalType('string', $this->good_bi->getTheme($this->fname));
     }
 
     public function test_getLicenseType_empty()
     {
-        $this->assertFalse($this->bi->getLicenseType());
+        $this->assertFalse($this->bi->getLicenseType($this->fname));
     }
 
     public function test_getLicenseType()
     {
-        $this->assertInternalType('string', $this->good_bi->getLicenseType());
+        $this->assertInternalType('string', $this->good_bi->getLicenseType($this->fname));
     }
 
     public function test_getCollectUserData_empty()
     {
-        $this->assertFalse($this->bi->getCollectUserData());
+        $this->assertFalse($this->bi->getCollectUserData($this->fname));
     }
 
     public function test_getCollectUserData()
     {
-        $this->assertInternalType('string', $this->good_bi->getCollectUserData());
+        $this->assertInternalType('string', $this->good_bi->getCollectUserData($this->fname));
     }
 
     public function test_getLaunchpadTeams_empty()
     {
-        $this->assertFalse($this->bi->getLaunchpadTeams());
+        $this->assertFalse($this->bi->getLaunchpadTeams($this->fname));
     }
 
     public function test_getLaunchpadTeams()
     {
-        $this->assertInternalType('string', $this->good_bi->getLaunchpadTeams());
+        $this->assertInternalType('string', $this->good_bi->getLaunchpadTeams($this->fname));
     }
 
     public function test_getLicenseText_empty()
     {
-        $this->assertFalse($this->bi->getLicenseText());
+        $this->assertFalse($this->bi->getLicenseText($this->fname));
     }
 
     public function test_getLicenseText()
     {
-        $this->assertInternalType('string', $this->good_bi->getLicenseText());
+        $this->assertInternalType('string', $this->good_bi->getLicenseText($this->fname));
     }
 }
 ?>
