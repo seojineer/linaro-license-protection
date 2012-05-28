@@ -6,6 +6,18 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
 {
 
     private $temp_filename;
+    private $temp_link;
+
+    public function setUp() {
+        $this->temp_link = sys_get_temp_dir() . "/temp_link";
+    }
+
+    public function tearDown() {
+        if (file_exists($this->temp_link)) {
+            unlink($this->temp_link);
+        }
+    }
+
 
     /**
      * Running checkFile on a directory path returns false.
@@ -21,11 +33,10 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
     public function test_checkFile_link()
     {
         $this->temp_filename = tempnam(sys_get_temp_dir(), "unittest");
-        symlink($this->temp_filename, "test_link");
+        symlink($this->temp_filename, $this->temp_link);
 
-        $this->assertTrue(LicenseHelper::checkFile("test_link"));
+        $this->assertFalse(LicenseHelper::checkFile($this->temp_link));
 
-        unlink("test_link");
         unlink($this->temp_filename);
     }
 
@@ -36,12 +47,11 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
     public function test_checkFile_brokenLink()
     {
         $this->temp_filename = tempnam(sys_get_temp_dir(), "unittest");
-        symlink($this->temp_filename, "test_link");
+        symlink($this->temp_filename, $this->temp_link);
+
+        $this->assertTrue(LicenseHelper::checkFile($this->temp_link));
+
         unlink($this->temp_filename);
-
-        $this->assertTrue(LicenseHelper::checkFile("test_link"));
-
-        unlink("test_link");
     }
 
     /**
