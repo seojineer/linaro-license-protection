@@ -67,7 +67,8 @@ class BuildInfo
                         $tmp_arr[$fields[0]] = trim($fields[1]);
                     }
                 }
-                $this->text_array[$fp] = $tmp_arr;
+                foreach(explode(",", $fp) as $pattern)
+                    $this->text_array[$pattern] = $tmp_arr;
                 unset($tmp_arr);
             }
         }
