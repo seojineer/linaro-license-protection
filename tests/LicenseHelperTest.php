@@ -35,7 +35,7 @@ class LicenseHelperTest extends PHPUnit_Framework_TestCase
         $this->temp_filename = tempnam(sys_get_temp_dir(), "unittest");
         symlink($this->temp_filename, $this->temp_link);
 
-        $this->assertFalse(LicenseHelper::checkFile($this->temp_link));
+        $this->assertTrue(LicenseHelper::checkFile($this->temp_link));
 
         unlink($this->temp_filename);
     }
