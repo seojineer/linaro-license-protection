@@ -7,16 +7,14 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
 
     private $temp_filename;
     private $good_bi;
-    private $bi;
+    private $empty_bi;
     private $fname;
 
     public function __construct()
     {
-        $this->good_bi = new BuildInfo();
-        $this->good_bi->readFile("tests/BUILD-INFO.txt");
+        $this->good_bi = new BuildInfo("tests/BUILD-INFO.txt");
         $this->temp_filename = tempnam(sys_get_temp_dir(), "build-info");
-        $this->bi = new BuildInfo();
-        $this->bi->readFile($this->temp_filename);
+        $this->empty_bi = new BuildInfo($this->temp_filename);
         $this->fname = "BUILD-INFO.txt";
     }
 
@@ -25,7 +23,8 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
      */
     public function test_readFile_nonFile()
     {
-        $this->assertFalse(BuildInfo::readFile(dirname(__FILE__)));
+        $bi = new BuildInfo(dirname(__FILE__));
+        $this->assertFalse($bi->readFile());
     }
 
     /**
@@ -33,7 +32,8 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
      */
     public function test_readFile_nonexistentFile()
     {
-        $this->assertFalse(BuildInfo::readFile("nonexistent.file"));
+        $bi = new BuildInfo("nonexistent.file");
+        $this->assertFalse($bi->readFile());
     }
 
     /**
@@ -41,8 +41,8 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
      */
     public function test_readFile_file()
     {
-        $bi = new BuildInfo();
-        $this->assertTrue($bi->readFile("tests/BUILD-INFO.txt"));
+        $bi = new BuildInfo("tests/BUILD-INFO.txt");
+        $this->assertTrue($bi->readFile());
     }
 
     /**
@@ -50,7 +50,7 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
      */
     public function test_getFormatVersion_empty()
     {
-        $this->assertFalse($this->bi->getFormatVersion());
+        $this->assertFalse($this->empty_bi->getFormatVersion());
     }
 
     /**
@@ -63,7 +63,7 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
 
     public function test_getBuildName_empty()
     {
-        $this->assertFalse($this->bi->getBuildName($this->fname));
+        $this->assertFalse($this->empty_bi->getBuildName($this->fname));
     }
 
     public function test_getBuildName()
@@ -73,7 +73,7 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
 
     public function test_getTheme_empty()
     {
-        $this->assertFalse($this->bi->getTheme($this->fname));
+        $this->assertFalse($this->empty_bi->getTheme($this->fname));
     }
 
     public function test_getTheme()
@@ -83,7 +83,7 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
 
     public function test_getLicenseType_empty()
     {
-        $this->assertFalse($this->bi->getLicenseType($this->fname));
+        $this->assertFalse($this->empty_bi->getLicenseType($this->fname));
     }
 
     public function test_getLicenseType()
@@ -93,7 +93,7 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
 
     public function test_getCollectUserData_empty()
     {
-        $this->assertFalse($this->bi->getCollectUserData($this->fname));
+        $this->assertFalse($this->empty_bi->getCollectUserData($this->fname));
     }
 
     public function test_getCollectUserData()
@@ -103,7 +103,7 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
 
     public function test_getLaunchpadTeams_empty()
     {
-        $this->assertFalse($this->bi->getLaunchpadTeams($this->fname));
+        $this->assertFalse($this->empty_bi->getLaunchpadTeams($this->fname));
     }
 
     public function test_getLaunchpadTeams()
@@ -113,7 +113,7 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
 
     public function test_getLicenseText_empty()
     {
-        $this->assertFalse($this->bi->getLicenseText($this->fname));
+        $this->assertFalse($this->empty_bi->getLicenseText($this->fname));
     }
 
     public function test_getLicenseText()

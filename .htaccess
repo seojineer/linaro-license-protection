@@ -97,7 +97,7 @@ RewriteRule .* - [CO=redirectlicensephp:INVALID:.%{ENV:CO_DOMAIN}:-1,L]
 RewriteCond %{REQUEST_URI} !^/$ 
 RewriteRule .* /licenses/license.php [CO=downloadrequested:%{REQUEST_URI}:.%{ENV:CO_DOMAIN}:5:/,L,R]
 
-## Return "Permission denied" if no EULA/OPEN-EULA exists
+## Return "Permission denied" if no EULA/OPEN-EULA/BUILD-INFO exists
 RewriteCond %{REQUEST_URI} !^/$
 RewriteCond %{REQUEST_URI} !^/licenses/.*$
 RewriteCond %{ENV:LP_DOWNLOAD_DIR}/EULA.txt !-f

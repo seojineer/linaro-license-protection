@@ -8,14 +8,21 @@ class BuildInfo
         "Collect-User-Data", "License-Text");
     private $multiline_vars = array("License-Text");
     private $search_path = '';
+    private $fname = '';
 
-    public function readFile($fn)
+    public function __construct($fn)
     {
         $this->search_path = dirname($fn);
+        $this->fname = $fn;
+        $this->readFile();
+    }
+
+    public function readFile()
+    {
         $field = '';
         $fp_read = 0;
-        if (is_dir($fn) or !is_file($fn) or filesize($fn) == 0) return false;
-        $file = fopen($fn, "r") or exit("Unable to open file $fn!");
+        if (is_dir($this->fname) or !is_file($this->fname) or filesize($this->fname) == 0) return false;
+        $file = fopen($this->fname, "r") or exit("Unable to open file $this->fname!");
         // Get the 'Format-Version' field.
         $line = fgets($file);
         $fields = explode(":", $line, "2");
@@ -26,7 +33,6 @@ class BuildInfo
         // Get the rest fileds.
         while(!feof($file)) {
             if ($fp_read) {
-                print_r($fields);
                 $this->text_array[$fields[0]] = trim($fields[1]);
                 $fp_read = 0;
             }
