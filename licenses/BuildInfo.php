@@ -40,39 +40,48 @@ class BuildInfo
             if (trim($line) == "")
                 continue;
             $fields = explode(":", $line, "2");
+            // Each block of fields begins with "Files-Pattern" field
             if ($fields[0] == "Files-Pattern") {
                 $tmp_arr = array();
                 $fp = trim($fields[1]);
+                // Read next block of field by field
                 while(!feof($file)) {
                     $line = fgets($file);
                     if (trim($line) == "")
                         continue;
                     $fields = explode(":", $line, "2");
+                    // Read multiline field...
                     if (in_array($fields[0], $this->multiline_vars)) {
                         $field = $fields[0];
                         if (isset($fields[1]))
                             $tmp_arr[$fields[0]] = trim($fields[1]);
+                        // ...until the EOF or...
                         while(!feof($file)) {
                             $line = fgets($file);
                             if (trim($line) == "")
                                 continue;
                             $fields = explode(":", $line, "2");
+                            // ...until we find next valid field
                             if(in_array($fields[0], $this->fields_defined)) {
+                                // Start reading next block of fields
+                                // if the field is "Files-Pattern"
                                 if ($fields[0] == "Files-Pattern") {
                                     fseek($file, -(strlen($line)), SEEK_CUR);
                                     break 2;
                                 }
+                                // Or continue to process the next field
                                 break;
                             }
                             $tmp_arr[$field] = $tmp_arr[$field].
                                 "\n".rtrim($line);
                         }
-
                     }
+                    // Save fields to the array
                     if (isset($fields[1])) {
                         $tmp_arr[$fields[0]] = trim($fields[1]);
                     }
                 }
+                // If there're several patterns, split them
                 foreach(explode(",", $fp) as $pattern)
                     $this->text_array[$pattern] = $tmp_arr;
                 unset($tmp_arr);
@@ -83,7 +92,11 @@ class BuildInfo
         return true;
     }
 
-    private function getInfoForFile($fname) {
+    private function getInfoForFile($fname)
+    {
+        /**
+         * Get array of fields for corresponding file
+         */
         foreach (array_keys($this->text_array) as $key)
             if ($key != 'Format-Version') {
                 $files = glob($this->search_path."/".$key);
@@ -102,6 +115,7 @@ class BuildInfo
             return false;
     }
 
+    // Get value of specified field for correspondong file
     public function getBuildName($fname)
     {
         $info = $this->getInfoForFile($fname);
