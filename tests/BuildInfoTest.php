@@ -112,6 +112,28 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
                             $values);
     }
 
+    public function test_parseContinuation_no_continuation() {
+        $buildinfo = new BuildInfo("");
+        $lineno = 0;
+        $this->assertEquals(
+            "",
+            $buildinfo->parseContinuation(array("no-space"), $lineno));
+    }
+
+    public function test_parseContinuation_indexed() {
+        $buildinfo = new BuildInfo("");
+        $lineno = 0;
+        $this->assertEquals("",
+                            $buildinfo->parseContinuation(array("no-space", " space"), $lineno));
+    }
+
+    public function test_parseContinuation() {
+        $buildinfo = new BuildInfo("");
+        $lineno = 1;
+        $value = $buildinfo->parseContinuation(array("no-space", " line1", " line2"), $lineno);
+        $this->assertEquals("\nline1\nline2", $value);
+    }
+
     /**
      * @expectedException InvalidArgumentException
      */

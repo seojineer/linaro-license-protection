@@ -193,6 +193,21 @@ class BuildInfo
         }
     }
 
+    public function parseContinuation($lines, &$line_no) {
+        $text = '';
+        $total_lines = count($lines);
+        while ($line_no < $total_lines &&
+               strlen($lines[$line_no]) > 0) {
+            if ($lines[$line_no][0] == ' ') {
+                $text .= "\n" . substr($lines[$line_no], 1);
+                $line_no++;
+            } else {
+                break;
+            }
+        }
+        return $text;
+    }
+
     /**
      * `data` should be array of lines.
      */
@@ -213,19 +228,13 @@ class BuildInfo
             $values = $this->parseLine($line);
             if (array_key_exists("License-Text", $values)) {
                 $text = $values["License-Text"];
-                $total_lines = count($data);
-                while (($line_no + 1) < $total_lines &&
-                       strlen($data[$line_no + 1]) > 0) {
-                    if ($data[$line_no + 1][0] == ' ') {
-                        $text .= "\n" . substr($data[$line_no + 1], 1);
-                        $line_no++;
-                    }
-                }
+                $line_no++;
+                $text .= $this->parseContinuation($data, $line_no);
                 $result["License-Text"] = $text;
             } else {
+                $line_no++;
                 $result = array_merge($result, $values);
             }
-            $line_no++;
         }
         return $result;
     }
