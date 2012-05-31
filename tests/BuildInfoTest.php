@@ -29,6 +29,13 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
         $buildinfo->parseLine($line);
     }
 
+    public function test_parseLine_passes() {
+        $line = "field:value";
+        $buildinfo = new BuildInfo("");
+        $this->assertEquals(array("field" => "value"),
+                            $buildinfo->parseLine($line));
+    }
+
     /**
      * Running readFile on a directory returns false.
      */

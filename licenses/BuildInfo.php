@@ -171,7 +171,11 @@ class BuildInfo
     }
 
     public function parseLine($line) {
-        throw new InvalidArgumentException("Line is not in the correct format.");
-
+        $values = explode(":", $line, 2);
+        if ($values === FALSE || count($values) != 2) {
+            throw new InvalidArgumentException("Line is not in the correct format.");
+        } else {
+            return array($values[0] => $values[1]);
+        }
     }
 }
