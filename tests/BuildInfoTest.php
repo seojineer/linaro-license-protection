@@ -30,10 +30,42 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
     }
 
     public function test_parseLine_passes() {
-        $line = "field:value";
+        $line = "Build-Name:value";
+        $buildinfo = new BuildInfo("");
+        $this->assertEquals(array("Build-Name" => "value"),
+                            $buildinfo->parseLine($line));
+    }
+
+    public function test_parseLine_trims() {
+        $line = "Build-Name: value";
+        $buildinfo = new BuildInfo("");
+        $this->assertEquals(array("Build-Name" => "value"),
+                            $buildinfo->parseLine($line));
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function test_parseLine_invalid_field() {
+        $line = "field: value";
         $buildinfo = new BuildInfo("");
         $this->assertEquals(array("field" => "value"),
                             $buildinfo->parseLine($line));
+    }
+
+    public function test_isValidField_true() {
+        $buildinfo = new BuildInfo("");
+        $fields_allowed = array("Format-Version", "Files-Pattern",
+                                "Build-Name", "Theme", "License-Type", "OpenID-Launchpad-Teams",
+                                "Collect-User-Data", "License-Text");
+        foreach ($fields_allowed as $field) {
+            $this->assertTrue($buildinfo->isValidField($field));
+        }
+    }
+
+    public function test_isValidField_false() {
+        $buildinfo = new BuildInfo("");
+        $this->assertFalse($buildinfo->isValidField("Some random text"));
     }
 
     /**

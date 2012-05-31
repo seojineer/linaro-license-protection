@@ -172,10 +172,24 @@ class BuildInfo
 
     public function parseLine($line) {
         $values = explode(":", $line, 2);
-        if ($values === FALSE || count($values) != 2) {
+        if ($values === false || count($values) != 2) {
             throw new InvalidArgumentException("Line is not in the correct format.");
         } else {
-            return array($values[0] => $values[1]);
+            $field = trim($values[0]);
+            $value = trim($values[1]);
+            if (!$this->isValidField($field)) {
+                throw new InvalidArgumentException("Field '$field' not allowed.");
+            } else {
+                return array($field => $value);
+            }
+        }
+    }
+
+    public function isValidField($field_name) {
+        if (in_array($field_name, $this->fields_defined)) {
+            return true;
+        } else {
+            return false;
         }
     }
 }
