@@ -91,6 +91,27 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
                             $values);
     }
 
+    public function test_parseData_extra_fields() {
+        $buildinfo = new BuildInfo("");
+        $values = $buildinfo->parseData(array(
+                                              "Format-Version: 2.0",
+                                              "Build-Name: woohoo"));
+        $this->assertEquals(array("Format-Version" => "2.0",
+                                  "Build-Name" => "woohoo"),
+                            $values);
+    }
+
+    public function test_parseData_license() {
+        $buildinfo = new BuildInfo("");
+        $values = $buildinfo->parseData(array(
+                                              "Format-Version: 2.0",
+                                              "License-Text: line1",
+                                              " line2"));
+        $this->assertEquals(array("Format-Version" => "2.0",
+                                  "License-Text" => "line1\nline2"),
+                            $values);
+    }
+
     /**
      * @expectedException InvalidArgumentException
      */

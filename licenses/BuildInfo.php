@@ -206,6 +206,27 @@ class BuildInfo
             throw new InvalidArgumentException("Data in incorrect format.");
         }
         $result = array("Format-Version" => $values["Format-Version"]);
+
+        $line_no = 0;
+        while ($line_no < count($data)) {
+            $line = $data[$line_no];
+            $values = $this->parseLine($line);
+            if (array_key_exists("License-Text", $values)) {
+                $text = $values["License-Text"];
+                $total_lines = count($data);
+                while (($line_no + 1) < $total_lines &&
+                       strlen($data[$line_no + 1]) > 0) {
+                    if ($data[$line_no + 1][0] == ' ') {
+                        $text .= "\n" . substr($data[$line_no + 1], 1);
+                        $line_no++;
+                    }
+                }
+                $result["License-Text"] = $text;
+            } else {
+                $result = array_merge($result, $values);
+            }
+            $line_no++;
+        }
         return $result;
     }
 }
