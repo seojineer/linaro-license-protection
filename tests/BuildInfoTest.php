@@ -69,6 +69,37 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @expectedException InvalidArgumentException
+     */
+    public function test_parseData_fails() {
+        $buildinfo = new BuildInfo("");
+        $buildinfo->parseData(array("Arbitrary text"));
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function test_parseData_array_expected() {
+        $buildinfo = new BuildInfo("");
+        $buildinfo->parseData("Arbitrary text");
+    }
+
+    public function test_parseData_format_version() {
+        $buildinfo = new BuildInfo("");
+        $values = $buildinfo->parseData(array("Format-Version: 2.0"));
+        $this->assertEquals(array("Format-Version" => "2.0"),
+                            $values);
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function test_parseData_no_format_version_fails() {
+        $buildinfo = new BuildInfo("");
+        $values = $buildinfo->parseData(array("Build-Name: blah"));
+    }
+
+    /**
      * Running readFile on a directory returns false.
      */
     public function test_readFile_nonFile()

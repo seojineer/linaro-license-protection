@@ -192,4 +192,20 @@ class BuildInfo
             return false;
         }
     }
+
+    /**
+     * `data` should be array of lines.
+     */
+    public function parseData($data) {
+        if (!is_array($data)) {
+            throw new InvalidArgumentException("No array provided.");
+        }
+        $format_line = array_shift($data);
+        $values = $this->parseLine($format_line);
+        if (!array_key_exists("Format-Version", $values)) {
+            throw new InvalidArgumentException("Data in incorrect format.");
+        }
+        $result = array("Format-Version" => $values["Format-Version"]);
+        return $result;
+    }
 }
