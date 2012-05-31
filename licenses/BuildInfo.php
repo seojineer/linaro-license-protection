@@ -169,4 +169,9 @@ class BuildInfo
         else
             return false;
     }
+
+    public function parseLine($line) {
+        throw new InvalidArgumentException("Line is not in the correct format.");
+
+    }
 }

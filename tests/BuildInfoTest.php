@@ -21,6 +21,15 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @expectedException InvalidArgumentException
+     */
+    public function test_parseLine_fails() {
+        $line = "no separator";
+        $buildinfo = new BuildInfo("");
+        $buildinfo->parseLine($line);
+    }
+
+    /**
      * Running readFile on a directory returns false.
      */
     public function test_readFile_nonFile()
