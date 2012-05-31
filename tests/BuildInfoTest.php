@@ -21,6 +21,128 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @expectedException InvalidArgumentException
+     */
+    public function test_parseLine_fails() {
+        $line = "no separator";
+        $buildinfo = new BuildInfo("");
+        $buildinfo->parseLine($line);
+    }
+
+    public function test_parseLine_passes() {
+        $line = "Build-Name:value";
+        $buildinfo = new BuildInfo("");
+        $this->assertEquals(array("Build-Name" => "value"),
+                            $buildinfo->parseLine($line));
+    }
+
+    public function test_parseLine_trims() {
+        $line = "Build-Name: value";
+        $buildinfo = new BuildInfo("");
+        $this->assertEquals(array("Build-Name" => "value"),
+                            $buildinfo->parseLine($line));
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function test_parseLine_invalid_field() {
+        $line = "field: value";
+        $buildinfo = new BuildInfo("");
+        $this->assertEquals(array("field" => "value"),
+                            $buildinfo->parseLine($line));
+    }
+
+    public function test_isValidField_true() {
+        $buildinfo = new BuildInfo("");
+        $fields_allowed = array("Format-Version", "Files-Pattern",
+                                "Build-Name", "Theme", "License-Type", "OpenID-Launchpad-Teams",
+                                "Collect-User-Data", "License-Text");
+        foreach ($fields_allowed as $field) {
+            $this->assertTrue($buildinfo->isValidField($field));
+        }
+    }
+
+    public function test_isValidField_false() {
+        $buildinfo = new BuildInfo("");
+        $this->assertFalse($buildinfo->isValidField("Some random text"));
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function test_parseData_fails() {
+        $buildinfo = new BuildInfo("");
+        $buildinfo->parseData(array("Arbitrary text"));
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function test_parseData_array_expected() {
+        $buildinfo = new BuildInfo("");
+        $buildinfo->parseData("Arbitrary text");
+    }
+
+    public function test_parseData_format_version() {
+        $buildinfo = new BuildInfo("");
+        $values = $buildinfo->parseData(array("Format-Version: 2.0"));
+        $this->assertEquals(array("Format-Version" => "2.0"),
+                            $values);
+    }
+
+    public function test_parseData_extra_fields() {
+        $buildinfo = new BuildInfo("");
+        $values = $buildinfo->parseData(array(
+                                              "Format-Version: 2.0",
+                                              "Build-Name: woohoo"));
+        $this->assertEquals(array("Format-Version" => "2.0",
+                                  "Build-Name" => "woohoo"),
+                            $values);
+    }
+
+    public function test_parseData_license() {
+        $buildinfo = new BuildInfo("");
+        $values = $buildinfo->parseData(array(
+                                              "Format-Version: 2.0",
+                                              "License-Text: line1",
+                                              " line2"));
+        $this->assertEquals(array("Format-Version" => "2.0",
+                                  "License-Text" => "line1\nline2"),
+                            $values);
+    }
+
+    public function test_parseContinuation_no_continuation() {
+        $buildinfo = new BuildInfo("");
+        $lineno = 0;
+        $this->assertEquals(
+            "",
+            $buildinfo->parseContinuation(array("no-space"), $lineno));
+    }
+
+    public function test_parseContinuation_indexed() {
+        $buildinfo = new BuildInfo("");
+        $lineno = 0;
+        $this->assertEquals("",
+                            $buildinfo->parseContinuation(array("no-space", " space"), $lineno));
+    }
+
+    public function test_parseContinuation() {
+        $buildinfo = new BuildInfo("");
+        $lineno = 1;
+        $value = $buildinfo->parseContinuation(array("no-space", " line1", " line2"), $lineno);
+        $this->assertEquals("\nline1\nline2", $value);
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function test_parseData_no_format_version_fails() {
+        $buildinfo = new BuildInfo("");
+        $values = $buildinfo->parseData(array("Build-Name: blah"));
+    }
+
+    /**
      * Running readFile on a directory returns false.
      */
     public function test_readFile_nonFile()

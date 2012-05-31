@@ -169,4 +169,73 @@ class BuildInfo
         else
             return false;
     }
+
+    public function parseLine($line) {
+        $values = explode(":", $line, 2);
+        if ($values === false || count($values) != 2) {
+            throw new InvalidArgumentException("Line is not in the correct format.");
+        } else {
+            $field = trim($values[0]);
+            $value = trim($values[1]);
+            if (!$this->isValidField($field)) {
+                throw new InvalidArgumentException("Field '$field' not allowed.");
+            } else {
+                return array($field => $value);
+            }
+        }
+    }
+
+    public function isValidField($field_name) {
+        if (in_array($field_name, $this->fields_defined)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function parseContinuation($lines, &$line_no) {
+        $text = '';
+        $total_lines = count($lines);
+        while ($line_no < $total_lines &&
+               strlen($lines[$line_no]) > 0) {
+            if ($lines[$line_no][0] == ' ') {
+                $text .= "\n" . substr($lines[$line_no], 1);
+                $line_no++;
+            } else {
+                break;
+            }
+        }
+        return $text;
+    }
+
+    /**
+     * `data` should be array of lines.
+     */
+    public function parseData($data) {
+        if (!is_array($data)) {
+            throw new InvalidArgumentException("No array provided.");
+        }
+        $format_line = array_shift($data);
+        $values = $this->parseLine($format_line);
+        if (!array_key_exists("Format-Version", $values)) {
+            throw new InvalidArgumentException("Data in incorrect format.");
+        }
+        $result = array("Format-Version" => $values["Format-Version"]);
+
+        $line_no = 0;
+        while ($line_no < count($data)) {
+            $line = $data[$line_no];
+            $values = $this->parseLine($line);
+            if (array_key_exists("License-Text", $values)) {
+                $text = $values["License-Text"];
+                $line_no++;
+                $text .= $this->parseContinuation($data, $line_no);
+                $result["License-Text"] = $text;
+            } else {
+                $line_no++;
+                $result = array_merge($result, $values);
+            }
+        }
+        return $result;
+    }
 }
