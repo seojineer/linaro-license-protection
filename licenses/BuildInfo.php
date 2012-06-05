@@ -14,82 +14,24 @@ class BuildInfo
     {
         $this->search_path = dirname($fn);
         $this->fname = $fn;
-        $this->readFile();
+        $data = $this->readFile();
+        if (is_array($data)) {
+            $this->text_array = $this->parseData($data);
+        }
     }
 
     public function readFile()
     {
-        $field = '';
-        $fp_read = 0;
+        $data = array();
         if (is_dir($this->fname) or !is_file($this->fname) or filesize($this->fname) == 0) return false;
         $file = fopen($this->fname, "r") or exit("Unable to open file $this->fname!");
-        // Get the 'Format-Version' field.
-        $line = fgets($file);
-        $fields = explode(":", $line, "2");
-        if (isset($fields[1]))
-            $this->text_array[$fields[0]] = trim($fields[1]);
-        else
-            $this->text_array[$fields[0]] = '';
-        // Get the rest fileds.
         while(!feof($file)) {
-            if ($fp_read) {
-                $this->text_array[$fields[0]] = trim($fields[1]);
-                $fp_read = 0;
-            }
             $line = fgets($file);
             if (trim($line) == "")
                 continue;
-            $fields = explode(":", $line, "2");
-            // Each block of fields begins with "Files-Pattern" field
-            if ($fields[0] == "Files-Pattern") {
-                $tmp_arr = array();
-                $fp = trim($fields[1]);
-                // Read next block of field by field
-                while(!feof($file)) {
-                    $line = fgets($file);
-                    if (trim($line) == "")
-                        continue;
-                    $fields = explode(":", $line, "2");
-                    // Read multiline field...
-                    if (in_array($fields[0], $this->multiline_vars)) {
-                        $field = $fields[0];
-                        if (isset($fields[1]))
-                            $tmp_arr[$fields[0]] = trim($fields[1]);
-                        // ...until the EOF or...
-                        while(!feof($file)) {
-                            $line = fgets($file);
-                            if (trim($line) == "")
-                                continue;
-                            $fields = explode(":", $line, "2");
-                            // ...until we find next valid field
-                            if(in_array($fields[0], $this->fields_defined)) {
-                                // Start reading next block of fields
-                                // if the field is "Files-Pattern"
-                                if ($fields[0] == "Files-Pattern") {
-                                    fseek($file, -(strlen($line)), SEEK_CUR);
-                                    break 2;
-                                }
-                                // Or continue to process the next field
-                                break;
-                            }
-                            $tmp_arr[$field] = $tmp_arr[$field].
-                                "\n".rtrim($line);
-                        }
-                    }
-                    // Save fields to the array
-                    if (isset($fields[1])) {
-                        $tmp_arr[$fields[0]] = trim($fields[1]);
-                    }
-                }
-                // If there're several patterns, split them
-                foreach(explode(",", $fp) as $pattern)
-                    $this->text_array[$pattern] = $tmp_arr;
-                unset($tmp_arr);
-            }
+            $data[] = $line;
         }
-        fclose($file);
-
-        return true;
+        return $data;
     }
 
     private function getInfoForFile($fname)
@@ -197,14 +139,14 @@ class BuildInfo
         $text = '';
         $total_lines = count($lines);
         while ($line_no < $total_lines &&
-               strlen($lines[$line_no]) > 0) {
-            if ($lines[$line_no][0] == ' ') {
-                $text .= "\n" . substr($lines[$line_no], 1);
-                $line_no++;
-            } else {
-                break;
+            strlen($lines[$line_no]) > 0) {
+                if ($lines[$line_no][0] == ' ') {
+                    $text .= "\n" . substr($lines[$line_no], 1);
+                    $line_no++;
+                } else {
+                    break;
+                }
             }
-        }
         return $text;
     }
 
@@ -226,11 +168,35 @@ class BuildInfo
         while ($line_no < count($data)) {
             $line = $data[$line_no];
             $values = $this->parseLine($line);
+            if (array_key_exists("Files-Pattern", $values)) {
+                $line_no++;
+                $block = $this->parseBlock($data, $line_no);
+                if (is_array($block)) {
+                    foreach (explode(",", $values["Files-Pattern"]) as $pattern) {
+                        $result[$pattern] = $block;
+                    }
+                }
+            }
+        }
+        return $result;
+    }
+
+    public function parseBlock($data, &$line_no) {
+        $result = array();
+
+        if (!is_array($data)) {
+            throw new InvalidArgumentException("No array provided.");
+        }
+        while ($line_no < count($data)) {
+            $line = $data[$line_no];
+            $values = $this->parseLine($line);
             if (array_key_exists("License-Text", $values)) {
                 $text = $values["License-Text"];
                 $line_no++;
                 $text .= $this->parseContinuation($data, $line_no);
                 $result["License-Text"] = $text;
+            } elseif (array_key_exists("Files-Pattern", $values)) {
+                return $result;
             } else {
                 $line_no++;
                 $result = array_merge($result, $values);

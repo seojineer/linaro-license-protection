@@ -12,12 +12,18 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
     private $lic_text_test = 
         '<p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p>';
 
-    public function __construct()
+    public function setUp()
     {
         $this->good_bi = new BuildInfo("tests/BUILD-INFO.txt");
         $this->temp_filename = tempnam(sys_get_temp_dir(), "build-info");
         $this->empty_bi = new BuildInfo($this->temp_filename);
         $this->fname = "BUILD-INFO.txt";
+    }
+
+    public function tearDown() {
+        if (file_exists($this->temp_filename)) {
+            unlink($this->temp_filename);
+        }
     }
 
     /**
@@ -95,18 +101,20 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
         $buildinfo = new BuildInfo("");
         $values = $buildinfo->parseData(array(
                                               "Format-Version: 2.0",
+                                              "Files-Pattern: *.txt",
                                               "Build-Name: woohoo"));
         $this->assertEquals(array("Format-Version" => "2.0",
-                                  "Build-Name" => "woohoo"),
+                                  "*.txt" => array("Build-Name" => "woohoo")),
                             $values);
     }
 
-    public function test_parseData_license() {
+    public function test_parseBlock_license() {
         $buildinfo = new BuildInfo("");
-        $values = $buildinfo->parseData(array(
+        $lineno = 0;
+        $values = $buildinfo->parseBlock(array(
                                               "Format-Version: 2.0",
                                               "License-Text: line1",
-                                              " line2"));
+                                              " line2"), $lineno);
         $this->assertEquals(array("Format-Version" => "2.0",
                                   "License-Text" => "line1\nline2"),
                             $values);
@@ -142,6 +150,33 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
         $values = $buildinfo->parseData(array("Build-Name: blah"));
     }
 
+   public function test_parseData_blocks() {
+        $buildinfo = new BuildInfo("");
+        $lineno = 0;
+        $values = $buildinfo->parseData(array("Format-Version: 2.0",
+                                              "Files-Pattern: *.txt",
+                                              "Build-Name: woohoo",
+                                              "Files-Pattern: *.tgz",
+                                              "Build-Name: weehee"));
+        $this->assertEquals(array("Format-Version" => "2.0",
+                                  "*.txt" => array("Build-Name" => "woohoo"),
+                                  "*.tgz" => array("Build-Name" => "weehee")),
+                            $values);
+   }
+ 
+    public function test_parseData_block_multiple_patterns() {
+        $buildinfo = new BuildInfo("");
+        $lineno = 0;
+        $values = $buildinfo->parseData(array("Format-Version: 2.0",
+                                              "Files-Pattern: *.txt,*.tgz",
+                                              "Build-Name: weehee"));
+        $this->assertEquals(array("Format-Version" => "2.0",
+                                  "*.txt" => array("Build-Name" => "weehee"),
+                                  "*.tgz" => array("Build-Name" => "weehee")),
+                            $values);
+    }
+ 
+   
     /**
      * Running readFile on a directory returns false.
      */
@@ -161,12 +196,12 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Running readFile on a regular file returns true.
+     * Running readFile on a regular file returns array of strings.
      */
     public function test_readFile_file()
     {
         $bi = new BuildInfo("tests/BUILD-INFO.txt");
-        $this->assertTrue($bi->readFile());
+        $this->assertInternalType('array', $bi->readFile());
     }
 
     /**
