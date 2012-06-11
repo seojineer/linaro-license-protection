@@ -9,8 +9,6 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
     private $good_bi;
     private $empty_bi;
     private $fname;
-    private $lic_text_test = 
-        '<p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p>';
 
     public function setUp()
     {
@@ -228,106 +226,19 @@ class BuildInfoTest extends PHPUnit_Framework_TestCase
 
     public function test_getBuildName_empty()
     {
-        $this->assertFalse($this->empty_bi->getBuildName($this->fname));
+        $this->assertFalse($this->empty_bi->get("Build-Name"));
     }
 
     public function test_getBuildName_type()
     {
         $this->assertInternalType(
-            'string', $this->good_bi->getBuildName($this->fname));
+            'string', $this->good_bi->get("Build-Name"));
     }
 
     public function test_getBuildName()
     {
         $this->assertEquals(
-            'landing-snowball', $this->good_bi->getBuildName($this->fname));
-    }
-
-    public function test_getTheme_empty()
-    {
-        $this->assertFalse($this->empty_bi->getTheme($this->fname));
-    }
-
-    public function test_getTheme_type()
-    {
-        $this->assertInternalType(
-            'string', $this->good_bi->getTheme($this->fname));
-    }
-
-    public function test_getTheme()
-    {
-        $this->assertEquals(
-            'stericsson', $this->good_bi->getTheme($this->fname));
-    }
-
-    public function test_getLicenseType_empty()
-    {
-        $this->assertFalse($this->empty_bi->getLicenseType($this->fname));
-    }
-
-    public function test_getLicenseType_type()
-    {
-        $this->assertInternalType(
-            'string', $this->good_bi->getLicenseType($this->fname));
-    }
-
-    public function test_getLicenseType()
-    {
-        $this->assertEquals(
-            'open', $this->good_bi->getLicenseType($this->fname));
-    }
-
-    public function test_getCollectUserData_empty()
-    {
-        $this->assertFalse($this->empty_bi->getCollectUserData($this->fname));
-    }
-
-    public function test_getCollectUserData_type()
-    {
-        $this->assertInternalType(
-            'string', $this->good_bi->getCollectUserData($this->fname));
-    }
-
-    public function test_getCollectUserData()
-    {
-        $this->assertEquals(
-            'yes', $this->good_bi->getCollectUserData($this->fname));
-    }
-
-    public function test_getLaunchpadTeams_empty()
-    {
-        $this->assertFalse($this->empty_bi->getLaunchpadTeams($this->fname));
-    }
-
-    public function test_getLaunchpadTeams_type()
-    {
-        $this->assertInternalType(
-            'string', $this->good_bi->getLaunchpadTeams($this->fname));
-    }
-
-    public function test_getLaunchpadTeams()
-    {
-        $this->assertEquals(
-            'linaro,non-linaro',
-            $this->good_bi->getLaunchpadTeams($this->fname));
-    }
-
-    public function test_getLicenseText_empty()
-    {
-        $this->assertFalse($this->empty_bi->getLicenseText($this->fname));
-    }
-
-    public function test_getLicenseText_type()
-    {
-        $this->assertInternalType(
-            'string', $this->good_bi->getLicenseText($this->fname));
-    }
-
-    public function test_getLicenseText()
-    {
-        $this->assertStringStartsWith(
-            $this->lic_text_test,
-            $this->good_bi->getLicenseText($this->fname));
+            'landing-snowball', $this->good_bi->get("Build-Name"));
     }
 }
 ?>

@@ -30,10 +30,10 @@ if (file_exists($fn) and LicenseHelper::checkFile($fn)) { // Requested download 
 
 if (file_exists($search_dir."/BUILD-INFO.txt")) {
     $bi_found = 1;
-    $bi = new BuildInfo($search_dir."/BUILD-INFO.txt");
-    $theme = $bi->getTheme($name_only[0]);
-    $lic_type = $bi->getLicenseType($name_only[0]);
-    $lic_text = $bi->getLicenseText($name_only[0]);
+    $bi = new BuildInfo($search_dir."/".$name_only[0]);
+    $theme = $bi->get("Theme");
+    $lic_type = $bi->get("License-Type");
+    $lic_text = $bi->get("License-Text");
 } else {
     $flist = LicenseHelper::getFilesList($search_dir);
     if (!empty($name_only)) {

@@ -2,29 +2,36 @@
 
 class BuildInfo
 {
-    private $text_array = array();
-    private $fields_defined = array("Format-Version", "Files-Pattern",
-        "Build-Name", "Theme", "License-Type", "OpenID-Launchpad-Teams",
-        "Collect-User-Data", "License-Text");
-    private $multiline_vars = array("License-Text");
-    private $search_path = '';
-    private $fname = '';
+    private $build_info_array;
+    private $fields_defined;
+    private $multiline_vars;
+    private $search_path;
+    private $fname;
+    private $file_info_array;
 
     public function __construct($fn)
     {
+        $this->build_info_array = array();
+        $this->file_info_array = array();
+        $this->fields_defined = array("Format-Version", "Files-Pattern",
+            "Build-Name", "Theme", "License-Type", "OpenID-Launchpad-Teams",
+            "Collect-User-Data", "License-Text");
+        $this->multiline_vars = array("License-Text");
         $this->search_path = dirname($fn);
-        $this->fname = $fn;
+        $this->fname = basename($fn);
+        $this->build_info_file = $this->search_path."/BUILD-INFO.txt";
         $data = $this->readFile();
         if (is_array($data)) {
-            $this->text_array = $this->parseData($data);
+            $this->build_info_array = $this->parseData($data);
+            $this->file_info_array = $this->getInfoForFile($this->fname);
         }
     }
 
     public function readFile()
     {
         $data = array();
-        if (is_dir($this->fname) or !is_file($this->fname) or filesize($this->fname) == 0) return false;
-        $file = fopen($this->fname, "r") or exit("Unable to open file $this->fname!");
+        if (is_dir($this->build_info_file) or !is_file($this->build_info_file) or filesize($this->build_info_file) == 0) return false;
+        $file = fopen($this->build_info_file, "r") or exit("Unable to open file $this->build_info_file!");
         while(!feof($file)) {
             $line = fgets($file);
             if (trim($line) == "")
@@ -39,75 +46,29 @@ class BuildInfo
         /**
          * Get array of fields for corresponding file
          */
-        foreach (array_keys($this->text_array) as $key)
+        foreach (array_keys($this->build_info_array) as $key)
             if ($key != 'Format-Version') {
                 $files = glob($this->search_path."/".$key);
                 foreach ($files as $file)
                     if ($file == $this->search_path."/".$fname)
-                        return $this->text_array[$key];
+                        return $this->build_info_array[$key];
             }
         return array();
     }
 
     public function getFormatVersion()
     {
-        if (array_key_exists('Format-Version', $this->text_array))
-            return $this->text_array["Format-Version"];
+        if (array_key_exists('Format-Version', $this->build_info_array))
+            return $this->build_info_array["Format-Version"];
         else
             return false;
     }
 
-    // Get value of specified field for correspondong file
-    public function getBuildName($fname)
+    // Get value of specified field for corresponding file
+    public function get($field)
     {
-        $info = $this->getInfoForFile($fname);
-        if (array_key_exists('Build-Name', $info))
-            return $info["Build-Name"];
-        else
-            return false;
-    }
-
-    public function getTheme($fname)
-    {
-        $info = $this->getInfoForFile($fname);
-        if (array_key_exists('Theme', $info))
-            return $info["Theme"];
-        else
-            return false;
-    }
-
-    public function getLicenseType($fname)
-    {
-        $info = $this->getInfoForFile($fname);
-        if (array_key_exists('License-Type', $info))
-            return $info["License-Type"];
-        else
-            return false;
-    }
-
-    public function getLaunchpadTeams($fname)
-    {
-        $info = $this->getInfoForFile($fname);
-        if (array_key_exists('OpenID-Launchpad-Teams', $info))
-            return $info["OpenID-Launchpad-Teams"];
-        else
-            return false;
-    }
-
-    public function getCollectUserData($fname)
-    {
-        $info = $this->getInfoForFile($fname);
-        if (array_key_exists('Collect-User-Data', $info))
-            return $info["Collect-User-Data"];
-        else
-            return false;
-    }
-
-    public function getLicenseText($fname)
-    {
-        $info = $this->getInfoForFile($fname);
-        if (array_key_exists('License-Text', $info))
-            return $info["License-Text"];
+        if (array_key_exists($field, $this->file_info_array))
+            return $this->file_info_array[$field];
         else
             return false;
     }
