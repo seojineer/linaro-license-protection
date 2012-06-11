@@ -17,7 +17,7 @@ class PhpUnitTest(TestCase):
         super(PhpUnitTest, self).setUp()
         self.xml_path = tempfile.mkstemp()[1]
         returncode = subprocess.Popen(['phpunit', '--log-junit',
-                          self.xml_path, 'tests/LicenseHelperTest'],
+                          self.xml_path, 'tests'],
                           stdout=open('/dev/null', 'w'),
                           stderr=subprocess.STDOUT).wait()
         if returncode == -1:

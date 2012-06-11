@@ -36,6 +36,9 @@ per_file_samsung_test_file = '/android/images/origen-blob.txt'
 per_file_ste_test_file = '/android/images/snowball-blob.txt'
 per_file_not_protected_test_file = '/android/images/MANIFEST'
 dirs_only_dir = '/android/~linaro-android/'
+build_info_samsung_test_file = '/android/build-info/origen-blob.txt'
+build_info_ste_test_file = '/android/build-info/snowball-blob.txt'
+build_info_not_protected_test_file = '/android/build-info/panda-open.txt'
 
 
 class Contains(object):
@@ -294,4 +297,26 @@ class TestLicense(TestCase):
     def test_not_found_file(self):
         search = "Not Found"
         testfile = fetcher.get(host + not_found_test_file)
+        self.assertThat(testfile, Contains(search))
+
+    def test_build_info_non_protected_file(self):
+        search = "This is always available."
+        testfile = fetcher.get(host + build_info_not_protected_test_file)
+        self.assertThat(testfile, Contains(search))
+
+    def test_build_info_accept_license_samsung_file(self):
+        search = "This is protected with click-through Samsung license."
+        testfile = fetcher.get(host + build_info_samsung_test_file)
+        fetcher.close()
+        if os.path.exists("%s/cookies.txt" % docroot):
+            os.rename("%s/cookies.txt" % docroot,
+                    "%s/cookies.samsung" % docroot)
+        self.assertThat(testfile, Contains(search))
+
+    def test_build_info_accept_license_ste_file(self):
+        search = "This is protected with click-through ST-E license."
+        testfile = fetcher.get(host + build_info_ste_test_file)
+        fetcher.close()
+        if os.path.exists("%s/cookies.txt" % docroot):
+            os.rename("%s/cookies.txt" % docroot, "%s/cookies.ste" % docroot)
         self.assertThat(testfile, Contains(search))
