@@ -80,7 +80,7 @@ without any license popping out.
     >>> browser.browse_to_relative("~linaro-android/")
     >>> print browser.get_content_title()
     Index of /android/~linaro-android
-    >>> browser.browse_to_next("origen")
+    >>> browser.browse_to_next("staging-origen")
     >>> print browser.get_content_title()
     Index of /android/~linaro-android/...origen...
 
