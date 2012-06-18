@@ -39,6 +39,7 @@ dirs_only_dir = '/android/~linaro-android/'
 build_info_samsung_test_file = '/android/build-info/origen-blob.txt'
 build_info_ste_test_file = '/android/build-info/snowball-blob.txt'
 build_info_not_protected_test_file = '/android/build-info/panda-open.txt'
+build_info_openid_test_file = '/android/build-info/openid.txt'
 
 
 class Contains(object):
@@ -320,3 +321,10 @@ class TestLicense(TestCase):
         if os.path.exists("%s/cookies.txt" % docroot):
             os.rename("%s/cookies.txt" % docroot, "%s/cookies.ste" % docroot)
         self.assertThat(testfile, Contains(search))
+
+    def test_build_info_openid_protection(self):
+        search = "This is protected with OpenID."
+        testfile = fetcher.get(host + build_info_openid_test_file)
+        fetcher.close()
+        self.assertThat(testfile, Contains(search))
+

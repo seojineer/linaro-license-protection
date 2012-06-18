@@ -36,3 +36,7 @@ Files-Pattern: *panda*
 Build-Name: landing-panda
 License-Type: open
 
+Files-Pattern: *openid*
+Build-Name: landing-protected
+License-Type: protected
+OpenID-Launchpad-Teams: linaro
