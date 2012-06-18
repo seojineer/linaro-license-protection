@@ -34,6 +34,7 @@ if (file_exists($search_dir."/BUILD-INFO.txt")) {
     $theme = $bi->get("Theme");
     $lic_type = $bi->get("License-Type");
     $lic_text = $bi->get("License-Text");
+    $openid = $bi->get("OpenID-Launchpad-Teams");
 } else {
     $flist = LicenseHelper::getFilesList($search_dir);
     if (!empty($name_only)) {
@@ -45,6 +46,8 @@ if (file_exists($search_dir."/BUILD-INFO.txt")) {
 if (LicenseHelper::checkFile($fn)) {
     if ($bi_found) {
         if ($lic_type == 'open')
+            LicenseHelper::redirect_with_status($down, $domain, 200);
+        elseif (($openid != false) and ($lic_type == 'protected'))
             LicenseHelper::redirect_with_status($down, $domain, 200);
         elseif (($theme != false) or ($lic_text != false))
             $template_content = file_get_contents($doc."/licenses/".$theme.".html");
