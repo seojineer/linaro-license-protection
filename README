@@ -117,21 +117,21 @@ Files-Pattern: *.img, *.tar.bz2
   Filename patterns are specified using a simplified shell glob syntax. Will
   be used to identify protected files.
 Build-Name: landing-snowball
-  Would be a unique over all the builds of the same type. For now used as
+  Would be unique over all the builds of the same type. For now used as
   a placeholder and will be ignored. To be added later by build services?
 Theme: stericsson
   Theme name for selecting proper theming on download and license pages,
   vendor name.
 License-Type: open/protected
- open - Open builds. No license page is displayed.
- protected - EULA protected builds. If 'OpenID-Launchpad-Teams' is defined
- then OpenID protection is used, otherwise simple Accept/Decline license
- page is displayed before accessing protected files.
+  open - Open builds. No license page is displayed.
+  protected - EULA protected builds. If 'OpenID-Launchpad-Teams' is defined
+    then OpenID protection is used, otherwise simple Accept/Decline license
+    page is displayed before accessing protected files.
 OpenID-Launchpad-Teams: linaro
-  LP team names members of are allowed to access protected files. No OpenID
+  LP team names, members of are allowed to access protected files. No OpenID
   protection if absent.
 Collect-User-Data: yes/no
-  Default to 'no' if not present. If the field is set to 'yes' then
+  Defaults to 'no' if not present. If the field is set to 'yes' then
   Name and E-Mail (some other fields?) fields are asked to be filled. If it
   will be needed in the future it could be expanded with
   'Collect-User-Data-Fields' field later or any other approach.
@@ -144,7 +144,7 @@ variable which turns as multiline variable and is appended to it.
 License protection script takes information from the BUILD-INFO.txt file placed
 in the same directory as artifacts, finds 'Files-Pattern' block corresponding
 to requested file and applies rules from that block to download procedure.
-If no BUILD-INFO,txt is found it falls back to per-file/per-directoryEULA
+If no BUILD-INFO.txt is found it falls back to per-file/per-directory EULA
 protection.
 
 
