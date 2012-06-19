@@ -2,7 +2,7 @@ Format-Version: 0.1
 
 Files-Pattern: *snowball*
 Build-Name: landing-snowball
-Theme: ste
+Theme: stericsson
 License-Type: protected
 License-Text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p>
  <p>
