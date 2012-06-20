@@ -19,9 +19,9 @@ local_rewrite = 'RewriteCond %{REMOTE_ADDR} 127.0.0.1 [OR]'
 
 host = 'http://127.0.0.1'
 port = '0'  # 0 == Pick a free port.
-samsung_license_path = '/licenses/samsung.html'
-ste_license_path = '/licenses/ste.html'
-linaro_license_path = '/licenses/linaro.html'
+samsung_license_path = '/licenses/license.php'
+ste_license_path = '/licenses/license.php'
+linaro_license_path = '/licenses/license.php'
 samsung_test_file = '/android/~linaro-android/staging-origen/test.txt'
 ste_test_file = ('/android/~linaro-android/staging-snowball'
                  '/173/target/product/snowball/test.txt')

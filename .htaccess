@@ -30,9 +30,6 @@ RewriteRule .* - [L]
 
 ## If license file is requested, and a download has been requested previously,
 ## pass through to the license file.
-RewriteCond %{REQUEST_URI} /licenses/ste.html$ [OR]
-RewriteCond %{REQUEST_URI} /licenses/samsung.html$ [OR]
-RewriteCond %{REQUEST_URI} /licenses/linaro.html$ [OR]
 RewriteCond %{REQUEST_URI} /licenses/nolicense.html$ [OR]
 RewriteCond %{REQUEST_URI} /licenses/license.php$
 RewriteCond %{HTTP_COOKIE} downloadrequested
@@ -41,9 +38,6 @@ RewriteRule .* - [L]
 
 ## When license files are requested directly, forward to
 ## the snapshots.l.o site itself.
-RewriteCond %{REQUEST_URI} /licenses/linaro.html$ [OR]
-RewriteCond %{REQUEST_URI} /licenses/samsung.html$ [OR]
-RewriteCond %{REQUEST_URI} /licenses/ste.html$ [OR]
 RewriteCond %{REQUEST_URI} /licenses/license.php$
 RewriteCond %{HTTP_COOKIE} !downloadrequested=(.*)
 RewriteRule .* / [R,L]
