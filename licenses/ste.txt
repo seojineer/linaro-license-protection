@@ -1,3 +1,6 @@
+SNOWBALL CLICK-WRAP LIMITED LICENSE AGREEMENT FOR APPLICATION DEVELOPERS
+("Agreement") ST-Ericsson 2011-10-27
+
 <p>
  This Agreement is a legally binding contract between you - either an 
  individual or a legal entity - (hereinafter referred to as "Licensee") 
