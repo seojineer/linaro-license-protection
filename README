@@ -129,20 +129,20 @@ Files paragraph (repeatable)
 ............................
 
 The following fields may be present in a files paragraph:
- * Files-Pattern: (required)
+ * Files-Pattern: (required, must be the first field in the paragraph)
     Comma separated filename patterns that are specified using a simplified
     shell glob syntax. Will be used to identify protected files.
  * Build-Name: (optional)
     Would be unique over all the builds of the same type. For now used as
     a placeholder and will be ignored. To be added later by build services?
- * Theme: (required)
-    Acceptable values are: stericsson, samsung.
-    Theme name for selecting proper theming on download and license pages.
  * License-Type: (required)
     open - Open builds. No license page is displayed.
     protected - EULA protected builds. If 'OpenID-Launchpad-Teams' is defined
       then OpenID protection is used, otherwise simple Accept/Decline license
       page is displayed before accessing protected files.
+ * Theme: (required only if License-Type is 'protected')
+    Acceptable values are: stericsson, samsung.
+    Theme name for selecting proper theming on download and license pages.
  * OpenID-Launchpad-Teams: (optional)
     LP team names, members of which are allowed to access protected files. No
     OpenID protection if absent.
@@ -152,25 +152,30 @@ The following fields may be present in a files paragraph:
     Name and E-Mail (some other fields?) fields are asked to be filled. If it
     will be needed in the future it could be expanded with
     'Collect-User-Data-Fields' field later or any other approach.
- * License-Text: (required)
+ * License-Text: (required only if License-Type is 'protected')
      EULA full text included in BUILD-INFO.txt
 
 - If line begins with space character ' ' it is treated as a part of last found
 variable which turns as multiline variable and is appended to it.
-- Variable names are case insensitive.
+- Field names are case insensitive.
+- Fields order doesn't matter, except 'Files-Pattern'
 
 BUILD-INFO.txt example:
 .......................
 
 Format-Version: 0.1
+
 Files-Pattern: *.img, *.tar.bz2
 Build-Name: landing-snowball
+License-Type: protected
 Theme: stericsson
-License-Type: open/protected
-OpenID-Launchpad-Teams: linaro
-Collect-User-Data: yes/no
 License-Text: EULA full text displayed to user.
  You should accept to download file.
+
+Files-Pattern: *.txt
+Bulid-Name: landing-snowball
+License-Type: open
+
 
 License protection script takes information from the BUILD-INFO.txt file placed
 in the same directory as artifacts, finds 'Files-Pattern' block corresponding
