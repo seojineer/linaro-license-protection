@@ -14,11 +14,11 @@ class BuildInfoTests(unittest.TestCase):
                      "License-Type: protected"]
 
         expected_values = {}
-        expected_values["Format-Version"] = "0.1"
-        expected_values["Files-Pattern"] = "*snowball*"
-        expected_values["Build-Name"] = "landing-snowball"
-        expected_values["Theme"] = "ste"
-        expected_values["License-Type"] = "protected"
+        expected_values["format-version"] = "0.1"
+        expected_values["files-pattern"] = "*snowball*"
+        expected_values["build-name"] = "landing-snowball"
+        expected_values["theme"] = "ste"
+        expected_values["license-type"] = "protected"
 
         build_info.parse_buildinfo_lines(variables)
 
@@ -40,7 +40,7 @@ class BuildInfoTests(unittest.TestCase):
         variables = ["License-Text: " + license[0]]
         variables += license[1:]
         expected_values = {}
-        expected_values["License-Text"] = " ".join(license)
+        expected_values["license-text"] = " ".join(license)
 
         build_info.parse_buildinfo_lines(variables)
 
@@ -56,11 +56,11 @@ class BuildInfoTests(unittest.TestCase):
                      "Build-Name: landing-foo",]
 
         expected_values = [{}, {}]
-        expected_values[0]["Format-Version"] = "0.1"
-        expected_values[0]["Files-Pattern"] = "*snowball*"
-        expected_values[0]["Build-Name"] = "landing-snowball"
-        expected_values[1]["Files-Pattern"] = "*foo*"
-        expected_values[1]["Build-Name"] = "landing-foo"
+        expected_values[0]["format-version"] = "0.1"
+        expected_values[0]["files-pattern"] = "*snowball*"
+        expected_values[0]["build-name"] = "landing-snowball"
+        expected_values[1]["files-pattern"] = "*foo*"
+        expected_values[1]["build-name"] = "landing-foo"
 
         build_info.parse_buildinfo_lines(variables)
 

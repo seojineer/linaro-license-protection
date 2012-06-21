@@ -9,8 +9,10 @@ class BuildInfo:
         self.index = 0
 
     def _set(self, key, value):
-        # A repeated key indicates we have found another chunk of build-info
+        key = key.lower()
         if key in self.data[self.index]:
+            # A repeated key indicates we have found another chunk of
+            # build-info
             self.index += 1
 
             # Unless an external influence has messed with self.index, this
@@ -21,6 +23,7 @@ class BuildInfo:
         self.data[self.index][key] = value
 
     def _append(self, key, value):
+        key = key.lower()
         self.data[self.index][key] += value
 
     def parse_buildinfo_lines(self, lines):
@@ -41,5 +44,8 @@ class BuildInfo:
                 in_multi_line = True
                 key = line_search.group(1)
 
-    def parse_buildinfo(buildinfo_file_location):
-        return True
+    def parse_buildinfo(self, buildinfo_file_location):
+        with open(buildinfo_file_location, "r") as infile:
+            lines = infile.readlines()
+            self.parse_buildinfo_lines(lines)
+
