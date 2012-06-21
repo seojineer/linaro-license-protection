@@ -142,3 +142,8 @@ LOGGING = {
 }
 
 SERVED_PATHS = ['/var/www']
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.messages.context_processors.messages',
+    'django.contrib.auth.context_processors.auth',
+)

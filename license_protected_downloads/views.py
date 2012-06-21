@@ -2,7 +2,7 @@
 
 from django.http import HttpResponse
 from django.conf import settings
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 import os.path
 import os
 from django.http import Http404
@@ -11,6 +11,7 @@ from buildinfo import BuildInfo
 import time
 import re
 import hashlib
+from mimetypes import guess_type
 
 def dir_list(path):
     files = os.listdir(path)
@@ -19,11 +20,20 @@ def dir_list(path):
         name = file
         file = os.path.join(path, file)
         mtime = time.ctime(os.path.getmtime(file))
-        isdir = os.path.isdir(file)
+
+        type = "other"
+        if os.path.isdir(file):
+            type = "folder"
+        else:
+            type_tuple = guess_type(name)
+            if type_tuple and type_tuple[0]:
+                if type_tuple[0].split('/')[0] == "text":
+                    type = "text"
+
         size = os.path.getsize(file)
         listing.append({'name': name,
                         'size': size,
-                        'isdir': isdir,
+                        'type': type,
                         'mtime': mtime})
     return listing
 
@@ -60,6 +70,12 @@ def is_protected(path):
 def license_accepted(request, digest):
     return 'license_accepted_' + digest in request.COOKIES
 
+def show_license(request):
+    response = HttpResponse("Some licenses..." +
+                            request.GET['lic'] + " " +
+                            request.GET['url'])
+    return response
+
 def file_server(request, path):
     result = test_path(path)
     if not result:
@@ -80,12 +96,14 @@ def file_server(request, path):
     digests = is_protected(path)
     for digest in digests:
         if not license_accepted(request, digest):
-            response = HttpResponse("Accepting some licenses...")
-            response.set_cookie("license_accepted_" + digest)
+            #response = HttpResponse("Accepting some licenses...")
+            #response.set_cookie("license_accepted_" + digest)
+            response = redirect('/license?lic=' + digest + "&url=" + path)
 
     if not response:
         response = HttpResponse(mimetype='application/force-download')
         response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(file_name)
         response['X-Sendfile'] = smart_str(path)
     return response
+
 
