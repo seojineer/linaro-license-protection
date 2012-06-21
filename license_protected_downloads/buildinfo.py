@@ -15,7 +15,7 @@ class BuildInfo:
 
             # Unless an external influence has messed with self.index, this
             # should be a new array element...
-            assert(self.index > len(self.data))
+            assert(self.index == len(self.data))
             self.data.append({})
 
         self.data[self.index][key] = value

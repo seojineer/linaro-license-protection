@@ -46,6 +46,26 @@ class BuildInfoTests(unittest.TestCase):
 
         self.assertDictEqual(build_info.data[0], expected_values)
 
+    def test_multiple_licenses(self):
+        build_info = BuildInfo()
+
+        variables = ["Format-Version: 0.1",
+                     "Files-Pattern: *snowball*",
+                     "Build-Name: landing-snowball",
+                     "Files-Pattern: *foo*",
+                     "Build-Name: landing-foo",]
+
+        expected_values = [{}, {}]
+        expected_values[0]["Format-Version"] = "0.1"
+        expected_values[0]["Files-Pattern"] = "*snowball*"
+        expected_values[0]["Build-Name"] = "landing-snowball"
+        expected_values[1]["Files-Pattern"] = "*foo*"
+        expected_values[1]["Build-Name"] = "landing-foo"
+
+        build_info.parse_buildinfo_lines(variables)
+
+        self.assertDictEqual(build_info.data[0], expected_values[0])
+        self.assertDictEqual(build_info.data[1], expected_values[1])
 
 if __name__ == '__main__':
     unittest.main()
