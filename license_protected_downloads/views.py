@@ -1,11 +1,11 @@
 # Create your views here.
 
 from django.http import HttpResponse
-import re
 from django.conf import settings
 import os.path
 from django.http import Http404
 from django.utils.encoding import smart_str
+from buildinfo import parse_buildinfo
 
 def dir_list(request, path):
     return HttpResponse("dir_list: " + path)
@@ -22,7 +22,10 @@ def test_path(path):
     return None
 
 def is_protected(path):
-    return True
+    if os.path.isfile(os.path.join(os.path.dirname(path), "BUILD-INFO.txt")):
+        parse_buildinfo("")
+        return True
+    return False
 
 def license_accepted(request):
     return 'license_accepted' in request.COOKIES
@@ -49,5 +52,4 @@ def file_server(request, path):
         response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(file_name)
         response['X-Sendfile'] = smart_str(path)
     return response
-
 
