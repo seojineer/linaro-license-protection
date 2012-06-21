@@ -12,6 +12,7 @@ class BuildInfoTests(unittest.TestCase):
                      "Build-Name: landing-snowball",
                      "Theme: ste",
                      "License-Type: protected"]
+
         expected_values = {}
         expected_values["Format-Version"] = "0.1"
         expected_values["Files-Pattern"] = "*snowball*"
@@ -21,7 +22,7 @@ class BuildInfoTests(unittest.TestCase):
 
         build_info.parse_buildinfo_lines(variables)
 
-        self.assertDictEqual(build_info.data, expected_values)
+        self.assertDictEqual(build_info.data[0], expected_values)
 
     def test_multi_line_variables(self):
         build_info = BuildInfo()
@@ -43,7 +44,7 @@ class BuildInfoTests(unittest.TestCase):
 
         build_info.parse_buildinfo_lines(variables)
 
-        self.assertDictEqual(build_info.data, expected_values)
+        self.assertDictEqual(build_info.data[0], expected_values)
 
 
 if __name__ == '__main__':
