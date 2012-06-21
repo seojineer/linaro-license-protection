@@ -10,6 +10,7 @@ from django.utils.encoding import smart_str
 from buildinfo import BuildInfo
 import time
 import re
+import hashlib
 
 def dir_list(path):
     files = os.listdir(path)
@@ -39,6 +40,7 @@ def test_path(path):
 
 def is_protected(path):
     buildinfo_path = os.path.join(os.path.dirname(path), "BUILD-INFO.txt")
+    digests = []
     if os.path.isfile(buildinfo_path):
         build_info = BuildInfo()
         build_info.parse_buildinfo(buildinfo_path)
@@ -49,15 +51,14 @@ def is_protected(path):
 
             file_name = os.path.basename(path)
             if re.search(info["files-pattern"], file_name):
-                if info["license-type"] == "open":
-                    return False
-                else:
-                    return True
+                if info["license-type"] != "open":
+                    digests.append(hashlib.md5(
+                        info["license-text"]).hexdigest())
 
-    return False
+    return digests
 
-def license_accepted(request):
-    return 'license_accepted' in request.COOKIES
+def license_accepted(request, digest):
+    return 'license_accepted_' + digest in request.COOKIES
 
 def file_server(request, path):
     result = test_path(path)
@@ -73,11 +74,16 @@ def file_server(request, path):
 
     file_name = os.path.basename(path)
 
+    response = None
+
     # Return a file...
-    if is_protected(path) and not license_accepted(request):
-        response = HttpResponse("Yea")
-        response.set_cookie("license_accepted")
-    else:
+    digests = is_protected(path)
+    for digest in digests:
+        if not license_accepted(request, digest):
+            response = HttpResponse("Accepting some licenses...")
+            response.set_cookie("license_accepted_" + digest)
+
+    if not response:
         response = HttpResponse(mimetype='application/force-download')
         response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(file_name)
         response['X-Sendfile'] = smart_str(path)
