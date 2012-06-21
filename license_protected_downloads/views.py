@@ -2,14 +2,29 @@
 
 from django.http import HttpResponse
 from django.conf import settings
+from django.shortcuts import render_to_response
 import os.path
+import os
 from django.http import Http404
 from django.utils.encoding import smart_str
 from buildinfo import BuildInfo
+import time
 import re
 
-def dir_list(request, path):
-    return HttpResponse("dir_list: " + path)
+def dir_list(path):
+    files = os.listdir(path)
+    listing = []
+    for file in files:
+        name = file
+        file = os.path.join(path, file)
+        mtime = time.ctime(os.path.getmtime(file))
+        isdir = os.path.isdir(file)
+        size = os.path.getsize(file)
+        listing.append({'name': name,
+                        'size': size,
+                        'isdir': isdir,
+                        'mtime': mtime})
+    return listing
 
 def test_path(path):
 
@@ -53,7 +68,8 @@ def file_server(request, path):
     path = result[1]
 
     if type == "dir":
-        return HttpResponse("file_server: " + path + " " + type)
+        return render_to_response('dir_template.html',
+                                  {'dirlist': dir_list(path)})
 
     file_name = os.path.basename(path)
 
