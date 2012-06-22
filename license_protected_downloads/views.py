@@ -12,6 +12,7 @@ import time
 import re
 import hashlib
 from mimetypes import guess_type
+from models import License
 
 def dir_list(path):
     files = os.listdir(path)
@@ -48,6 +49,11 @@ def test_path(path):
 
     return None
 
+def _insert_license_into_db(digest, text):
+    if not License.objects.filter(digest=digest):
+        l = License(digest=digest, text=text)
+        l.save()
+
 def is_protected(path):
     buildinfo_path = os.path.join(os.path.dirname(path), "BUILD-INFO.txt")
     digests = []
@@ -62,8 +68,9 @@ def is_protected(path):
             file_name = os.path.basename(path)
             if re.search(info["files-pattern"], file_name):
                 if info["license-type"] != "open":
-                    digests.append(hashlib.md5(
-                        info["license-text"]).hexdigest())
+                    digest = hashlib.md5(info["license-text"]).hexdigest()
+                    digests.append(digest)
+                    _insert_license_into_db(digest, info["license-text"])
 
     return digests
 
@@ -71,9 +78,11 @@ def license_accepted(request, digest):
     return 'license_accepted_' + digest in request.COOKIES
 
 def show_license(request):
+    lic = License.objects.filter(digest=request.GET['lic']).get()
+
     response = HttpResponse("Some licenses..." +
                             request.GET['lic'] + " " +
-                            request.GET['url'])
+                            request.GET['url'] + lic.text)
     return response
 
 def file_server(request, path):
