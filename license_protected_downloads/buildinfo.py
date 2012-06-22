@@ -18,7 +18,7 @@ class BuildInfo:
         self.full_file_name = fn
         self.search_path = os.path.dirname(fn)
         self.fname = os.path.basename(fn)
-        self.build_info_file = self.search_path + "/BUILD-INFO.txt"
+        self.build_info_file = os.path.join(self.search_path, "BUILD-INFO.txt")
         self.readFile()
         self.parseData(self.lines)
         self.file_info_array = self.getInfoForFile(self.fname)
@@ -93,6 +93,8 @@ class BuildInfo:
 
     def parseData(self, lines):
         result = [{}]
+        if not isinstance(lines, list):
+            raise IncorrectDataFormatException("No array provided.")
         format_line = lines.pop(0)
         values = self.parseLine(format_line)
         if not "format-version" in values:

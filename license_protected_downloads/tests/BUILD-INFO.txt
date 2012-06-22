@@ -1,8 +1,20 @@
 Format-Version: 0.1
 
-Files-Pattern: .*snowball.*
+Files-Pattern: *.txt
+Build-Name: landing-protected
+Theme: stericsson
+License-Type: protected
+OpenID-Launchpad-Teams:
+Collect-User-Data: yes
+License-Text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p>
+ <p>
+   THIS IS A LEGALLY BINDING AGREEMENT
+ </p>
+
+
+Files-Pattern: *snowball*
 Build-Name: landing-snowball
-Theme: ste
+Theme: stericsson
 License-Type: protected
 License-Text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p>
  <p>
@@ -10,7 +22,7 @@ License-Text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p
   legal entity, (“LICENSEE”) AND ME, THE TEST SERVER.
  </p>
 
-Files-Pattern: .*origen.*
+Files-Pattern: *origen*
 Build-Name: landing-origen
 Theme: samsung
 License-Type: protected
@@ -20,11 +32,11 @@ License-Text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p
   legal entity, (“LICENSEE”) AND HAL 1000.
  </p>
 
-Files-Pattern: .*panda.*
+Files-Pattern: *panda*
 Build-Name: landing-panda
 License-Type: open
 
-Files-Pattern: .*openid.*
+Files-Pattern: *openid*
 Build-Name: landing-protected
 License-Type: protected
 OpenID-Launchpad-Teams: linaro
