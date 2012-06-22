@@ -17,13 +17,28 @@ from mimetypes import guess_type
 from models import License
 from django.template import RequestContext
 
+def _hidden_file(file_name):
+    hidden_files = ["BUILD-INFO.txt", "EULA.txt", "OPEN-EULA.txt"]
+    for pattern in hidden_files:
+        if re.search(pattern, file_name):
+            return True
+    return False
+
+def _hidden_dir(file_name):
+    hidden_files = [".*openid.*", ".*restricted.*", ".*private.*"]
+    for pattern in hidden_files:
+        if re.search(pattern, file_name):
+            return True
+    return False
+
 def dir_list(path):
     files = os.listdir(path)
     listing = []
-    hidden_files = ["BUILD-INFO.txt", "EULA.txt", "OPEN-EULA.txt"]
+
     for file in files:
-        if file in hidden_files:
-            continue # Ignore...
+        if _hidden_file(file):
+            continue
+
         name = file
         file = os.path.join(path, file)
         mtime = time.ctime(os.path.getmtime(file))
@@ -97,7 +112,7 @@ def accept_license(request):
         cookie_name = "license_accepted_" + d.encode("ascii")
         response.set_cookie(cookie_name,
                             max_age=60*60*24, # 1 day expiry
-                            path=os.path.dirname(request.GET['url']))
+                            path="/" + os.path.dirname(request.GET['url']))
     else:
         response = render_to_response('licenses/nolicense.html')
 
@@ -142,10 +157,12 @@ def file_server(request, path):
                 response = redirect('/license?lic=' + digest + "&url=" + url)
 
         if not response:
-            response = HttpResponse(mimetype='application/force-download')
+            response = HttpResponse(mimetype='text/plain')
             response['Content-Disposition'] = ('attachment; filename=%s' %
                                                smart_str(file_name))
             response['X-Sendfile'] = smart_str(path)
+            # TODO: Is it possible to add a redirect to response so we can take
+            # the user back to the original directory this file is in?
     return response
 
 
