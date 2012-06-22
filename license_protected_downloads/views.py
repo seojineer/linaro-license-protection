@@ -91,7 +91,8 @@ def accept_license(request):
 def show_license(request):
     lic = License.objects.filter(digest=request.GET['lic']).get()
 
-    return render_to_response('license.html',
+    return render_to_response(#'license.html',
+                              'licenses/ste.html',
                               {'license': lic,
                                'url': request.GET['url']},
                               context_instance=RequestContext(request))
@@ -108,7 +109,8 @@ def file_server(request, path):
 
     if type == "dir":
         return render_to_response('dir_template.html',
-                                  {'dirlist': dir_list(path)})
+                                  {'dirlist': dir_list(path),
+                                   'basepath': url})
 
     file_name = os.path.basename(path)
 
