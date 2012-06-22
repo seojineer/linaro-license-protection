@@ -1,6 +1,6 @@
 # Create your views here.
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.conf import settings
 from django.shortcuts import render_to_response, redirect
 import os.path
@@ -13,6 +13,7 @@ import re
 import hashlib
 from mimetypes import guess_type
 from models import License
+from django.template import RequestContext
 
 def dir_list(path):
     files = os.listdir(path)
@@ -77,15 +78,25 @@ def is_protected(path):
 def license_accepted(request, digest):
     return 'license_accepted_' + digest in request.COOKIES
 
+def accept_license(request):
+    lic = License.objects.filter(digest=request.GET['lic']).get()
+    response = HttpResponseRedirect(request.GET['url'])
+    d = lic.digest
+    cookie_name = "license_accepted_" + d.encode("ascii")
+    response.set_cookie(cookie_name)
+    return response
+
 def show_license(request):
     lic = License.objects.filter(digest=request.GET['lic']).get()
 
-    response = HttpResponse("Some licenses..." +
-                            request.GET['lic'] + " " +
-                            request.GET['url'] + lic.text)
-    return response
+    return render_to_response('license.html',
+                              {'license': lic,
+                               'url': request.GET['url']},
+                              context_instance=RequestContext(request))
+
 
 def file_server(request, path):
+    url = path
     result = test_path(path)
     if not result:
         raise Http404
@@ -107,7 +118,7 @@ def file_server(request, path):
         if not license_accepted(request, digest):
             #response = HttpResponse("Accepting some licenses...")
             #response.set_cookie("license_accepted_" + digest)
-            response = redirect('/license?lic=' + digest + "&url=" + path)
+            response = redirect('/license?lic=' + digest + "&url=" + url)
 
     if not response:
         response = HttpResponse(mimetype='application/force-download')
