@@ -102,7 +102,7 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'linaro_license_protection_2.urls'
 
-TEMPLATE_DIRS = ('/home/dooferlad/dev/linaro_license_protection_2/templates',)
+TEMPLATE_DIRS = ('/home/gesha/work/linaro-license-protection/linaro_license_protection_2/templates',)
 
 INSTALLED_APPS = (
     'django.contrib.auth',

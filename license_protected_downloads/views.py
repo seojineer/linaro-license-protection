@@ -16,11 +16,14 @@ import hashlib
 from mimetypes import guess_type
 from models import License
 from django.template import RequestContext
+import mimetypes
 
 def dir_list(path):
     files = os.listdir(path)
+    files.sort()
     listing = []
-    hidden_files = ["BUILD-INFO.txt", "EULA.txt", "OPEN-EULA.txt"]
+    hidden_files = ["BUILD-INFO.txt", "EULA.txt", "OPEN-EULA.txt", ".htaccess",
+            "HEADER.html"]
     for file in files:
         if file in hidden_files:
             continue # Ignore...
@@ -63,26 +66,23 @@ def _insert_license_into_db(digest, text, theme):
 def is_protected(path):
     buildinfo_path = os.path.join(os.path.dirname(path), "BUILD-INFO.txt")
     if os.path.isfile(buildinfo_path):
-        build_info = BuildInfo()
-        build_info.parse_buildinfo(buildinfo_path)
+        build_info = BuildInfo(path)
+        license_type = build_info.get("license-type")
+        license_text = build_info.get("license-text")
+        theme = build_info.get("theme")
     else:
         return []
 
     digests = []
-    for info in build_info.data:
-        if "files-pattern" not in info or "license-type" not in info:
-            continue
 
-        file_name = os.path.basename(path)
-        if re.search(info["files-pattern"], file_name):
-            if info["license-type"] != "open":
-                if "license-text" in info:
-                    digest = hashlib.md5(info["license-text"]).hexdigest()
-                    digests.append(digest)
-                    _insert_license_into_db(digest, info["license-text"],
-                                            info["theme"])
-                else:
-                    return None
+    file_name = os.path.basename(path)
+    if license_type and license_type != "open":
+        if license_text:
+            digest = hashlib.md5(license_text).hexdigest()
+            digests.append(digest)
+            _insert_license_into_db(digest, license_text, theme)
+        else:
+            return None
 
     return digests
 
@@ -142,7 +142,11 @@ def file_server(request, path):
                 response = redirect('/license?lic=' + digest + "&url=" + url)
 
         if not response:
-            response = HttpResponse(mimetype='application/force-download')
+            mimetypes.init()
+            mime = mimetypes.guess_type(path)[0]
+            if mime == None:
+                mime = "application/force-download"
+            response = HttpResponse(mimetype=mime)
             response['Content-Disposition'] = ('attachment; filename=%s' %
                                                smart_str(file_name))
             response['X-Sendfile'] = smart_str(path)
