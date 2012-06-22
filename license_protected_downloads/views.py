@@ -1,6 +1,8 @@
 # Create your views here.
 
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import (
+    HttpResponse, HttpResponseRedirect, HttpResponseForbidden
+)
 from django.conf import settings
 from django.shortcuts import render_to_response, redirect
 import os.path
@@ -18,7 +20,10 @@ from django.template import RequestContext
 def dir_list(path):
     files = os.listdir(path)
     listing = []
+    hidden_files = ["BUILD-INFO.txt", "EULA.txt", "OPEN-EULA.txt"]
     for file in files:
+        if file in hidden_files:
+            continue # Ignore...
         name = file
         file = os.path.join(path, file)
         mtime = time.ctime(os.path.getmtime(file))
@@ -50,28 +55,34 @@ def test_path(path):
 
     return None
 
-def _insert_license_into_db(digest, text):
+def _insert_license_into_db(digest, text, theme):
     if not License.objects.filter(digest=digest):
-        l = License(digest=digest, text=text)
+        l = License(digest=digest, text=text, theme=theme)
         l.save()
 
 def is_protected(path):
     buildinfo_path = os.path.join(os.path.dirname(path), "BUILD-INFO.txt")
-    digests = []
     if os.path.isfile(buildinfo_path):
         build_info = BuildInfo()
         build_info.parse_buildinfo(buildinfo_path)
+    else:
+        return []
 
-        for info in build_info.data:
-            if "files-pattern" not in info or "license-type" not in info:
-                continue
+    digests = []
+    for info in build_info.data:
+        if "files-pattern" not in info or "license-type" not in info:
+            continue
 
-            file_name = os.path.basename(path)
-            if re.search(info["files-pattern"], file_name):
-                if info["license-type"] != "open":
+        file_name = os.path.basename(path)
+        if re.search(info["files-pattern"], file_name):
+            if info["license-type"] != "open":
+                if "license-text" in info:
                     digest = hashlib.md5(info["license-text"]).hexdigest()
                     digests.append(digest)
-                    _insert_license_into_db(digest, info["license-text"])
+                    _insert_license_into_db(digest, info["license-text"],
+                                            info["theme"])
+                else:
+                    return None
 
     return digests
 
@@ -95,8 +106,7 @@ def accept_license(request):
 def show_license(request):
     lic = License.objects.filter(digest=request.GET['lic']).get()
 
-    return render_to_response(#'license.html',
-                              'licenses/ste.html',
+    return render_to_response('licenses/' + lic.theme + '.html',
                               {'license': lic,
                                'url': request.GET['url']},
                               context_instance=RequestContext(request))
@@ -119,19 +129,23 @@ def file_server(request, path):
     file_name = os.path.basename(path)
 
     response = None
+    digests = is_protected(path)
+    if not digests:
+        # File has no license text but is protected
+        response = HttpResponseForbidden(
+            "You do not have permission to access this file.")
 
     # Return a file...
-    digests = is_protected(path)
-    for digest in digests:
-        if not license_accepted(request, digest):
-            #response = HttpResponse("Accepting some licenses...")
-            #response.set_cookie("license_accepted_" + digest)
-            response = redirect('/license?lic=' + digest + "&url=" + url)
+    else:
+        for digest in digests:
+            if not license_accepted(request, digest):
+                response = redirect('/license?lic=' + digest + "&url=" + url)
 
-    if not response:
-        response = HttpResponse(mimetype='application/force-download')
-        response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(file_name)
-        response['X-Sendfile'] = smart_str(path)
+        if not response:
+            response = HttpResponse(mimetype='application/force-download')
+            response['Content-Disposition'] = ('attachment; filename=%s' %
+                                               smart_str(file_name))
+            response['X-Sendfile'] = smart_str(path)
     return response
 
 
