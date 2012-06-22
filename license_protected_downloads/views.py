@@ -79,13 +79,17 @@ def license_accepted(request, digest):
     return 'license_accepted_' + digest in request.COOKIES
 
 def accept_license(request):
-    lic = License.objects.filter(digest=request.GET['lic']).get()
-    response = HttpResponseRedirect(request.GET['url'])
-    d = lic.digest
-    cookie_name = "license_accepted_" + d.encode("ascii")
-    response.set_cookie(cookie_name,
-                        max_age=60*60*24, # 1 day expiry
-                        path=os.path.dirname(request.GET['url']))
+    if "accept" in request.POST:
+        lic = License.objects.filter(digest=request.GET['lic']).get()
+        response = HttpResponseRedirect(request.GET['url'])
+        d = lic.digest
+        cookie_name = "license_accepted_" + d.encode("ascii")
+        response.set_cookie(cookie_name,
+                            max_age=60*60*24, # 1 day expiry
+                            path=os.path.dirname(request.GET['url']))
+    else:
+        response = render_to_response('licenses/nolicense.html')
+
     return response
 
 def show_license(request):

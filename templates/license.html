@@ -10,7 +10,7 @@
   {% block content-footer-top %}{% endblock %}
   <form action="/accept-license?lic={{ license.digest }}&url={{ url }}" method="post">
     {% csrf_token %}
-    <input class="button button-accept" type="submit" value="Accept" /> <input class="button button-decline" type="submit" value="Reject" />
+    <input class="button button-accept" type="submit" value="Accept" name="accept" /> <input class="button button-decline" type="submit" value="Reject" name="reject"/>
   </form>
   {% block content-footer-bottom %}{% endblock %}
 </body>
