@@ -83,7 +83,9 @@ def accept_license(request):
     response = HttpResponseRedirect(request.GET['url'])
     d = lic.digest
     cookie_name = "license_accepted_" + d.encode("ascii")
-    response.set_cookie(cookie_name)
+    response.set_cookie(cookie_name,
+                        max_age=60*60*24, # 1 day expiry
+                        path=os.path.dirname(request.GET['url']))
     return response
 
 def show_license(request):
