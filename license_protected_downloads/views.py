@@ -65,11 +65,27 @@ def _insert_license_into_db(digest, text, theme):
 
 def is_protected(path):
     buildinfo_path = os.path.join(os.path.dirname(path), "BUILD-INFO.txt")
+    open_eula_path = os.path.join(os.path.dirname(path), "OPEN-EULA.txt")
+    eula_path = os.path.join(os.path.dirname(path), "EULA.txt")
     if os.path.isfile(buildinfo_path):
         build_info = BuildInfo(path)
         license_type = build_info.get("license-type")
         license_text = build_info.get("license-text")
         theme = build_info.get("theme")
+    elif os.path.isfile(open_eula_path):
+        return "OPEN"
+    elif os.path.isfile(eula_path):
+        if re.search("snowball", path):
+            theme = "stericsson"
+        elif re.search("origen", path):
+            theme = "samsung"
+        else:
+            theme = "linaro"
+        license_type = "protected"
+        license_file = 'templates/licenses/' + theme + '.txt'
+        with open(license_file, "r") as infile:
+            license_text = infile.read()
+
     else:
         return []
 
@@ -83,6 +99,8 @@ def is_protected(path):
             _insert_license_into_db(digest, license_text, theme)
         else:
             return None
+    else:
+        return "OPEN"
 
     return digests
 
@@ -130,6 +148,7 @@ def file_server(request, path):
 
     response = None
     digests = is_protected(path)
+    print digests
     if not digests:
         # File has no license text but is protected
         response = HttpResponseForbidden(
@@ -137,9 +156,12 @@ def file_server(request, path):
 
     # Return a file...
     else:
-        for digest in digests:
-            if not license_accepted(request, digest):
-                response = redirect('/license?lic=' + digest + "&url=" + url)
+        if digests == "OPEN":
+            response = None
+        else:
+            for digest in digests:
+                if not license_accepted(request, digest):
+                    response = redirect('/license?lic=' + digest + "&url=" + url)
 
         if not response:
             mimetypes.init()
