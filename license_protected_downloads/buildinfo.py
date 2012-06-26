@@ -1,5 +1,4 @@
 import os
-import re
 import glob
 
 
@@ -21,25 +20,17 @@ class BuildInfo:
         self.build_info_file = os.path.join(self.search_path, "BUILD-INFO.txt")
         self.readFile()
         self.parseData(self.lines)
-        self.file_info_array = self.getInfoForFile(self.fname)
+        self.file_info_array = self.getInfoForFile()
 
     def _set(self, key, value):
         key = key.lower()
         if key in self.build_info_array[self.index]:
             # A repeated key indicates we have found another chunk of
             # build-info
-            self.index += 1
 
-            # Unless an external influence has messed with self.index, this
-            # should be a new array element...
-            assert(self.index == len(self.build_info_array))
-            self.build_info_array.append({})
-
-        self.build_info_array[self.index][key] = value
-
-    def _append(self, key, value):
-        key = key.lower()
-        self.build_info_array[self.index][key] += value
+            self.build_info_array[self.index][key].append(value[0])
+        else:
+            self.build_info_array[self.index][key] = value
 
     def readFile(self):
         with open(self.build_info_file, "r") as infile:
@@ -48,7 +39,7 @@ class BuildInfo:
             if line.strip() != '':
                 self.lines.append(line.rstrip())
 
-    def getInfoForFile(self, fname):
+    def getInfoForFile(self):
         for block in self.build_info_array:
             for key in block:
                 if key != "format-version":
@@ -63,16 +54,21 @@ class BuildInfo:
             if "format-version" in block:
                 return block["format-version"]
             else:
-                return False;
+                return False
 
     # Get value of specified field for corresponding file
     def get(self, field):
-        for pair in self.file_info_array:
-            if field in pair:
-                return pair[field]
-            else:
-                return False
-
+        result = []
+        for block in self.file_info_array:
+            for key in block.keys():
+                if field == key:
+                    result = block[field]
+#                    result.append(block[field])
+        if len(result) > 0:
+            return result
+        else:
+            return False
+ 
     def parseLine(self, line):
         values = line.split(":", 1)
         if len(values) != 2:
@@ -92,14 +88,13 @@ class BuildInfo:
             return False
 
     def parseData(self, lines):
-        result = [{}]
         if not isinstance(lines, list):
             raise IncorrectDataFormatException("No array provided.")
         format_line = lines.pop(0)
         values = self.parseLine(format_line)
         if not "format-version" in values:
             raise IncorrectDataFormatException("Format-Version field not found.")
-        result = self._set("format-version", values["format-version"])
+        self._set("format-version", values["format-version"])
 
         self.line_no = 0
         while self.line_no < len(lines):
@@ -110,7 +105,10 @@ class BuildInfo:
                 block = self.parseBlock(lines)
                 if isinstance(block, list):
                     for pattern in values["files-pattern"].split(","):
-                        self._set(pattern.strip(), block)
+#                        if pattern.strip() in self.build_info_array[self.index]:
+                            self._set(pattern.strip(), block)
+#                        else:
+#                            self._append(pattern.strip(), block)
 
     def parseBlock(self, lines):
         result = [{}]
@@ -120,7 +118,7 @@ class BuildInfo:
             if "license-text" in values:
                 text = values["license-text"]
                 self.line_no += 1
-                text = text + self.parseContinuation(lines)
+                text += self.parseContinuation(lines)
                 result[0]["license-text"] = text
             elif "files-pattern" in values:
                 return result
@@ -140,10 +138,10 @@ class BuildInfo:
                 break
         return text
 
-#if __name__ == "__main__":
-#    bi = BuildInfo("/var/www/build-info/vexpress-open.txt")
-#    print bi.build_info_array
-#    print bi.file_info_array
+if __name__ == "__main__":
+    bi = BuildInfo("/var/www/build-info/origen-blob.txt")
+#   print bi.build_info_array
+#    print "file_info_array: %s" % bi.file_info_array
 #    print bi.getFormatVersion()
-#    for field in bi.fields_defined:
-#        print field + " = " + str(bi.get(field))
+    for field in bi.fields_defined:
+        print field + " = " + str(bi.get(field))

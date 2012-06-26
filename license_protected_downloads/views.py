@@ -72,6 +72,7 @@ def is_protected(path):
         license_type = build_info.get("license-type")
         license_text = build_info.get("license-text")
         theme = build_info.get("theme")
+        openid_teams = build_info.get("openid-launchpad-teams")
     elif os.path.isfile(open_eula_path):
         return "OPEN"
     elif os.path.isfile(eula_path):
@@ -93,7 +94,9 @@ def is_protected(path):
 
     file_name = os.path.basename(path)
     if license_type and license_type != "open":
-        if license_text:
+        if openid_teams:
+            return "OPEN"
+        elif license_text:
             digest = hashlib.md5(license_text).hexdigest()
             digests.append(digest)
             _insert_license_into_db(digest, license_text, theme)
@@ -148,7 +151,6 @@ def file_server(request, path):
 
     response = None
     digests = is_protected(path)
-    print digests
     if not digests:
         # File has no license text but is protected
         response = HttpResponseForbidden(
@@ -166,7 +168,7 @@ def file_server(request, path):
         if not response:
             mimetypes.init()
             mime = mimetypes.guess_type(path)[0]
-            if mime == None:
+            if mime is None:
                 mime = "application/force-download"
             response = HttpResponse(mimetype=mime)
             response['Content-Disposition'] = ('attachment; filename=%s' %
