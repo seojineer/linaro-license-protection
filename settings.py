@@ -146,7 +146,7 @@ LOGGING = {
     }
 }
 
-SERVED_PATHS = ['/var/www']
+SERVED_PATHS = [os.path.join(PROJECT_ROOT, "android")]
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages',
