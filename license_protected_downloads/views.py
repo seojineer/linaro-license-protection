@@ -156,6 +156,9 @@ def accept_license(request):
     return response
 
 def show_license(request):
+    if 'lic' not in request.GET or 'url' not in request.GET:
+        raise Http404
+
     lic = License.objects.filter(digest=request.GET['lic']).get()
 
     return render_to_response('licenses/' + lic.theme + '.html',

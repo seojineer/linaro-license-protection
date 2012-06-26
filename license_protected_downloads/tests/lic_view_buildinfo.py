@@ -1,5 +1,8 @@
+from license_protected_downloads.views import _insert_license_into_db
+
 __author__ = 'dooferlad'
 
+import os
 import unittest
 import hashlib
 from django.test import Client, TestCase
@@ -7,6 +10,7 @@ from license_protected_downloads.models import License
 from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.buildinfo import IncorrectDataFormatException
 
+THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 class LicenseTestCase(TestCase):
     def setUp(self):
@@ -34,19 +38,36 @@ class LicenseTestCase(TestCase):
 class ViewTests(TestCase):
     def setUp(self):
         self.client = Client()
+        buildinfo_file_path = os.path.join(THIS_DIRECTORY,
+                                                "BUILD-INFO.txt")
+        self.build_info = BuildInfo(buildinfo_file_path)
 
-    def test_license_directly(self):
-        response = self.client.get('/licenses/license.html')
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Index of /')
+        lic1_text = 'Samsung License'
+        self.digest1 = hashlib.md5(lic1_text).hexdigest()
 
-    def test_licensefile_directly_samsung(self):
-        response = self.client.get('/licenses/samsung.html')
+    def test_license_directly_samsung(self):
+        text = self.build_info.get("license-text")
+        digest = hashlib.md5(text).hexdigest()
+        theme = "samsung"
+
+        _insert_license_into_db(digest, text, theme)
+
+        url = "/"
+        response = self.client.get('/license?lic=%s&url=%s' % (digest, url))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Index of /')
+
+        # Make sure that we get the license text in the license page
+        self.assertContains(response, text)
+
+        # Test that we use the "samsung" theme. This contains exynos.png
+        self.assertContains(response, "exynos.png")
 
 
 class BuildInfoTests(unittest.TestCase):
+    def setUp(self):
+        self.buildinfo_file_path = os.path.join(THIS_DIRECTORY,
+                                                "BUILD-INFO.txt")
+    
     def test_readFile_nonFile(self):
         with self.assertRaises(IOError):
             build_info = BuildInfo("license_protected_downloads")
@@ -56,17 +77,17 @@ class BuildInfoTests(unittest.TestCase):
             build_info = BuildInfo("nonexistent.file")
 
     def test_readFile_File(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
 
         self.assertIn("Files-Pattern: *.txt", build_info.lines)
 
     def test_getFormatVersion(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
 
         self.assertEqual("0.1", build_info.getFormatVersion())
 
     def test_get_emptyField(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
         for pair in build_info.file_info_array:
             if "openid-launchpad-teams" in pair:
                 value = pair["openid-launchpad-teams"]
@@ -74,7 +95,7 @@ class BuildInfoTests(unittest.TestCase):
         self.assertFalse(value)
 
     def test_get(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
         for pair in build_info.file_info_array:
             if "build-name" in pair:
                 value = pair["build-name"]
@@ -83,38 +104,38 @@ class BuildInfoTests(unittest.TestCase):
 
     def test_parseLine_fails(self):
         line = "no separator"
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
 
         with self.assertRaises(IncorrectDataFormatException):
             build_info.parseLine(line)
 
     def test_parseLine_passes(self):
         line = "Build-Name:value"
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
 
         self.assertDictEqual({"build-name":"value"}, build_info.parseLine(line))
 
     def test_parseLine_trims(self):
         line = "Build-Name: value"
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
 
         self.assertDictEqual({"build-name":"value"}, build_info.parseLine(line))
 
     def test_parseLine_invalid_field(self):
         line = "field: value"
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
 
         with self.assertRaises(IncorrectDataFormatException):
             build_info.parseLine(line)
 
     def test_parseData_no_format_version_fails(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
 
         with self.assertRaises(IncorrectDataFormatException):
             build_info.parseData(["Build-Name: blah"])
 
     def test_parseData_blocks(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
         build_info.build_info_array = [{}]
         data = ["Format-Version: 2.0", "Files-Pattern: *.txt", "Build-Name: weehee",
                 "Files-Pattern: *.tgz", "Build-Name: woohoo"]
@@ -126,7 +147,7 @@ class BuildInfoTests(unittest.TestCase):
                  '*.tgz': [{'build-name': 'woohoo'}]}])
 
     def test_parseData_block_multiple_patterns(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
         build_info.build_info_array = [{}]
         data = ["Format-Version: 2.0", "Files-Pattern: *.txt,*.tgz",
                 "Build-Name: weehee"]
@@ -138,26 +159,26 @@ class BuildInfoTests(unittest.TestCase):
                  '*.tgz': [{'build-name': 'weehee'}]}])
 
     def test_parseContinuation_no_continuation(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
         build_info.line_no = 0
 
         self.assertEquals("", build_info.parseContinuation(["no-space"]))
 
     def test_parseContinuation_indexed(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
         build_info.line_no = 0
 
         self.assertEquals("", build_info.parseContinuation(["no-space", " space"]))
 
     def test_parseContinuation(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
         build_info.line_no = 1
         val = build_info.parseContinuation(["no-space", " line1", " line2"])
 
         self.assertEquals("\nline1\nline2", val)
 
     def test_parseBlock_license(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
         build_info.line_no = 0
         build_info.build_info_array = [{}]
         data = ["Format-Version: 2.0", "License-Text: line1", " line2"]
@@ -167,7 +188,7 @@ class BuildInfoTests(unittest.TestCase):
             "license-text": "line1\nline2"}])
 
     def test_parseData_extra_fields(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
         build_info.build_info_array = [{}]
         data = ["Format-Version: 2.0", "Files-Pattern: *.txt", "Build-Name: woohoo"]
         build_info.parseData(data)
@@ -177,7 +198,7 @@ class BuildInfoTests(unittest.TestCase):
                   '*.txt': [{'build-name': 'woohoo'}]}])
 
     def test_parseData_format_version(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
         build_info.build_info_array = [{}]
         data = ["Format-Version: 2.0"]
         build_info.parseData(data)
@@ -186,7 +207,7 @@ class BuildInfoTests(unittest.TestCase):
                 [{"format-version": "2.0"}])
 
     def test_parseData_array_expected(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
         build_info.build_info_array = [{}]
         data = "Format-Version: 2.0"
 
@@ -194,7 +215,7 @@ class BuildInfoTests(unittest.TestCase):
             build_info.parseData(data)
 
     def test_parseData_fails(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
         build_info.build_info_array = [{}]
         data = ["text"]
 
@@ -202,12 +223,12 @@ class BuildInfoTests(unittest.TestCase):
             build_info.parseData(data)
 
     def test_isValidField_false(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
 
         self.assertFalse(build_info.isValidField("field"))
 
     def test_isValidField_true(self):
-        build_info = BuildInfo("license_protected_downloads/BUILD-INFO.txt")
+        build_info = BuildInfo(self.buildinfo_file_path)
 
         for field in build_info.fields_defined:
             self.assertTrue(build_info.isValidField(field))
