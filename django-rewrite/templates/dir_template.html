@@ -1,0 +1,20 @@
+{% extends "header.html" %}
+
+{% block content %}
+<table>
+  <tr>
+    <th></th><th>Name</th><th>Last modified</th><th>Size</th>
+    <tr><th colspan="5"><hr></th>
+  </tr>
+{% for value in dirlist %}
+  <tr>
+    <td>
+       <img src="{{ STATIC_URL }}/static/{{ value.type }}.png" alt="{{ value.type }}"/>
+    </td>
+    <td><a href="{{ basepath }}/{{ value.name }}">{{ value.name }}</a></td>
+    <td>{{ value.mtime }}</td>
+    <td>{% if not value.isdir %}{{ value.size }}{% endif %}</td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}
