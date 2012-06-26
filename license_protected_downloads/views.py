@@ -124,7 +124,6 @@ def is_protected(path):
 
     digests = []
 
-    file_name = os.path.basename(path)
     if license_type and license_type != "open":
         if openid_teams:
             return "OPEN"
