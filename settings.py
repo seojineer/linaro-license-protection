@@ -1,5 +1,7 @@
 # Django settings for linaro_license_protection_2 project.
 
+import os
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -102,7 +104,7 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'linaro_license_protection_2.urls'
 
-TEMPLATE_DIRS = ('/home/gesha/work/linaro-license-protection/linaro_license_protection_2/templates',)
+TEMPLATE_DIRS = (os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates" ),)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
