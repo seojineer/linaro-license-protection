@@ -105,10 +105,7 @@ class BuildInfo:
                 block = self.parseBlock(lines)
                 if isinstance(block, list):
                     for pattern in values["files-pattern"].split(","):
-#                        if pattern.strip() in self.build_info_array[self.index]:
                             self._set(pattern.strip(), block)
-#                        else:
-#                            self._append(pattern.strip(), block)
 
     def parseBlock(self, lines):
         result = [{}]

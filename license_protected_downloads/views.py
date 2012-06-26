@@ -17,6 +17,7 @@ from mimetypes import guess_type
 from models import License
 from django.template import RequestContext
 import mimetypes
+import glob
 
 def dir_list(path):
     files = os.listdir(path)
@@ -63,6 +64,15 @@ def _insert_license_into_db(digest, text, theme):
         l = License(digest=digest, text=text, theme=theme)
         l.save()
 
+def _check_special_eula(path):
+    if glob.glob(path + ".EULA.txt.*"):
+        return True
+
+def _get_theme(path):
+    eula = glob.glob(path + ".EULA.txt.*")
+    vendor = os.path.splitext(eula[0])[1]
+    return vendor[1:]
+
 def is_protected(path):
     buildinfo_path = os.path.join(os.path.dirname(path), "BUILD-INFO.txt")
     open_eula_path = os.path.join(os.path.dirname(path), "OPEN-EULA.txt")
@@ -84,9 +94,16 @@ def is_protected(path):
             theme = "linaro"
         license_type = "protected"
         license_file = 'templates/licenses/' + theme + '.txt'
+        openid_teams = False
         with open(license_file, "r") as infile:
             license_text = infile.read()
-
+    elif _check_special_eula(path):
+        theme = _get_theme(path)
+        license_type = "protected"
+        license_file = 'templates/licenses/' + theme + '.txt'
+        openid_teams = False
+        with open(license_file, "r") as infile:
+            license_text = infile.read()
     else:
         return []
 
@@ -132,6 +149,8 @@ def show_license(request):
                                'url': request.GET['url']},
                               context_instance=RequestContext(request))
 
+def redirect_to_root(request):
+    return redirect('/')
 
 def file_server(request, path):
     url = path
@@ -175,5 +194,3 @@ def file_server(request, path):
                                                smart_str(file_name))
             response['X-Sendfile'] = smart_str(path)
     return response
-
-

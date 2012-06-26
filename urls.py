@@ -13,7 +13,10 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
 
     # The license page...
-    url(r'^license', 'linaro_license_protection_2.license_protected_downloads.views.show_license', name='show_license'),
+    url(r'^license$', 'linaro_license_protection_2.license_protected_downloads.views.show_license', name='show_license'),
+
+    # Exceptions redirected to root...
+    url(r'^license', 'linaro_license_protection_2.license_protected_downloads.views.redirect_to_root', name='redirect_to_root'),
 
     # Accept the license
     url(r'^accept-license', 'linaro_license_protection_2.license_protected_downloads.views.accept_license', name='accept_license'),
