@@ -16,9 +16,12 @@ import hashlib
 from mimetypes import guess_type
 from models import License
 from django.template import RequestContext
+import mimetypes
+import glob
 
 def _hidden_file(file_name):
-    hidden_files = ["BUILD-INFO.txt", "EULA.txt", "OPEN-EULA.txt"]
+    hidden_files = ["BUILD-INFO.txt", "EULA.txt", "OPEN-EULA.txt", ".htaccess",
+                    "HEADER.html"]
     for pattern in hidden_files:
         if re.search(pattern, file_name):
             return True
@@ -33,6 +36,7 @@ def _hidden_dir(file_name):
 
 def dir_list(path):
     files = os.listdir(path)
+    files.sort()
     listing = []
 
     for file in files:
@@ -75,29 +79,63 @@ def _insert_license_into_db(digest, text, theme):
         l = License(digest=digest, text=text, theme=theme)
         l.save()
 
+def _check_special_eula(path):
+    if glob.glob(path + ".EULA.txt.*"):
+        return True
+
+def _get_theme(path):
+    eula = glob.glob(path + ".EULA.txt.*")
+    vendor = os.path.splitext(eula[0])[1]
+    return vendor[1:]
+
 def is_protected(path):
     buildinfo_path = os.path.join(os.path.dirname(path), "BUILD-INFO.txt")
+    open_eula_path = os.path.join(os.path.dirname(path), "OPEN-EULA.txt")
+    eula_path = os.path.join(os.path.dirname(path), "EULA.txt")
     if os.path.isfile(buildinfo_path):
-        build_info = BuildInfo()
-        build_info.parse_buildinfo(buildinfo_path)
+        build_info = BuildInfo(path)
+        license_type = build_info.get("license-type")
+        license_text = build_info.get("license-text")
+        theme = build_info.get("theme")
+        openid_teams = build_info.get("openid-launchpad-teams")
+    elif os.path.isfile(open_eula_path):
+        return "OPEN"
+    elif os.path.isfile(eula_path):
+        if re.search("snowball", path):
+            theme = "stericsson"
+        elif re.search("origen", path):
+            theme = "samsung"
+        else:
+            theme = "linaro"
+        license_type = "protected"
+        license_file = 'templates/licenses/' + theme + '.txt'
+        openid_teams = False
+        with open(license_file, "r") as infile:
+            license_text = infile.read()
+    elif _check_special_eula(path):
+        theme = _get_theme(path)
+        license_type = "protected"
+        license_file = 'templates/licenses/' + theme + '.txt'
+        openid_teams = False
+        with open(license_file, "r") as infile:
+            license_text = infile.read()
     else:
         return []
 
     digests = []
-    for info in build_info.data:
-        if "files-pattern" not in info or "license-type" not in info:
-            continue
 
-        file_name = os.path.basename(path)
-        if re.search(info["files-pattern"], file_name):
-            if info["license-type"] != "open":
-                if "license-text" in info:
-                    digest = hashlib.md5(info["license-text"]).hexdigest()
-                    digests.append(digest)
-                    _insert_license_into_db(digest, info["license-text"],
-                                            info["theme"])
-                else:
-                    return None
+    file_name = os.path.basename(path)
+    if license_type and license_type != "open":
+        if openid_teams:
+            return "OPEN"
+        elif license_text:
+            digest = hashlib.md5(license_text).hexdigest()
+            digests.append(digest)
+            _insert_license_into_db(digest, license_text, theme)
+        else:
+            return None
+    else:
+        return "OPEN"
 
     return digests
 
@@ -126,6 +164,8 @@ def show_license(request):
                                'url': request.GET['url']},
                               context_instance=RequestContext(request))
 
+def redirect_to_root(request):
+    return redirect('/')
 
 def file_server(request, path):
     url = path
@@ -152,17 +192,22 @@ def file_server(request, path):
 
     # Return a file...
     else:
-        for digest in digests:
-            if not license_accepted(request, digest):
-                response = redirect('/license?lic=' + digest + "&url=" + url)
+        if digests == "OPEN":
+            response = None
+        else:
+            for digest in digests:
+                if not license_accepted(request, digest):
+                    response = redirect('/license?lic=' + digest + "&url=" + url)
 
         if not response:
-            response = HttpResponse(mimetype='text/plain')
+            mimetypes.init()
+            mime = mimetypes.guess_type(path)[0]
+            if mime is None:
+                mime = "application/force-download"
+            response = HttpResponse(mimetype=mime)
             response['Content-Disposition'] = ('attachment; filename=%s' %
                                                smart_str(file_name))
             response['X-Sendfile'] = smart_str(path)
             # TODO: Is it possible to add a redirect to response so we can take
             # the user back to the original directory this file is in?
     return response
-
-
