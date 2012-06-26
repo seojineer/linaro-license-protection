@@ -5,6 +5,9 @@ import os
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.split(PROJECT_ROOT)[-1]
+
 ADMINS = (
     ('dooferlad', 'dooferlad@nanosheep.org'),
 )
@@ -102,9 +105,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'linaro_license_protection_2.urls'
+ROOT_URLCONF = ROOT_DIR + '.urls'
 
-TEMPLATE_DIRS = (os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates" ),)
+TEMPLATE_DIRS = (os.path.join(PROJECT_ROOT, "templates" ),)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -117,7 +120,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-    'linaro_license_protection_2.license_protected_downloads',
+    ROOT_DIR + '.license_protected_downloads',
 )
 
 # A sample logging configuration. The only tangible logging
