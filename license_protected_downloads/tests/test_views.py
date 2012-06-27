@@ -176,7 +176,7 @@ class ViewTests(TestCase):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)
 
-    def test_non_protected_dirs(self):
+    def test_OPEN_EULA_txt(self):
         target_file = '~linaro-android/staging-vexpress-a9/test.txt'
         url = urlparse.urljoin("http://testserver/", target_file)
         response = self.client.get(url, follow=True)
@@ -193,6 +193,80 @@ class ViewTests(TestCase):
 
         # If we don't have access we will get a Forbidden response (403)
         self.assertEqual(response.status_code, 403)
+
+    def test_protected_by_EULA_txt(self):
+        # Get BuildInfo for target file
+        target_file = "~linaro-android/staging-origen/test.txt"
+
+        # Try to fetch file from server - we should be redirected
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        eula_path = os.path.join(settings.PROJECT_ROOT,
+                                 "templates/licenses/samsung.txt")
+        with open(eula_path) as license_file:
+            license_text = license_file.read()
+
+        digest = hashlib.md5(license_text).hexdigest()
+        self.assertRedirects(response, "/license?lic=%s&url=%s" %
+                                       (digest, target_file))
+
+        # Make sure that we get the license text in the license page
+        self.assertContains(response, license_text)
+
+        # Test that we use the "samsung" theme. This contains exynos.png
+        self.assertContains(response, "exynos.png")
+
+    # test_internal_host_* are integration, not unit tests and will be
+    # located in another file...
+
+    def test_per_file_license_samsung(self):
+        # Get BuildInfo for target file
+        target_file = "images/origen-blob.txt"
+
+        # Try to fetch file from server - we should be redirected
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        eula_path = os.path.join(settings.PROJECT_ROOT,
+                                 "templates/licenses/samsung.txt")
+        with open(eula_path) as license_file:
+            license_text = license_file.read()
+
+        digest = hashlib.md5(license_text).hexdigest()
+        self.assertRedirects(response, "/license?lic=%s&url=%s" %
+                                       (digest, target_file))
+
+        # Make sure that we get the license text in the license page
+        self.assertContains(response, license_text)
+
+        # Test that we use the "samsung" theme. This contains exynos.png
+        self.assertContains(response, "exynos.png")
+
+    def test_per_file_non_protected_dirs(self):
+        target_file = "images/MANIFEST"
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # If we have access to the file, we will get an X-Sendfile response
+        self.assertEqual(response.status_code, 200)
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        self.assertEqual(response['X-Sendfile'], file_path)
+
+    def test_dir_containing_only_dirs(self):
+        target_file = "~linaro-android"
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # If we have access to the file, we will get an X-Sendfile response
+        self.assertContains(response,
+            r"<th></th><th>Name</th><th>Last modified</th><th>Size</th>")
+
+    def test_not_found_file(self):
+        target_file = "12qwaszx"
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+        self.assertContains(response, "not found", status_code=404)
 
 if __name__ == '__main__':
     unittest.main()

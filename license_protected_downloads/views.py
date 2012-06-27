@@ -113,14 +113,16 @@ def is_protected(path):
         else:
             theme = "linaro"
         license_type = "protected"
-        license_file = 'templates/licenses/' + theme + '.txt'
+        license_file = os.path.join(settings.PROJECT_ROOT,
+                                    'templates/licenses/' + theme + '.txt')
         openid_teams = False
         with open(license_file, "r") as infile:
             license_text = infile.read()
     elif _check_special_eula(path):
         theme = _get_theme(path)
         license_type = "protected"
-        license_file = 'templates/licenses/' + theme + '.txt'
+        license_file = os.path.join(settings.PROJECT_ROOT,
+                                    'templates/licenses/' + theme + '.txt')
         openid_teams = False
         with open(license_file, "r") as infile:
             license_text = infile.read()
