@@ -18,6 +18,7 @@ from models import License
 from django.template import RequestContext
 import mimetypes
 import glob
+from openid_auth import OpenIDAuth
 
 def _hidden_file(file_name):
     hidden_files = ["BUILD-INFO.txt", "EULA.txt", "OPEN-EULA.txt", ".htaccess",
@@ -177,6 +178,13 @@ def file_server(request, path):
 
     type = result[0]
     path = result[1]
+
+    buildinfo_path = os.path.join(os.path.dirname(path), "BUILD-INFO.txt")
+    if os.path.isfile(buildinfo_path):
+        build_info = BuildInfo(path)
+        openid_response = OpenIDAuth.process_openid_auth(request, build_info.get("openid-launchpad-teams"))
+        if openid_response:
+            return openid_response
 
     if type == "dir":
         return render_to_response('dir_template.html',

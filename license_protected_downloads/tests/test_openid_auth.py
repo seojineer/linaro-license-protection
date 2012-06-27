@@ -14,15 +14,24 @@ class MockRequest():
         self.user = MockRequestUser(authenticated, groups)
         self.path = "/"
 
-        
+
 class MockRequestUser():
 
     def __init__(self, authenticated, groups):
         self.authenticated = authenticated
-        self.groups = groups
+        mock_groups = []
+        for group in groups:
+            mock_group = MockRequestGroup(group)
+            mock_groups.append(mock_group)
+        self.groups = mock_groups
 
     def is_authenticated(self):
         return self.authenticated
+
+class MockRequestGroup():
+
+    def __init__(self, name):
+        self.name = name
 
 
 class TestOpenIDAuth(TestCase):

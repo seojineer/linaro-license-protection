@@ -3,6 +3,8 @@ import sys
 from django.conf import settings
 from django.shortcuts import redirect
 
+from django.http import HttpResponseForbidden
+
 
 class OpenIDAuth:
 
@@ -17,7 +19,9 @@ class OpenIDAuth:
         if not request.user.is_authenticated():
             # Force OpenID login
             return redirect(settings.LOGIN_URL + "?next=/" +  request.path)
-            
-        
-        return None
 
+        for group in request.user.groups:
+            if group.name in openid_teams:
+                return None
+
+        return HttpResponseForbidden("Not Authorized")
