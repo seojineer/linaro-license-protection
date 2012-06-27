@@ -101,9 +101,8 @@ class ViewTests(TestCase):
         # Test that we use the "linaro" theme. This contains linaro.png
         self.assertContains(response, "linaro.png")
 
-    def test_redirect_to_license_then_file_on_accept(self):
+    def set_up_license(self, target_file):
         # Get BuildInfo for target file
-        target_file = "build-info/linaro-blob.txt"
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         build_info = BuildInfo(file_path)
 
@@ -112,6 +111,11 @@ class ViewTests(TestCase):
         digest = hashlib.md5(text).hexdigest()
         theme = "samsung"
         _insert_license_into_db(digest, text, theme)
+        return digest
+
+    def test_redirect_to_file_on_accept_license(self):
+        target_file = "build-info/linaro-blob.txt"
+        digest = self.set_up_license(target_file)
 
         # Accept the license for our file...
         accept_url = '/accept-license?lic=%s&url=%s' % (digest, target_file)
@@ -121,6 +125,18 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         url = urlparse.urljoin("http://testserver/", target_file)
         self.assertEqual(response['Location'], url)
+
+    def test_redirect_to_decline_page_on_decline_license(self):
+        target_file = "build-info/linaro-blob.txt"
+        digest = self.set_up_license(target_file)
+
+        # Reject the license for our file...
+        accept_url = '/accept-license?lic=%s&url=%s' % (digest, target_file)
+        response = self.client.post(accept_url, {"reject": "reject"})
+
+        # We should get a message saying we don't have access to the file.
+        self.assertContains(response, "Without accepting the license, you can"
+                                      " not download the requested files.")
 
 
 if __name__ == '__main__':

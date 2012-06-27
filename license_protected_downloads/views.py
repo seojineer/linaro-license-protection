@@ -135,7 +135,6 @@ def is_protected(path):
         if openid_teams:
             return "OPEN"
         elif license_text:
-            print range(max_index)
             for i in range(max_index):
                 if build_info is not None:
                     license_text = build_info.get("license-text", i)
