@@ -268,5 +268,15 @@ class ViewTests(TestCase):
         response = self.client.get(url, follow=True)
         self.assertContains(response, "not found", status_code=404)
 
+    def test_unprotected_BUILD_INFO(self):
+        target_file = 'build-info/panda-open.txt'
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # If we have access to the file, we will get an X-Sendfile response
+        self.assertEqual(response.status_code, 200)
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        self.assertEqual(response['X-Sendfile'], file_path)
+
 if __name__ == '__main__':
     unittest.main()
