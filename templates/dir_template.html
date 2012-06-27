@@ -11,7 +11,7 @@
     <td>
        <img src="{{ STATIC_URL }}/static/{{ value.type }}.png" alt="{{ value.type }}"/>
     </td>
-    <td><a href="{{ basepath }}/{{ value.name }}">{{ value.name }}</a></td>
+    <td><a href="{{ value.url }}">{{ value.name }}</a></td>
     <td>{{ value.mtime }}</td>
     <td>{% if value.type != 'folder' %}{{ value.size }}{% endif %}</td>
   </tr>

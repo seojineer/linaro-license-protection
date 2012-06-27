@@ -33,7 +33,7 @@ def _hidden_dir(file_name):
             return True
     return False
 
-def dir_list(path):
+def dir_list(url, path):
     files = os.listdir(path)
     files.sort()
     listing = []
@@ -56,10 +56,13 @@ def dir_list(path):
                     type = "text"
 
         size = os.path.getsize(file)
+        if not re.search(r'^/', url) and url != '':
+            url = '/' +  url
         listing.append({'name': name,
                         'size': size,
                         'type': type,
-                        'mtime': mtime})
+                        'mtime': mtime,
+                        'url': url + '/' + name})
     return listing
 
 def test_path(path):
@@ -181,8 +184,7 @@ def file_server(request, path):
 
     if type == "dir":
         return render_to_response('dir_template.html',
-                                  {'dirlist': dir_list(path),
-                                   'basepath': url})
+                                  {'dirlist': dir_list(url, path)})
 
     file_name = os.path.basename(path)
 
