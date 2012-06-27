@@ -6,6 +6,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+print PROJECT_ROOT
 ROOT_DIR = os.path.split(PROJECT_ROOT)[-1]
 
 ADMINS = (

@@ -1,5 +1,6 @@
 from license_protected_downloads.tests.lic_view_buildinfo import *
 #from license_protected_downloads.tests.test_click_through_license import *
+from license_protected_downloads.tests.test_openid_auth import *
 
 #starts the test suite
 __test__= {
@@ -7,4 +8,5 @@ __test__= {
     'ViewTests': ViewTests,
     'BuildInfoTests': BuildInfoTests,
     #'TestLicense': TestLicense,
+    'TestOpenIDAuth': TestOpenIDAuth,
 }
