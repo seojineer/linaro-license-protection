@@ -18,7 +18,7 @@ class OpenIDAuth:
 
         if not request.user.is_authenticated():
             # Force OpenID login
-            return redirect(settings.LOGIN_URL + "?next=/" +  request.path)
+            return redirect(settings.LOGIN_URL + "?next=" +  request.path)
 
         for group in request.user.groups:
             if group.name in openid_teams:
