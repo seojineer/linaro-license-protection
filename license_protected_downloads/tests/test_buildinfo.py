@@ -1,66 +1,11 @@
-from license_protected_downloads.views import _insert_license_into_db
-
 __author__ = 'dooferlad'
 
 import os
 import unittest
-import hashlib
-from django.test import Client, TestCase
-from license_protected_downloads.models import License
 from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.buildinfo import IncorrectDataFormatException
 
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-
-class LicenseTestCase(TestCase):
-    def setUp(self):
-        lic1_text = 'Samsung License'
-        lic2_text = 'Stericsson License'
-        digest1 = hashlib.md5(lic1_text).hexdigest()
-        digest2 = hashlib.md5(lic2_text).hexdigest()
-        self.lic1 = License.objects.create(digest=digest1, text=lic1_text,
-                theme='samsung')
-        self.lic2 = License.objects.create(digest=digest2, text=lic2_text,
-                theme='stericsson')
-
-    def test_add_license_to_database(self):
-        self.assertEquals(self.lic1.theme, 'samsung')
-        self.assertEquals(self.lic2.theme, 'stericsson')
-
-        lic1 = License.objects.get(pk=1)
-        self.assertEquals(lic1.theme, 'samsung')
-        self.assertEquals(lic1.text, 'Samsung License')
-        lic2 = License.objects.get(pk=2)
-        self.assertEquals(lic2.theme, 'stericsson')
-        self.assertEquals(lic2.text, 'Stericsson License')
-
-
-class ViewTests(TestCase):
-    def setUp(self):
-        self.client = Client()
-        buildinfo_file_path = os.path.join(THIS_DIRECTORY,
-                                                "BUILD-INFO.txt")
-        self.build_info = BuildInfo(buildinfo_file_path)
-
-        lic1_text = 'Samsung License'
-        self.digest1 = hashlib.md5(lic1_text).hexdigest()
-
-    def test_license_directly_samsung(self):
-        text = self.build_info.get("license-text")
-        digest = hashlib.md5(text).hexdigest()
-        theme = "samsung"
-
-        _insert_license_into_db(digest, text, theme)
-
-        url = "/"
-        response = self.client.get('/license?lic=%s&url=%s' % (digest, url))
-        self.assertEqual(response.status_code, 200)
-
-        # Make sure that we get the license text in the license page
-        self.assertContains(response, text)
-
-        # Test that we use the "samsung" theme. This contains exynos.png
-        self.assertContains(response, "exynos.png")
 
 
 class BuildInfoTests(unittest.TestCase):
