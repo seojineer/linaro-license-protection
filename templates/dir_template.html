@@ -13,7 +13,7 @@
     </td>
     <td><a href="{{ basepath }}/{{ value.name }}">{{ value.name }}</a></td>
     <td>{{ value.mtime }}</td>
-    <td>{% if not value.isdir %}{{ value.size }}{% endif %}</td>
+    <td>{% if value.type != 'folder' %}{{ value.size }}{% endif %}</td>
   </tr>
 {% endfor %}
 </table>
