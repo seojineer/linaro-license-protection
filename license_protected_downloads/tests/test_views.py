@@ -128,7 +128,9 @@ class ViewTests(TestCase):
         # We should get redirected back to the original file location.
         self.assertEqual(response.status_code, 302)
         url = urlparse.urljoin("http://testserver/", target_file)
-        self.assertEqual(response['Location'], url)
+        listing_url = os.path.dirname(url)
+        self.assertEqual(response['Location'],
+                         listing_url + "?dl=/" + target_file)
 
     def test_redirect_to_decline_page_on_decline_license(self):
         target_file = "build-info/linaro-blob.txt"
@@ -153,7 +155,9 @@ class ViewTests(TestCase):
 
         # We should get redirected back to the original file location.
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], url)
+        listing_url = os.path.dirname(url)
+        self.assertEqual(response['Location'],
+                         listing_url + "?dl=/" + target_file)
 
         # We should have a license accept cookie.
         accept_cookie_name = "license_accepted_" + digest

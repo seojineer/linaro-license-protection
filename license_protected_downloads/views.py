@@ -157,12 +157,15 @@ def license_accepted(request, digest):
 def accept_license(request):
     if "accept" in request.POST:
         lic = License.objects.filter(digest=request.GET['lic']).get()
-        response = HttpResponseRedirect(request.GET['url'])
+        file_url = request.GET['url']
+        listing_url = os.path.dirname(file_url)
+        response = HttpResponseRedirect(listing_url +
+                                        "?dl=/" + file_url)
         d = lic.digest
         cookie_name = "license_accepted_" + d.encode("ascii")
         response.set_cookie(cookie_name,
                             max_age=60*60*24, # 1 day expiry
-                            path="/" + os.path.dirname(request.GET['url']))
+                            path="/" + os.path.dirname(file_url))
     else:
         response = render_to_response('licenses/nolicense.html')
 
@@ -197,9 +200,15 @@ def file_server(request, path):
             up_dir = "/" + os.path.split(url)[0]
         else:
             up_dir = None
+
+        download = None
+        if 'dl' in request.GET:
+            download = request.GET['dl']
+
         return render_to_response('dir_template.html',
                                   {'dirlist': dir_list(url, path),
-                                   'up_dir': up_dir})
+                                   'up_dir': up_dir,
+                                   'dl': download})
 
     file_name = os.path.basename(path)
 
