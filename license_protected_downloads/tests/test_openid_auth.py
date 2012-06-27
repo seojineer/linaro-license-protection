@@ -2,36 +2,9 @@ import os
 import unittest
 from django.test import Client, TestCase
 from django.http import HttpResponse
-
-
+from mock import Mock
 
 from license_protected_downloads.openid_auth import OpenIDAuth
-
-
-class MockRequest():
-
-    def __init__(self, authenticated, groups=[]):
-        self.user = MockRequestUser(authenticated, groups)
-        self.path = "/"
-
-
-class MockRequestUser():
-
-    def __init__(self, authenticated, groups):
-        self.authenticated = authenticated
-        mock_groups = []
-        for group in groups:
-            mock_group = MockRequestGroup(group)
-            mock_groups.append(mock_group)
-        self.groups = mock_groups
-
-    def is_authenticated(self):
-        return self.authenticated
-
-class MockRequestGroup():
-
-    def __init__(self, name):
-        self.name = name
 
 
 class TestOpenIDAuth(TestCase):
@@ -40,14 +13,31 @@ class TestOpenIDAuth(TestCase):
         pass
 
 
+    def make_mock_request(self):
+        mock_request = Mock()
+        mock_request.path = '/'
+        mock_request.user = Mock()
+        mock_request.user.is_authenticated = Mock()
+        mock_request.user.groups = Mock()
+        mock_request.user.groups.all = Mock()
+        return mock_request
+
+
+    def make_mock_group(self, name):
+        mock_group = Mock()
+        mock_group.name = name
+        return mock_group
+
+
     def test_check_team_membership_no_teams(self):
-        mock_request = MockRequest(False)
+        mock_request = self.make_mock_request()
         openid_teams = []
         self.assertIsNone(OpenIDAuth.process_openid_auth(mock_request, openid_teams))
 
 
     def test_check_team_membership_no_authentication(self):
-        mock_request = MockRequest(False)
+        mock_request = self.make_mock_request()
+        mock_request.user.is_authenticated.return_value = False
         openid_teams = ["linaro"]
         response = OpenIDAuth.process_openid_auth(mock_request, openid_teams)
         self.assertIsNotNone(response)
@@ -56,14 +46,18 @@ class TestOpenIDAuth(TestCase):
 
 
     def test_check_team_membership_authed(self):
-        mock_request = MockRequest(True, ["linaro"])
+        mock_request = self.make_mock_request()
+        mock_request.user.is_authenticated.return_value = True
+        mock_request.user.groups.all.return_value = [self.make_mock_group("linaro")]
         openid_teams = ["linaro"]
         response = OpenIDAuth.process_openid_auth(mock_request, openid_teams)
         self.assertIsNone(response)
 
 
     def test_check_no_team_membership_authed(self):
-        mock_request = MockRequest(True, ["another_group"])
+        mock_request = self.make_mock_request()
+        mock_request.user.is_authenticated.return_value = True
+        mock_request.user.groups.all.return_value = [self.make_mock_group("another-group")]
         openid_teams = ["linaro"]
         response = OpenIDAuth.process_openid_auth(mock_request, openid_teams)
         self.assertIsNotNone(response)
