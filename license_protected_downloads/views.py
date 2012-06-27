@@ -20,8 +20,7 @@ import mimetypes
 import glob
 
 def _hidden_file(file_name):
-    hidden_files = ["BUILD-INFO.txt", "EULA.txt", "OPEN-EULA.txt", ".htaccess",
-                    "HEADER.html"]
+    hidden_files = ["BUILD-INFO.txt", "EULA.txt", ".htaccess", "HEADER.html"]
     for pattern in hidden_files:
         if re.search(pattern, file_name):
             return True
@@ -212,6 +211,7 @@ def file_server(request, path):
             response['Content-Disposition'] = ('attachment; filename=%s' %
                                                smart_str(file_name))
             response['X-Sendfile'] = smart_str(path)
+            response['Content-Length'] = os.path.getsize(path)
             # TODO: Is it possible to add a redirect to response so we can take
             # the user back to the original directory this file is in?
     return response
