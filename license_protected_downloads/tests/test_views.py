@@ -1,3 +1,4 @@
+import re
 import urlparse
 from license_protected_downloads.views import _insert_license_into_db
 
@@ -99,6 +100,27 @@ class ViewTests(TestCase):
 
         # Test that we use the "linaro" theme. This contains linaro.png
         self.assertContains(response, "linaro.png")
+
+    def test_redirect_to_license_then_file_on_accept(self):
+        # Get BuildInfo for target file
+        target_file = "build-info/linaro-blob.txt"
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        build_info = BuildInfo(file_path)
+
+        # Insert license information into database
+        text = build_info.get("license-text")
+        digest = hashlib.md5(text).hexdigest()
+        theme = "samsung"
+        _insert_license_into_db(digest, text, theme)
+
+        # Accept the license for our file...
+        accept_url = '/accept-license?lic=%s&url=%s' % (digest, target_file)
+        response = self.client.post(accept_url, {"accept": "accept"})
+
+        # We should get redirected back to the original file location.
+        self.assertEqual(response.status_code, 302)
+        url = urlparse.urljoin("http://testserver/", target_file)
+        self.assertEqual(response['Location'], url)
 
 
 if __name__ == '__main__':
