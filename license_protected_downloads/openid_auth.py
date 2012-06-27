@@ -20,7 +20,7 @@ class OpenIDAuth:
             # Force OpenID login
             return redirect(settings.LOGIN_URL + "?next=" +  request.path)
 
-        for group in request.user.groups:
+        for group in request.user.groups.all():
             if group.name in openid_teams:
                 return None
 
