@@ -121,6 +121,10 @@ class ViewTests(TestCase):
         accept_url = '/accept-license?lic=%s&url=%s' % (digest, target_file)
         response = self.client.post(accept_url, {"accept": "accept"})
 
+        # We should have a license accept cookie.
+        accept_cookie_name = "license_accepted_" + digest
+        self.assertTrue(accept_cookie_name in response.cookies)
+
         # We should get redirected back to the original file location.
         self.assertEqual(response.status_code, 302)
         url = urlparse.urljoin("http://testserver/", target_file)
@@ -138,6 +142,57 @@ class ViewTests(TestCase):
         self.assertContains(response, "Without accepting the license, you can"
                                       " not download the requested files.")
 
+    def test_download_file_accepted_license(self):
+        target_file = "build-info/linaro-blob.txt"
+        url = urlparse.urljoin("http://testserver/", target_file)
+        digest = self.set_up_license(target_file)
+
+        # Accept the license for our file...
+        accept_url = '/accept-license?lic=%s&url=%s' % (digest, target_file)
+        response = self.client.post(accept_url, {"accept": "accept"})
+
+        # We should get redirected back to the original file location.
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], url)
+
+        # We should have a license accept cookie.
+        accept_cookie_name = "license_accepted_" + digest
+        self.assertTrue(accept_cookie_name in response.cookies)
+
+        # XXX Workaround for seemingly out of sync cookie handling XXX
+        # The cookies in client.cookies are instances of
+        # http://docs.python.org/library/cookie.html once they have been
+        # returned by a client get/post. Unfortunately for the next query
+        # client.cookies needs to be a dictionary keyed by cookie name and
+        # containing a value of whatever is stored in the cookie (or so it
+        # seems). For this reason we start up a new client, erasing all
+        # cookies from the current session, and re-introduce them.
+        client = Client()
+        client.cookies[accept_cookie_name] = accept_cookie_name
+        response = client.get(url)
+
+        # If we have access to the file, we will get an X-Sendfile response
+        self.assertEqual(response.status_code, 200)
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        self.assertEqual(response['X-Sendfile'], file_path)
+
+    def test_non_protected_dirs(self):
+        target_file = '~linaro-android/staging-vexpress-a9/test.txt'
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # If we have access to the file, we will get an X-Sendfile response
+        self.assertEqual(response.status_code, 200)
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        self.assertEqual(response['X-Sendfile'], file_path)
+
+    def test_never_available_dirs(self):
+        target_file = '~linaro-android/staging-imx53/test.txt'
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # If we don't have access we will get a Forbidden response (403)
+        self.assertEqual(response.status_code, 403)
 
 if __name__ == '__main__':
     unittest.main()
