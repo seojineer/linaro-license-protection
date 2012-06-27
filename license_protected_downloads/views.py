@@ -180,9 +180,15 @@ def file_server(request, path):
     path = result[1]
 
     if type == "dir":
+        # Generate a link to the parent directory (if one exists)
+        if url != '/' and url != '':
+            up_dir = "/" + os.path.split(url)[0]
+        else:
+            up_dir = None
         return render_to_response('dir_template.html',
                                   {'dirlist': dir_list(path),
-                                   'basepath': url})
+                                   'basepath': url,
+                                   'up_dir': up_dir})
 
     file_name = os.path.basename(path)
 

@@ -6,6 +6,17 @@
     <th></th><th>Name</th><th>Last modified</th><th>Size</th>
     <tr><th colspan="5"><hr></th>
   </tr>
+  {% if up_dir != None %}
+    <tr>
+      <td>
+        <img src="{{ STATIC_URL }}/static/go-up.png" alt="Parent Directory"/>
+      </td>
+      <td><a href="{{ up_dir }}">Parent Directory</a></td>
+      <td></td>
+      <td></td>
+    </tr>
+  {% endif %}
+
 {% for value in dirlist %}
   <tr>
     <td>
