@@ -91,6 +91,8 @@ def _get_theme(path):
     return vendor[1:]
 
 def is_protected(path):
+    build_info = None
+    max_index = 1
     buildinfo_path = os.path.join(os.path.dirname(path), "BUILD-INFO.txt")
     open_eula_path = os.path.join(os.path.dirname(path), "OPEN-EULA.txt")
     eula_path = os.path.join(os.path.dirname(path), "EULA.txt")
@@ -100,6 +102,7 @@ def is_protected(path):
         license_text = build_info.get("license-text")
         theme = build_info.get("theme")
         openid_teams = build_info.get("openid-launchpad-teams")
+        max_index = build_info.max_index
     elif os.path.isfile(open_eula_path):
         return "OPEN"
     elif os.path.isfile(eula_path):
@@ -132,9 +135,14 @@ def is_protected(path):
         if openid_teams:
             return "OPEN"
         elif license_text:
-            digest = hashlib.md5(license_text).hexdigest()
-            digests.append(digest)
-            _insert_license_into_db(digest, license_text, theme)
+            print range(max_index)
+            for i in range(max_index):
+                if build_info is not None:
+                    license_text = build_info.get("license-text", i)
+                    theme = build_info.get("theme", i)
+                digest = hashlib.md5(license_text).hexdigest()
+                digests.append(digest)
+                _insert_license_into_db(digest, license_text, theme)
         else:
             return None
     else:

@@ -6,14 +6,10 @@ Theme: stericsson
 License-Type: protected
 License-Text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p>
  <p>
-  THIS IS A LEGALLY BINDING AGREEMENT BETWEEN YOU, an individual or a
-  legal entity, (“LICENSEE”) AND SAMSUNG ELECTRONICS CO.,
-  LTD. (“SAMSUNG”). BY CLICKING THE "ACCEPT" BUTTON, OR BY DOWNLOADING OR
-  INSTALLING OR OTHERWISE USING THE SOFTWARE, YOU AGREE TO BE BOUND BY THE
-  TERMS OF THIS AGREEMENT. IF YOU DO NOT AGREE TO THE TERMS OF THIS
-  AGREEMENT OR ARE NOT AUTHORISED TO ACCEPT AND AGREE TO THE TERMS OF THE
-  AGREEMENT ON BEHALF OF YOUR LEGAL ENTITY, DO NOT DOWNLOAD, INSTALL OR
-  OTHERWISE USE THE SOFTWARE.
+ This Agreement is a legally binding contract between you - either an 
+ individual or a legal entity - (hereinafter referred to as "Licensee") 
+ and ST-Ericsson SA, a company incorporated under the laws of 
+ Switzerland (hereinafter referred to as "ST-Ericsson"). 
  </p>
 
 Files-Pattern: *origen*
@@ -40,3 +36,21 @@ Files-Pattern: *openid*
 Build-Name: landing-protected
 License-Type: protected
 OpenID-Launchpad-Teams: linaro
+
+Files-Pattern: *multi*
+Build-Name: landing-multi-license
+Theme: stericsson
+License-Type: protected
+License-Text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p>
+ <p>
+  THIS IS A LEGALLY BINDING AGREEMENT BETWEEN YOU, an individual or a
+  legal entity, (“LICENSEE”) AND SAMSUNG ELECTRONICS CO.,
+ </p>
+
+Files-Pattern: *multi*
+Build-Name: landing-multi-license
+Theme: samsung
+License-Type: protected 
+License-Text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p>
+ <p>
+ </p>
