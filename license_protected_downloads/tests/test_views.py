@@ -34,7 +34,7 @@ class ViewTests(TestCase):
         self.assertContains(response, '/build-info')
 
     def test_licensefile_directly_linaro(self):
-        response = self.client.get('/licenses/ste.html', follow=True)
+        response = self.client.get('/licenses/linaro.html', follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '/build-info')
 

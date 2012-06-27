@@ -119,6 +119,8 @@ def is_protected(path):
         openid_teams = False
         with open(license_file, "r") as infile:
             license_text = infile.read()
+    elif _check_special_eula(os.path.dirname(path) + "/*"):
+        return "OPEN"
     else:
         return []
 
