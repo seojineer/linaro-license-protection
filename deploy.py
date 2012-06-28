@@ -25,7 +25,8 @@ config = {
     "x_send_file_path": "/home/dooferlad/linaro-license-protection/android",
 
     # Apache config file name
-    "apache2_site_config": "/etc/apache2/sites-available/linaro-license-protection",
+    "apache2_site_config":
+        "/etc/apache2/sites-available/linaro-license-protection",
 
     # Postgresql database name
     "database_name": "linaro-license-protection-2",
@@ -34,6 +35,7 @@ config = {
 # Derived variables
 config["deploy_root"] = os.path.dirname(config["django_root"])
 config["django_directory_name"] = os.path.basename(config["django_root"])
+config["a2_site_name"] = os.path.basename(config["apache2_site_config"])
 
 def main():
     print "Installing Bazaar"
@@ -44,20 +46,20 @@ def main():
         os.chdir(config["django_root"])
         run("bzr update")
     else:
-        run("bzr branch lp:~linaro-infrastructure/linaro-license-protection/merge-django-into-trunk " + config["django_root"])
+        run("bzr branch lp:~linaro-infrastructure/linaro-license-protection/"
+            "merge-django-into-trunk " + config["django_root"])
 
     print "Installing python modules"
-    run("sudo apt-get -y install python-django python-django-openid-auth python-mock python-psycopg2 testrepository")
+    run("sudo apt-get -y install python-django python-django-openid-auth"
+        " python-mock python-psycopg2 testrepository")
 
     print "Running unit tests (sqlite database)"
     os.chdir(config["django_root"])
     run("python manage.py test")
-    #if not os.path.isdir(".testrepository"):
-    #    run("testr init")
-    #run("testr run")
 
     print "Installing required apache modules"
-    run("sudo apt-get -y install apache2 libapache2-mod-xsendfile libapache2-mod-wsgi")
+    run("sudo apt-get -y install apache2 libapache2-mod-xsendfile"
+        " libapache2-mod-wsgi")
 
     print "Installing database"
     run("sudo apt-get -y install postgresql")
@@ -65,16 +67,17 @@ def main():
     run_allow_fail("sudo -u postgres createdb " + config["database_name"])
 
     print "Creating configuration files..."
-    generated_apache_config = os.path.join(config["django_root"],
-                                           "deployment_templates",
-                                           "linaro-license-protection.apache2.conf.gen")
+    generated_apache_config = os.path.join(
+        config["django_root"], "deployment_templates",
+        "linaro-license-protection.apache2.conf.gen")
 
-    create_config_file(os.path.join(config["django_root"],
-                                    "deployment_templates",
-                                    "linaro-license-protection.apache2.conf"),
-                       generated_apache_config)
+    create_config_file(os.path.join(
+        config["django_root"], "deployment_templates",
+        "linaro-license-protection.apache2.conf"),
+        generated_apache_config)
 
-    run("sudo mv " + generated_apache_config + " " + config["apache2_site_config"])
+    run("sudo mv " + generated_apache_config + " " +
+        config["apache2_site_config"])
 
     create_config_file(os.path.join(config["django_root"],
                                     "deployment_templates",
@@ -102,12 +105,16 @@ def main():
     print "Running unit tests (django database)"
     os.chdir(config["django_root"])
     run("python manage.py test")
-    #run("testr run")
+
+    print "Enabling new site"
+    run("sudo a2ensite " + config["a2_site_name"])
 
     print "Running deployment tests"
     os.chdir(config["django_root"])
-    #run("testr run testplans.test_suite")
 
+    # Note, we don't run these because they have hard links to sites in.
+    # May be useful during a production deployment though...
+    #run("testr run testplans.test_suite")
 
 def run(cmd):
     print "-" * 80
@@ -123,7 +130,8 @@ def template_lookup(match):
     if match.group(1) in config:
         return config[match.group(1)]
     else:
-        print >> sys.stderr, "Template used undefined variable %s" % match.group(1)
+        print >> sys.stderr, ("Template used undefined variable %s" %
+                              match.group(1))
         exit(1)
 
 def create_config_file(in_file_name, out_file_name):
