@@ -17,7 +17,7 @@ class OpenIDAuth:
             return None
 
         for openid_team in openid_teams:
-            group = Group.objects.get_or_create(name=openid_team)
+            Group.objects.get_or_create(name=openid_team)
 
         if not request.user.is_authenticated():
             # Force OpenID login
