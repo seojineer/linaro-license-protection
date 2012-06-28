@@ -178,6 +178,32 @@ class BuildInfoTests(unittest.TestCase):
         for field in build_info.fields_defined:
             self.assertTrue(build_info.isValidField(field))
 
+    def test_remove_false_positives_real(self):
+        build_info = BuildInfo(self.buildinfo_file_path)
+        build_info.build_info_array = [{}]
+        build_info.file_info_array = [{}]
+        data = ["Format-Version: 2.0", "Files-Pattern: *.txt", "License-Type: protected",
+                "Files-Pattern: *.txt", "License-Type: open"]
+        build_info.parseData(data)
+        build_info.file_info_array = build_info.getInfoForFile()
+        build_info.remove_false_positives()
+
+        self.assertEquals(build_info.file_info_array,
+            [{'license-type': 'protected'}])
+
+    def test_remove_false_none(self):
+        build_info = BuildInfo(self.buildinfo_file_path)
+        build_info.build_info_array = [{}]
+        build_info.file_info_array = [{}]
+        data = ["Format-Version: 2.0", "Files-Pattern: *.txt", "License-Type: protected",
+                "Files-Pattern: *.txt", "License-Type: protected"]
+        build_info.parseData(data)
+        build_info.file_info_array = build_info.getInfoForFile()
+        build_info.remove_false_positives()
+
+        self.assertEquals(build_info.file_info_array,
+            [{'license-type': 'protected'}, {'license-type': 'protected'}])
+
 
 if __name__ == '__main__':
     unittest.main()
