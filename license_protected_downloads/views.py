@@ -198,7 +198,9 @@ def file_server(request, path):
     buildinfo_path = os.path.join(os.path.dirname(path), "BUILD-INFO.txt")
     if os.path.isfile(buildinfo_path):
         build_info = BuildInfo(path)
-        openid_response = OpenIDAuth.process_openid_auth(request, build_info.get("openid-launchpad-teams"))
+        launchpad_teams = build_info.get("openid-launchpad-teams").split(",")
+        launchpad_teams = [team.strip() for team in launchpad_teams]
+        openid_response = OpenIDAuth.process_openid_auth(request, launchpad_teams)
         if openid_response:
             return openid_response
 
