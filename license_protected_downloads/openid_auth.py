@@ -4,7 +4,7 @@ from django.conf import settings
 from django.shortcuts import redirect
 
 from django.http import HttpResponseForbidden
-
+from django.contrib.auth.models import User, Group
 
 class OpenIDAuth:
 
@@ -15,6 +15,9 @@ class OpenIDAuth:
 
         if not openid_teams:
             return None
+
+        for openid_team in openid_teams:
+            group = Group.objects.get_or_create(name=openid_team)
 
         if not request.user.is_authenticated():
             # Force OpenID login
