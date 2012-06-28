@@ -15,7 +15,10 @@ class BuildInfo:
             "build-name", "theme", "license-type", "openid-launchpad-teams",
             "collect-user-data", "license-text"]
         self.full_file_name = fn
-        self.search_path = os.path.dirname(fn)
+        if os.path.isdir(fn):
+            self.search_path = fn
+        else:
+            self.search_path = os.path.dirname(fn)
         self.fname = os.path.basename(fn)
         self.build_info_file = os.path.join(self.search_path, "BUILD-INFO.txt")
         self.readFile()
@@ -44,6 +47,9 @@ class BuildInfo:
         for block in self.build_info_array:
             for key in block:
                 if key != "format-version":
+                    # Special handling of entire-directory access specifier
+                    if key == "*" and os.path.isdir(self.full_file_name):
+                        return block[key]
                     files = glob.glob(os.path.join(self.search_path, key))
                     for filename in files:
                         if filename == self.full_file_name:
