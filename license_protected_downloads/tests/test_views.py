@@ -101,15 +101,15 @@ class ViewTests(TestCase):
         # Test that we use the "linaro" theme. This contains linaro.png
         self.assertContains(response, "linaro.png")
 
-    def set_up_license(self, target_file):
+    def set_up_license(self, target_file, index=0):
         # Get BuildInfo for target file
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         build_info = BuildInfo(file_path)
 
         # Insert license information into database
-        text = build_info.get("license-text")
+        text = build_info.get("license-text", index)
         digest = hashlib.md5(text).hexdigest()
-        theme = "samsung"
+        theme = build_info.get("theme", index)
         _insert_license_into_db(digest, text, theme)
         return digest
 
@@ -276,6 +276,55 @@ class ViewTests(TestCase):
         target_file = 'build-info/panda-open.txt'
         url = urlparse.urljoin("http://testserver/", target_file)
         response = self.client.get(url, follow=True)
+
+        # If we have access to the file, we will get an X-Sendfile response
+        self.assertEqual(response.status_code, 200)
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        self.assertEqual(response['X-Sendfile'], file_path)
+
+    def test_redirect_to_file_on_accept_multi_license(self):
+        target_file = "build-info/multi-license.txt"
+        digest = self.set_up_license(target_file)
+
+        # Accept the first license for our file...
+        accept_url = '/accept-license?lic=%s&url=%s' % (digest, target_file)
+        response = self.client.post(accept_url, {"accept": "accept"})
+
+        # We should have a license accept cookie.
+        accept_cookie_name = "license_accepted_" + digest
+        self.assertTrue(accept_cookie_name in response.cookies)
+
+        # We should get redirected back to the original file location.
+        self.assertEqual(response.status_code, 302)
+        url = urlparse.urljoin("http://testserver/", target_file)
+        listing_url = os.path.dirname(url)
+        self.assertEqual(response['Location'],
+            listing_url + "?dl=/" + target_file)
+
+        client = Client()
+        client.cookies[accept_cookie_name] = accept_cookie_name
+
+        digest = self.set_up_license(target_file, 1)
+
+        # Accept the second license for our file...
+        accept_url = '/accept-license?lic=%s&url=%s' % (digest, target_file)
+        response = client.post(accept_url, {"accept": "accept"})
+
+        # We should have a license accept cookie.
+        accept_cookie_name1 = "license_accepted_" + digest
+        self.assertTrue(accept_cookie_name1 in response.cookies)
+
+        # We should get redirected back to the original file location.
+        self.assertEqual(response.status_code, 302)
+        url = urlparse.urljoin("http://testserver/", target_file)
+        listing_url = os.path.dirname(url)
+        self.assertEqual(response['Location'],
+            listing_url + "?dl=/" + target_file)
+
+        client = Client()
+        client.cookies[accept_cookie_name] = accept_cookie_name
+        client.cookies[accept_cookie_name1] = accept_cookie_name1
+        response = client.get(url)
 
         # If we have access to the file, we will get an X-Sendfile response
         self.assertEqual(response.status_code, 200)
