@@ -54,3 +54,13 @@ License-Type: protected
 License-Text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p>
  <p>
  </p>
+
+Files-Pattern: *false*
+Build-Name: false-positive
+Theme: stericsson
+License-Type: protected
+License-Text: License to accept
+
+Files-Pattern: *false*
+Build-Name: false-positive
+License-Type: open

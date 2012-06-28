@@ -21,6 +21,7 @@ class BuildInfo:
         self.readFile()
         self.parseData(self.lines)
         self.file_info_array = self.getInfoForFile()
+        self.remove_false_positives()
         self.max_index = len(self.file_info_array)
 
 
@@ -151,6 +152,20 @@ class BuildInfo:
             else:
                 break
         return text
+
+    def remove_false_positives(self):
+        open_type = []
+        protected_type = []
+        index = 0
+        for block in self.file_info_array:
+            if block["license-type"] == 'open':
+                open_type.append(index)
+            if block["license-type"] == 'protected':
+                protected_type.append(index)
+            index += 1
+        if len(protected_type) != 0 and len(open_type) != 0:
+            for index in open_type:
+                self.file_info_array.pop(index)
 
 if __name__ == "__main__":
     bi = BuildInfo("/var/www/build-info/origen-blob.txt")
