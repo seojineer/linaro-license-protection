@@ -6,6 +6,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+print PROJECT_ROOT
 ROOT_DIR = os.path.split(PROJECT_ROOT)[-1]
 
 ADMINS = (
@@ -118,10 +119,24 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
+    'django_openid_auth',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     ROOT_DIR + '.license_protected_downloads',
 )
+
+AUTHENTICATION_BACKENDS = (
+    'django_openid_auth.auth.OpenIDBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+LOGIN_URL = '/openid/login/'
+
+OPENID_CREATE_USERS = True
+OPENID_SSO_SERVER_URL = 'https://login.launchpad.net/'
+OPENID_LAUNCHPAD_TEAMS_MAPPING = {
+    'linaro': 'linaro',
+}
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
