@@ -15,7 +15,7 @@ class BuildInfo:
             "build-name", "theme", "license-type", "openid-launchpad-teams",
             "collect-user-data", "license-text"]
         self.full_file_name = fn
-        self.search_path = os.path.dirname(fn)
+        self.search_path = self.get_search_path(fn)
         self.fname = os.path.basename(fn)
         self.build_info_file = os.path.join(self.search_path, "BUILD-INFO.txt")
         self.readFile()
@@ -23,6 +23,21 @@ class BuildInfo:
         self.file_info_array = self.getInfoForFile()
         self.remove_false_positives()
         self.max_index = len(self.file_info_array)
+
+
+    @classmethod
+    def get_search_path(cls, path):
+        "Return BUILD-INFO.txt search path for a given filesystem path."
+        if not os.path.isdir(path):
+            path = os.path.dirname(path)
+        return path
+
+
+    @classmethod
+    def build_info_exists(cls, path):
+        "Check if BUILD-INFO.txt exists for a given filesystem path."
+        return os.path.exists(os.path.join(cls.get_search_path(path), "BUILD-INFO.txt"))
+
 
     def _set(self, key, value):
         key = key.lower()
@@ -45,6 +60,9 @@ class BuildInfo:
         for block in self.build_info_array:
             for key in block:
                 if key != "format-version":
+                    # Special handling of entire-directory access specifier
+                    if key == "*" and os.path.isdir(self.full_file_name):
+                        return block[key]
                     files = glob.glob(os.path.join(self.search_path, key))
                     for filename in files:
                         if filename == self.full_file_name:

@@ -205,5 +205,15 @@ class BuildInfoTests(unittest.TestCase):
             [{'license-type': 'protected'}, {'license-type': 'protected'}])
 
 
+    def test_get_search_path(self):
+        dir_path = THIS_DIRECTORY + '/testserver_root/build-info/subdir'
+        search_path = BuildInfo.get_search_path(dir_path)
+        self.assertEquals(dir_path, search_path)
+
+        file_path = dir_path + '/testfile.txt'
+        search_path = BuildInfo.get_search_path(file_path)
+        self.assertEquals(dir_path, search_path)
+
+
 if __name__ == '__main__':
     unittest.main()
