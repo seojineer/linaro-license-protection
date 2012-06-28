@@ -108,13 +108,14 @@ def main():
 
     print "Enabling new site"
     run("sudo a2ensite " + config["a2_site_name"])
-
-    print "Running deployment tests"
-    os.chdir(config["django_root"])
+    run("sudo service apache2 reload")
 
     # Note, we don't run these because they have hard links to sites in.
     # May be useful during a production deployment though...
-    #run("testr run testplans.test_suite")
+    if False:
+        print "Running deployment tests"
+        os.chdir(config["django_root"])
+        run("testr run testplans.test_suite")
 
 def run(cmd):
     print "-" * 80
