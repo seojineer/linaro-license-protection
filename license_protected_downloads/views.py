@@ -195,8 +195,7 @@ def file_server(request, path):
     type = result[0]
     path = result[1]
 
-    buildinfo_path = os.path.join(os.path.dirname(path), "BUILD-INFO.txt")
-    if os.path.isfile(buildinfo_path):
+    if BuildInfo.build_info_exists(path):
         build_info = BuildInfo(path)
         launchpad_teams = build_info.get("openid-launchpad-teams")
         if launchpad_teams:

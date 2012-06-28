@@ -15,16 +15,28 @@ class BuildInfo:
             "build-name", "theme", "license-type", "openid-launchpad-teams",
             "collect-user-data", "license-text"]
         self.full_file_name = fn
-        if os.path.isdir(fn):
-            self.search_path = fn
-        else:
-            self.search_path = os.path.dirname(fn)
+        self.search_path = self.get_search_path(fn)
         self.fname = os.path.basename(fn)
         self.build_info_file = os.path.join(self.search_path, "BUILD-INFO.txt")
         self.readFile()
         self.parseData(self.lines)
         self.file_info_array = self.getInfoForFile()
         self.max_index = len(self.file_info_array)
+
+
+    @classmethod
+    def get_search_path(cls, path):
+        "Return BUILD-INFO.txt search path for a given filesystem path."
+        if not os.path.isdir(path):
+            path = os.path.dirname(path)
+        return path
+
+
+    @classmethod
+    def build_info_exists(cls, path):
+        "Check if BUILD-INFO.txt exists for a given filesystem path."
+        return os.path.exists(os.path.join(cls.get_search_path(path), "BUILD-INFO.txt"))
+
 
     def _set(self, key, value):
         key = key.lower()
