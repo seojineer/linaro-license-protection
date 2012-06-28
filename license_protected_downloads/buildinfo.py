@@ -21,6 +21,7 @@ class BuildInfo:
         self.readFile()
         self.parseData(self.lines)
         self.file_info_array = self.getInfoForFile()
+        self.max_index = len(self.file_info_array)
 
     def _set(self, key, value):
         key = key.lower()
@@ -56,18 +57,16 @@ class BuildInfo:
             else:
                 return False
 
-    # Get value of specified field for corresponding file
-    def get(self, field):
-        result = []
-        for block in self.file_info_array:
-            for key in block.keys():
-                if field == key:
-                    result = block[field]
-#                    result.append(block[field])
-        if len(result) > 0:
-            return result
-        else:
+    # Get value of specified field in block index for
+    # corresponding file
+    def get(self, field, index=0):
+        if index > self.max_index:
             return False
+        block = self.file_info_array[index]
+        for key in block:
+            if field == key:
+                return block[field]
+        return False
  
     def parseLine(self, line):
         values = line.split(":", 1)

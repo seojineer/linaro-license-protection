@@ -21,8 +21,7 @@ import glob
 from openid_auth import OpenIDAuth
 
 def _hidden_file(file_name):
-    hidden_files = ["BUILD-INFO.txt", "EULA.txt", "OPEN-EULA.txt", ".htaccess",
-                    "HEADER.html"]
+    hidden_files = ["BUILD-INFO.txt", "EULA.txt", ".htaccess", "HEADER.html"]
     for pattern in hidden_files:
         if re.search(pattern, file_name):
             return True
@@ -35,7 +34,7 @@ def _hidden_dir(file_name):
             return True
     return False
 
-def dir_list(path):
+def dir_list(url, path):
     files = os.listdir(path)
     files.sort()
     listing = []
@@ -58,10 +57,13 @@ def dir_list(path):
                     type = "text"
 
         size = os.path.getsize(file)
+        if not re.search(r'^/', url) and url != '':
+            url = '/' +  url
         listing.append({'name': name,
                         'size': size,
                         'type': type,
-                        'mtime': mtime})
+                        'mtime': mtime,
+                        'url': url + '/' + name})
     return listing
 
 def test_path(path):
@@ -90,6 +92,8 @@ def _get_theme(path):
     return vendor[1:]
 
 def is_protected(path):
+    build_info = None
+    max_index = 1
     buildinfo_path = os.path.join(os.path.dirname(path), "BUILD-INFO.txt")
     open_eula_path = os.path.join(os.path.dirname(path), "OPEN-EULA.txt")
     eula_path = os.path.join(os.path.dirname(path), "EULA.txt")
@@ -99,6 +103,7 @@ def is_protected(path):
         license_text = build_info.get("license-text")
         theme = build_info.get("theme")
         openid_teams = build_info.get("openid-launchpad-teams")
+        max_index = build_info.max_index
     elif os.path.isfile(open_eula_path):
         return "OPEN"
     elif os.path.isfile(eula_path):
@@ -109,17 +114,21 @@ def is_protected(path):
         else:
             theme = "linaro"
         license_type = "protected"
-        license_file = 'templates/licenses/' + theme + '.txt'
+        license_file = os.path.join(settings.PROJECT_ROOT,
+                                    'templates/licenses/' + theme + '.txt')
         openid_teams = False
         with open(license_file, "r") as infile:
             license_text = infile.read()
     elif _check_special_eula(path):
         theme = _get_theme(path)
         license_type = "protected"
-        license_file = 'templates/licenses/' + theme + '.txt'
+        license_file = os.path.join(settings.PROJECT_ROOT,
+                                    'templates/licenses/' + theme + '.txt')
         openid_teams = False
         with open(license_file, "r") as infile:
             license_text = infile.read()
+    elif _check_special_eula(os.path.dirname(path) + "/*"):
+        return "OPEN"
     else:
         return []
 
@@ -129,9 +138,13 @@ def is_protected(path):
         if openid_teams:
             return "OPEN"
         elif license_text:
-            digest = hashlib.md5(license_text).hexdigest()
-            digests.append(digest)
-            _insert_license_into_db(digest, license_text, theme)
+            for i in range(max_index):
+                if build_info is not None:
+                    license_text = build_info.get("license-text", i)
+                    theme = build_info.get("theme", i)
+                digest = hashlib.md5(license_text).hexdigest()
+                digests.append(digest)
+                _insert_license_into_db(digest, license_text, theme)
         else:
             return None
     else:
@@ -145,12 +158,15 @@ def license_accepted(request, digest):
 def accept_license(request):
     if "accept" in request.POST:
         lic = License.objects.filter(digest=request.GET['lic']).get()
-        response = HttpResponseRedirect(request.GET['url'])
+        file_url = request.GET['url']
+        listing_url = os.path.dirname(file_url)
+        response = HttpResponseRedirect(listing_url +
+                                        "?dl=/" + file_url)
         d = lic.digest
         cookie_name = "license_accepted_" + d.encode("ascii")
         response.set_cookie(cookie_name,
                             max_age=60*60*24, # 1 day expiry
-                            path="/" + os.path.dirname(request.GET['url']))
+                            path="/" + os.path.dirname(file_url))
     else:
         response = render_to_response('licenses/nolicense.html')
 
@@ -187,9 +203,20 @@ def file_server(request, path):
             return openid_response
 
     if type == "dir":
+        # Generate a link to the parent directory (if one exists)
+        if url != '/' and url != '':
+            up_dir = "/" + os.path.split(url)[0]
+        else:
+            up_dir = None
+
+        download = None
+        if 'dl' in request.GET:
+            download = request.GET['dl']
+
         return render_to_response('dir_template.html',
-                                  {'dirlist': dir_list(path),
-                                   'basepath': url})
+                                  {'dirlist': dir_list(url, path),
+                                   'up_dir': up_dir,
+                                   'dl': download})
 
     file_name = os.path.basename(path)
 
@@ -218,6 +245,7 @@ def file_server(request, path):
             response['Content-Disposition'] = ('attachment; filename=%s' %
                                                smart_str(file_name))
             response['X-Sendfile'] = smart_str(path)
+            #response['Content-Length'] = os.path.getsize(path)
             # TODO: Is it possible to add a redirect to response so we can take
             # the user back to the original directory this file is in?
     return response
