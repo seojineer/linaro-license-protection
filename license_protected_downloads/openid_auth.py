@@ -11,8 +11,6 @@ class OpenIDAuth:
     @classmethod
     def process_openid_auth(cls, request, openid_teams):
 
-        print "openid_teams:", openid_teams
-
         if not openid_teams:
             return None
 

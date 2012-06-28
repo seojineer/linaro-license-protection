@@ -17,9 +17,10 @@ import os, sys
 sys.path.append("/usr/lib/python2.7/dist-packages")
 sys.path.append("/usr/lib/pymodules/python2.7")
 sys.path.append("/usr/lib/python2.7")
-sys.path.append("/home/dooferlad/dev")
+sys.path.append("{% django_root %}")
+sys.path.append("{% deploy_root %}")
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "linaro_license_protection_2.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{% django_directory_name %}.settings")
 
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION
