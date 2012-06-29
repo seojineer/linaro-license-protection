@@ -191,7 +191,7 @@ class BuildInfoTests(unittest.TestCase):
         self.assertEquals(build_info.file_info_array,
             [{'license-type': 'protected'}])
 
-    def test_remove_false_none(self):
+    def test_remove_false_positives_none(self):
         build_info = BuildInfo(self.buildinfo_file_path)
         build_info.build_info_array = [{}]
         build_info.file_info_array = [{}]
@@ -204,7 +204,6 @@ class BuildInfoTests(unittest.TestCase):
         self.assertEquals(build_info.file_info_array,
             [{'license-type': 'protected'}, {'license-type': 'protected'}])
 
-
     def test_get_search_path(self):
         dir_path = THIS_DIRECTORY + '/testserver_root/build-info/subdir'
         search_path = BuildInfo.get_search_path(dir_path)
@@ -213,6 +212,43 @@ class BuildInfoTests(unittest.TestCase):
         file_path = dir_path + '/testfile.txt'
         search_path = BuildInfo.get_search_path(file_path)
         self.assertEquals(dir_path, search_path)
+
+    def test_getInfoForFile_no_block_for_file(self):
+        file_path = os.path.abspath(__file__)
+        build_info = BuildInfo(self.buildinfo_file_path)
+        build_info.full_file_name = file_path
+        build_info.build_info_array = [{}]
+        build_info.file_info_array = [{}]
+        data = ["Format-Version: 2.0", "Files-Pattern: *.txt", "License-Type: protected"]
+        build_info.parseData(data)
+        build_info.file_info_array = build_info.getInfoForFile()
+
+        self.assertEquals(build_info.file_info_array, [{}])
+
+    def test_getInfoForFile(self):
+        file_path = os.path.abspath(__file__)
+        build_info = BuildInfo(self.buildinfo_file_path)
+        build_info.full_file_name = file_path
+        build_info.build_info_array = [{}]
+        build_info.file_info_array = [{}]
+        data = ["Format-Version: 2.0", "Files-Pattern: *.py", "License-Type: protected"]
+        build_info.parseData(data)
+        build_info.file_info_array = build_info.getInfoForFile()
+
+        self.assertEquals(build_info.file_info_array, [{'license-type': 'protected'}])
+
+    def test_remove_false_positives_no_blocks_in_array(self):
+        file_path = os.path.abspath(__file__)
+        build_info = BuildInfo(self.buildinfo_file_path)
+        build_info.full_file_name = file_path
+        build_info.build_info_array = [{}]
+        build_info.file_info_array = [{}]
+        data = ["Format-Version: 2.0", "Files-Pattern: *.txt", "License-Type: protected"]
+        build_info.parseData(data)
+        build_info.file_info_array = build_info.getInfoForFile()
+        build_info.remove_false_positives()
+
+        self.assertEquals(build_info.file_info_array, [{}])
 
 
 if __name__ == '__main__':

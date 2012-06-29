@@ -157,12 +157,17 @@ class BuildInfo:
         open_type = []
         protected_type = []
         index = 0
+        if self.file_info_array == [{}]:
+            return False
         for block in self.file_info_array:
-            if block["license-type"] == 'open':
-                open_type.append(index)
-            if block["license-type"] == 'protected':
-                protected_type.append(index)
-            index += 1
+            if 'license-type' in block.keys():
+                if block["license-type"] == 'open':
+                    open_type.append(index)
+                if block["license-type"] == 'protected':
+                    protected_type.append(index)
+                index += 1
+            else:
+                return False
         if len(protected_type) != 0 and len(open_type) != 0:
             for index in open_type:
                 self.file_info_array.pop(index)
