@@ -18,6 +18,7 @@ from models import License
 from django.template import RequestContext
 import mimetypes
 import glob
+from openid_auth import OpenIDAuth
 
 
 def _hidden_file(file_name):
@@ -207,6 +208,16 @@ def file_server(request, path):
 
     type = result[0]
     path = result[1]
+
+    if BuildInfo.build_info_exists(path):
+        build_info = BuildInfo(path)
+        launchpad_teams = build_info.get("openid-launchpad-teams")
+        if launchpad_teams:
+            launchpad_teams = launchpad_teams.split(",")
+            launchpad_teams = [team.strip() for team in launchpad_teams]
+            openid_response = OpenIDAuth.process_openid_auth(request, launchpad_teams)
+            if openid_response:
+                return openid_response
 
     if type == "dir":
         # Generate a link to the parent directory (if one exists)
