@@ -28,6 +28,12 @@ License-Text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p
   OTHERWISE USE THE SOFTWARE.
  </p>
 
+Files-Pattern: *linaro*
+Build-Name: linaro
+Theme: linaro
+License-Type: protected
+License-Text: License
+
 Files-Pattern: *panda*
 Build-Name: landing-panda
 License-Type: open
@@ -55,12 +61,3 @@ License-Text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p
  <p>
  </p>
 
-Files-Pattern: *false*
-Build-Name: false-positive
-Theme: stericsson
-License-Type: protected
-License-Text: License to accept
-
-Files-Pattern: *false*
-Build-Name: false-positive
-License-Type: open

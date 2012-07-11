@@ -38,25 +38,59 @@ class LicenseProtectedFileFetcher:
         self.curl.setopt(pycurl.COOKIEFILE, cookie_file)
         self.curl.setopt(pycurl.COOKIEJAR, cookie_file)
         self.file_out = None
+        self.file_number = 0
 
-    def _get(self, url):
-        """Clear out header and body storage, fetch URL, filling them in."""
+    def _pre_curl(self, url):
         url = url.encode("ascii")
         self.curl.setopt(pycurl.URL, url)
 
         self.body = ""
         self.header = ""
 
+        file_name = self.file_name
+        if self.file_number > 0:
+            file_name += str(self.file_number)
+
+        # When debugging it is useful to have all intermediate files saved.
+        # If you want them, uncomment this line:
+        # self.file_number += 1
+
         if self.file_name:
-            self.file_out = open(self.file_name, 'w')
+            self.file_out = open(file_name, 'w')
         else:
             self.file_out = None
 
-        self.curl.perform()
+        return url
+
+    def _post_curl(self, url):
         self._parse_headers(url)
 
         if self.file_out:
             self.file_out.close()
+
+    def _get(self, url):
+        """Clear out header and body storage, fetch URL, filling them in."""
+        self._pre_curl(url)
+        self.curl.perform()
+        self._post_curl(url)
+
+    def _post(self, url, args, form):
+        """Clear out header and body storage, post to URL, filling them in."""
+
+        # Prep the URL.
+        # For some reason I can't get the python built in functions to do this
+        # for me in a way that actually works.
+        # args = urllib.urlencode(args) encodes the values as arrays
+        # Quoting of the string is unnecessary.
+        url = url + "?"
+        for k, v in args.items():
+            url += k + "=" + v[0] + "&"
+        url = url[0:-1]  # Trim the final &
+
+        self._pre_curl(url)
+        self.curl.setopt(pycurl.HTTPPOST, form)
+        self.curl.perform()
+        self._post_curl(url)
 
     def _parse_headers(self, url):
         header = {}
@@ -149,11 +183,9 @@ class LicenseProtectedFileFetcher:
                 # Accept the license without looking at it and
                 # start fetching the file we originally wanted.
                 accept_url = license_details[1]
-                self.get_protected_file(accept_url, url)
-            else:
-                # We want to decline the license and return the notice.
-                decline_url = license_details[2]
-                self._get(decline_url)
+                accept_query = license_details[2]
+                form = license_details[3]
+                self.get_protected_file(accept_url, accept_query, url, form)
 
         else:
             # If we got here, there wasn't a license protecting the file
@@ -170,6 +202,9 @@ class LicenseProtectedFileFetcher:
 
         self.get_headers(url)
 
+        text_license = None
+        submit_url = None
+
         if "Location" in self.header and self.header["Location"] != url:
             # We have been redirected to a new location - the license file
             location = self.header["Location"]
@@ -177,60 +212,49 @@ class LicenseProtectedFileFetcher:
             # Fetch the license HTML
             self._get(location)
 
-            # Get the file from the URL (full path)
-            file = urlparse.urlparse(location).path
+            soup = BeautifulSoup(self.body)
+            for form in soup.findAll("form"):
+                action = form.get("action")
+                if action and re.search("""/accept-license\?lic=""", action):
+                    # This form is what we need to accept the license
+                    submit_url = action
 
-            # Get the file without the rest of the path
-            file = os.path.split(file)[-1]
+            # The license is in a div with the ID license-text, so we
+            # use this to ?lic={{ license.digest }}&url={{ url }}"
+            # method="post">pull just the license out of the HTML.
+            html_license = u""
+            for chunk in soup.findAll(id="license-text"):
+                # Output of chunk.prettify is UTF8, but comes back
+                # as a str, so convert it here.
+                html_license += chunk.prettify().decode("utf-8")
 
-            # Look for a link with accepted.html in the page name. Follow it.
-            accept_search, decline_search = None, None
-            for line in self.body.splitlines():
-                if not accept_search:
-                    accept_search = re.search(
-                    """href=.*?["'](.*?-accepted.html)""",
-                    line)
-                if not decline_search:
-                    decline_search = re.search(
-                    """href=.*?["'](.*?-declined.html)""",
-                    line)
+            text_license = html2text.html2text(html_license)
 
-            if accept_search and decline_search:
-                # Have found license accept URL!
-                new_file = accept_search.group(1)
-                accept_url = re.sub(file, new_file, location)
+        if text_license and submit_url:
+        # Currently accept_url contains the arguments we want to send. Split.
+            parsed = urlparse.urlparse(submit_url)
+            accept_url = urlparse.urljoin(url, parsed[2])
+            args = urlparse.parse_qs(parsed[4])
+            csrftoken = soup.findAll("input",
+                            attrs={"name": "csrfmiddlewaretoken"})[0]["value"]
+            csrftoken = csrftoken.encode("ascii")
 
-                # Found decline URL as well.
-                new_file_decline = decline_search.group(1)
-                decline_url = re.sub(file, new_file_decline, location)
+            form = [('accept', 'accept'), ("csrfmiddlewaretoken", csrftoken)]
 
-                # Parse the HTML using BeautifulSoup
-                soup = BeautifulSoup(self.body)
-
-                # The license is in a div with the ID license-text, so we
-                # use this to pull just the license out of the HTML.
-                html_license = u""
-                for chunk in soup.findAll(id="license-text"):
-                    # Output of chunk.prettify is UTF8, but comes back
-                    # as a str, so convert it here.
-                    html_license += chunk.prettify().decode("utf-8")
-
-                text_license = html2text.html2text(html_license)
-
-                return text_license, accept_url, decline_url
+            return text_license, accept_url, args, form
 
         return None
 
-    def get_protected_file(self, accept_url, url):
+    def get_protected_file(self, accept_url, accept_query, url, form):
         """Gets the file redirected to by the accept_url"""
 
-        self._get(accept_url)  # Accept the license
+        self._post(accept_url, accept_query, form)
 
-        if not("Location" in self.header and self.header["Location"] == url):
-            # If we got here, we don't have the file yet (weren't redirected
-            # to it). Fetch our target file. This should work now that we have
-            # the right cookie.
-            self._get(url)  # Download the target file
+        # The server returns us to an HTML file that redirects to the real
+        # download (in order to return the user to the directory listing
+        # after accepting a license). We don't parse the HTML. Just re-
+        # request the file.
+        self._get(url)  # Download the target file
 
         return self.body
 
@@ -238,7 +262,7 @@ class LicenseProtectedFileFetcher:
         """Used by curl as a sink for body content"""
 
         # If we have a target file to write to, write to it
-        if self.file_out:
+        if self.file_out and not self.file_out.closed:
             self.file_out.write(buf)
 
         # Only buffer first 1MB of body. This should be plenty for anything

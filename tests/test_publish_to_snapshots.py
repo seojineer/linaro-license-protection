@@ -23,7 +23,7 @@ class TestSnapshotsPublisher(TestCase):
         self.parser.add_argument("-j", "--job-name", dest="job_name")
         self.parser.add_argument("-n", "--build-num", dest="build_num",
                                  type=int)
-        self.parser.add_argument("-m", "--manifest",  dest="manifest",
+        self.parser.add_argument("-m", "--manifest", dest="manifest",
                                  action='store_true')
         if not os.path.isdir(self.uploads_path):
             os.mkdir(self.uploads_path)
@@ -74,7 +74,7 @@ class TestSnapshotsPublisher(TestCase):
         stderr = sys.stderr = StringIO()
         self.publisher = SnapshotsPublisher()
         param = self.parser.parse_args(
-            ['-t', 'invalid_job_type',  '-j', 'dummy_job_name', '-n', '1'])
+            ['-t', 'invalid_job_type', '-j', 'dummy_job_name', '-n', '1'])
         try:
             self.publisher.validate_args(param)
         except SystemExit, err:

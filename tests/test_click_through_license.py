@@ -327,4 +327,3 @@ class TestLicense(TestCase):
         testfile = fetcher.get(host + build_info_openid_test_file)
         fetcher.close()
         self.assertThat(testfile, Contains(search))
-
