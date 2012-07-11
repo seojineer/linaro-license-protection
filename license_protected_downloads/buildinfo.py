@@ -1,9 +1,10 @@
 import os
-import glob
+import fnmatch
 
 
 class IncorrectDataFormatException(Exception):
         ''' Build-info data is in incorrect format. '''
+
 
 class BuildInfo:
     def __init__(self, fn):
@@ -11,9 +12,10 @@ class BuildInfo:
         self.lines = []
         self.build_info_array = [{}]
         self.file_info_array = [{}]
-        self.fields_defined = ["format-version", "files-pattern",
-            "build-name", "theme", "license-type", "openid-launchpad-teams",
-            "collect-user-data", "license-text"]
+        self.fields_defined = [
+                "format-version", "files-pattern", "build-name", "theme",
+                "license-type", "openid-launchpad-teams", "collect-user-data",
+                "license-text"]
         self.full_file_name = fn
         self.search_path = self.get_search_path(fn)
         self.fname = os.path.basename(fn)
@@ -24,7 +26,6 @@ class BuildInfo:
         self.remove_false_positives()
         self.max_index = len(self.file_info_array)
 
-
     @classmethod
     def get_search_path(cls, path):
         "Return BUILD-INFO.txt search path for a given filesystem path."
@@ -32,12 +33,11 @@ class BuildInfo:
             path = os.path.dirname(path)
         return path
 
-
     @classmethod
     def build_info_exists(cls, path):
         "Check if BUILD-INFO.txt exists for a given filesystem path."
-        return os.path.exists(os.path.join(cls.get_search_path(path), "BUILD-INFO.txt"))
-
+        return os.path.exists(
+                os.path.join(cls.get_search_path(path), "BUILD-INFO.txt"))
 
     def _set(self, key, value):
         key = key.lower()
@@ -63,10 +63,9 @@ class BuildInfo:
                     # Special handling of entire-directory access specifier
                     if key == "*" and os.path.isdir(self.full_file_name):
                         return block[key]
-                    files = glob.glob(os.path.join(self.search_path, key))
-                    for filename in files:
-                        if filename == self.full_file_name:
-                            return block[key]
+                    if fnmatch.fnmatch(self.full_file_name,
+                                       os.path.join(self.search_path, key)):
+                        return block[key]
         return [{}]
 
     def getFormatVersion(self):
@@ -86,16 +85,18 @@ class BuildInfo:
             if field == key:
                 return block[field]
         return False
- 
+
     def parseLine(self, line):
         values = line.split(":", 1)
         if len(values) != 2:
-            raise IncorrectDataFormatException("'%s': Line is not in the correct format." % line)
+            raise IncorrectDataFormatException(
+                    "'%s': Line is not in the correct format." % line)
         else:
             field = values[0].strip().lower()
             value = values[1].strip()
             if not self.isValidField(field):
-                raise IncorrectDataFormatException("Field '%s' not allowed." % field)
+                raise IncorrectDataFormatException(
+                        "Field '%s' not allowed." % field)
             else:
                 return {field: value}
 
@@ -111,7 +112,8 @@ class BuildInfo:
         format_line = lines.pop(0)
         values = self.parseLine(format_line)
         if not "format-version" in values:
-            raise IncorrectDataFormatException("Format-Version field not found.")
+            raise IncorrectDataFormatException(
+                    "Format-Version field not found.")
         self._set("format-version", values["format-version"])
 
         self.line_no = 0

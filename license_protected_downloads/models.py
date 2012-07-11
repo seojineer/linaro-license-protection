@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class License(models.Model):
     digest = models.CharField(max_length=40)
     text = models.TextField()

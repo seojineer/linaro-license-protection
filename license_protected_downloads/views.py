@@ -19,6 +19,7 @@ from django.template import RequestContext
 import mimetypes
 import glob
 
+
 def _hidden_file(file_name):
     hidden_files = ["BUILD-INFO.txt", "EULA.txt", ".htaccess", "HEADER.html"]
     for pattern in hidden_files:
@@ -26,12 +27,14 @@ def _hidden_file(file_name):
             return True
     return False
 
+
 def _hidden_dir(file_name):
     hidden_files = [".*openid.*", ".*restricted.*", ".*private.*"]
     for pattern in hidden_files:
         if re.search(pattern, file_name):
             return True
     return False
+
 
 def dir_list(url, path):
     files = os.listdir(path)
@@ -57,13 +60,14 @@ def dir_list(url, path):
 
         size = os.path.getsize(file)
         if not re.search(r'^/', url) and url != '':
-            url = '/' +  url
+            url = '/' + url
         listing.append({'name': name,
                         'size': size,
                         'type': type,
                         'mtime': mtime,
                         'url': url + '/' + name})
     return listing
+
 
 def test_path(path):
 
@@ -76,19 +80,23 @@ def test_path(path):
 
     return None
 
+
 def _insert_license_into_db(digest, text, theme):
     if not License.objects.filter(digest=digest):
         l = License(digest=digest, text=text, theme=theme)
         l.save()
 
+
 def _check_special_eula(path):
     if glob.glob(path + ".EULA.txt.*"):
         return True
+
 
 def _get_theme(path):
     eula = glob.glob(path + ".EULA.txt.*")
     vendor = os.path.splitext(eula[0])[1]
     return vendor[1:]
+
 
 def is_protected(path):
     build_info = None
@@ -151,8 +159,10 @@ def is_protected(path):
 
     return digests
 
+
 def license_accepted(request, digest):
     return 'license_accepted_' + digest in request.COOKIES
+
 
 def accept_license(request):
     if "accept" in request.POST:
@@ -163,13 +173,15 @@ def accept_license(request):
                                         "?dl=/" + file_url)
         d = lic.digest
         cookie_name = "license_accepted_" + d.encode("ascii")
+        # Set a cookie with 1 day of expiry.
         response.set_cookie(cookie_name,
-                            max_age=60*60*24, # 1 day expiry
+                            max_age=60 * 60 * 24,
                             path="/" + os.path.dirname(file_url))
     else:
         response = render_to_response('licenses/nolicense.html')
 
     return response
+
 
 def show_license(request):
     if 'lic' not in request.GET or 'url' not in request.GET:
@@ -182,8 +194,10 @@ def show_license(request):
                                'url': request.GET['url']},
                               context_instance=RequestContext(request))
 
+
 def redirect_to_root(request):
     return redirect('/')
+
 
 def file_server(request, path):
     url = path
@@ -226,7 +240,8 @@ def file_server(request, path):
         else:
             for digest in digests:
                 if not license_accepted(request, digest):
-                    response = redirect('/license?lic=' + digest + "&url=" + url)
+                    response = redirect(
+                        '/license?lic=' + digest + "&url=" + url)
 
         if not response:
             mimetypes.init()

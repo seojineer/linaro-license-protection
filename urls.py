@@ -15,13 +15,19 @@ urlpatterns = patterns('',
     url(r'^logout/$', 'django.contrib.auth.views.logout'),
 
     # The license page...
-    url(r'^license$', 'license_protected_downloads.views.show_license', name='show_license'),
+    url(r'^license$',
+        'license_protected_downloads.views.show_license',
+        name='show_license'),
 
     # Exceptions redirected to root...
-    url(r'^license', 'license_protected_downloads.views.redirect_to_root', name='redirect_to_root'),
+    url(r'^license',
+        'license_protected_downloads.views.redirect_to_root',
+        name='redirect_to_root'),
 
     # Accept the license
-    url(r'^accept-license', 'license_protected_downloads.views.accept_license', name='accept_license'),
+    url(r'^accept-license',
+        'license_protected_downloads.views.accept_license',
+        name='accept_license'),
 
     # Catch-all. We always return a file (or try to) if it exists.
     # This handler does that.

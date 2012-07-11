@@ -1,18 +1,18 @@
-import re
-import urlparse
-from license_protected_downloads.views import _insert_license_into_db
-
 __author__ = 'dooferlad'
 
+from django.conf import settings
+from django.test import Client, TestCase
+import hashlib
 import os
 import unittest
-import hashlib
-from django.test import Client, TestCase
+import urlparse
+
 from license_protected_downloads.buildinfo import BuildInfo
-from django.conf import settings
+from license_protected_downloads.views import _insert_license_into_db
 
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 TESTSERVER_ROOT = os.path.join(THIS_DIRECTORY, "testserver_root")
+
 
 class ViewTests(TestCase):
     def setUp(self):

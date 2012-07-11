@@ -4,7 +4,6 @@ import argparse
 import os
 import pycurl
 import re
-import urllib
 import urlparse
 import html2text
 from BeautifulSoup import BeautifulSoup
@@ -221,7 +220,8 @@ class LicenseProtectedFileFetcher:
                     submit_url = action
 
             # The license is in a div with the ID license-text, so we
-            # use this to ?lic={{ license.digest }}&url={{ url }}" method="post">pull just the license out of the HTML.
+            # use this to ?lic={{ license.digest }}&url={{ url }}"
+            # method="post">pull just the license out of the HTML.
             html_license = u""
             for chunk in soup.findAll(id="license-text"):
                 # Output of chunk.prettify is UTF8, but comes back
