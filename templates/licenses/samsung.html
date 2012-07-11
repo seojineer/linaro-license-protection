@@ -1,5 +1,6 @@
-<html>
-<head>
+{% extends "license.html" %}
+
+{% block header %}
 <title>License Agreement</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <style language="text/css">
@@ -25,7 +26,7 @@
     font-size: 140%;
     font-weight: bold;
     text-align: center;
-    background-image: url(/licenses/exynos.png);
+    background-image: url(/static/exynos.png);
     background-repeat: no-repeat;
     height: 109px;
   }
@@ -84,9 +85,9 @@
     background: #9c5;
   }
 </style>
-</head>
-<body>
+{% endblock %}
 
+{% block content-header %}
 <div id="head">
 <h1>
 </h1>
@@ -95,20 +96,17 @@
 <div id="content">
 
 <div id="license-text">
-EULA.txt
+{% endblock %}
+{% block content-footer-top %}
 </div><!-- license-text -->
 
 <div id="actions">
 
 <div style="float: left;">If accepting the license doesn't work, enable
-cookies in your browser.</div>
-
-<a class="button button-accept" href="samsung-accepted.html">Accept the license</a>
-<a class="button button-decline" href="samsung-declined.html">Decline the license</a>
-
+cookies in your browser.</div><br />
+{% endblock %}
+{% block content-footer-bottom %}
 </div>
 
 </div><!-- content -->
-
-</body>
-</html>
+{% endblock %}
