@@ -3,6 +3,7 @@ import unittest
 
 def test_suite():
     module_names = [
+        'tests.test_click_through_license.TestLicense',
         'tests.test_publish_to_snapshots.TestSnapshotsPublisher',
         ]
     loader = unittest.TestLoader()
