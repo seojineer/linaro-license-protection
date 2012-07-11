@@ -231,11 +231,14 @@ class BuildInfoTests(unittest.TestCase):
         build_info.full_file_name = file_path
         build_info.build_info_array = [{}]
         build_info.file_info_array = [{}]
-        data = ["Format-Version: 2.0", "Files-Pattern: *.py", "License-Type: protected"]
+        data = ["Format-Version: 2.0",
+                "Files-Pattern: *.py*",
+                "License-Type: protected"]
         build_info.parseData(data)
         build_info.file_info_array = build_info.getInfoForFile()
 
-        self.assertEquals(build_info.file_info_array, [{'license-type': 'protected'}])
+        self.assertEquals(build_info.file_info_array,
+                          [{'license-type': 'protected'}])
 
     def test_remove_false_positives_no_blocks_in_array(self):
         file_path = os.path.abspath(__file__)
