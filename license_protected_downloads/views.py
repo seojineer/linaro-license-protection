@@ -1,23 +1,25 @@
-# Create your views here.
-
-from django.http import (
-    HttpResponse, HttpResponseRedirect, HttpResponseForbidden
-)
-from django.conf import settings
-from django.shortcuts import render_to_response, redirect
-import os.path
-import os
-from django.http import Http404
-from django.utils.encoding import smart_str
-from buildinfo import BuildInfo
-import time
-import re
-import hashlib
-from mimetypes import guess_type
-from models import License
-from django.template import RequestContext
-import mimetypes
 import glob
+import hashlib
+import mimetypes
+import os
+import os.path
+import re
+import time
+from mimetypes import guess_type
+
+from django.conf import settings
+from django.http import (
+    Http404,
+    HttpResponse,
+    HttpResponseForbidden,
+    HttpResponseRedirect,
+)
+from django.shortcuts import render_to_response, redirect
+from django.template import RequestContext
+from django.utils.encoding import smart_str
+
+from buildinfo import BuildInfo
+from models import License
 from openid_auth import OpenIDAuth
 
 
@@ -215,7 +217,8 @@ def file_server(request, path):
         if launchpad_teams:
             launchpad_teams = launchpad_teams.split(",")
             launchpad_teams = [team.strip() for team in launchpad_teams]
-            openid_response = OpenIDAuth.process_openid_auth(request, launchpad_teams)
+            openid_response = OpenIDAuth.process_openid_auth(
+                request, launchpad_teams)
             if openid_response:
                 return openid_response
 
