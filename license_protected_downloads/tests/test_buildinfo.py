@@ -32,6 +32,7 @@ class BuildInfoTests(unittest.TestCase):
         self.assertEqual("0.1", build_info.getFormatVersion())
 
     def test_get_emptyField(self):
+        value = "notempty"
         build_info = BuildInfo(self.buildinfo_file_path)
         for pair in build_info.file_info_array:
             if "openid-launchpad-teams" in pair:
@@ -40,6 +41,7 @@ class BuildInfoTests(unittest.TestCase):
         self.assertFalse(value)
 
     def test_get(self):
+        value = None
         build_info = BuildInfo(self.buildinfo_file_path)
         for pair in build_info.file_info_array:
             if "build-name" in pair:
