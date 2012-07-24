@@ -10,7 +10,7 @@ protection.
 This code provides such license protection on the hosting web server:
 other parts of infrastructure need to properly integrate with it (see
 eg. android-build.linaro.org section).  At the moment, it's implemented as
-a click-through license acceptance on the Apache side.
+a click-through license acceptance on the server side with Apache+Django.
 
 To ensure and prove this keeps working, we are also using automated tests
 with this code.
@@ -20,28 +20,26 @@ Setup
 -----
 
 This tree is the base for snapshots.linaro.org and releases.linaro.org www
-roots as served by Apache.  It makes heavy use of mod_rewrite from within
-the .htaccess file.
+roots as served by Apache.  It uses Django and mod_xsendfile.
 
-Currently, all directories/files containing either 'origen' or 'snowball'
+Currently, if BUILD-INFO.txt is found in a directory it is parsed and
+information from that file is used to apply appropriate protection to the
+requested file, otherwise old-style EULA handling is used: if special EULA
+file is found then it is used for selecting license and theme for requested
+file, otherwise all directories/files containing either 'origen' or 'snowball'
 in the URL path are protected with appropriate license (Samsung or ST-E)
 click-through.
 
 Dependencies
 ............
 
-libapache2-mod-php5
+libapache2-mod-xsendfile >= 0.10
+python-django >= 1.3.1
+python-django-openid-auth
 
 Testing:
-  phpunit, python 2.7, testrepository (>=0.0.6), python-html2text,
+  python 2.7, testrepository (>=0.0.6), python-html2text,
   python-subunit, python-beautifulsoup
-
-Recent (as of 2012-05-08) Ubuntu/Debian releases have a broken phpunit
-package and thus require installation of phpunit through PEAR:
-
-  $ sudo apt-get install php-pear
-  $ sudo pear config-set auto_discover 1
-  $ sudo pear install pear.phpunit.de/PHPUnit
 
 
 Technical details
@@ -50,8 +48,8 @@ Technical details
 releases.linaro.org
 ...................
 
-Root directory for releases.linaro.org includes .htaccess and licenses/*.
-It has mod_rewrite enabled.
+Root directory for releases.linaro.org includes downloadable artifacts served
+by Apache and Django application.
 
 It allows a few hard-coded hosts to bypass the click-through protection,
 by their IPs:
@@ -70,15 +68,15 @@ Same basic set-up as releases.linaro.org.
 Further, to allow android-build.linaro.org to push to snapshots.linaro.org
 www area directly, we set-up two different users on the system with SSH keys:
 
- * android-build-linaro:
+ * linaro-android-build-publish:
 
    chrooted to /srv/snapshots.linaro.org/www/android/ and allows sftp
    access to push files over;  home directory
 
- * android-build-linaro-trigger:
+ * linaro-android-build-publish-trigger:
 
    limited to executing only a single command through
-   /etc/ssh/user-authorized-keys/android-build-linaro-trigger
+   /etc/ssh/user-authorized-keys/linaro-android-build-publish-trigger
 
      command="/home/android-build-linaro-trigger/scripts
               /trigger-android-build-linaro.sh ${SSH_ORIGINAL_COMMAND#* }"
@@ -99,8 +97,10 @@ android-build.linaro.org
 Runs Jenkins and uses SFTP plugin to access the above two users.  Private
 keys live in
 
-  /home/ubuntu/snapshots-sync/snapshots-sync — android-build-linaro
-  /home/ubuntu/snapshots-sync/snapshots-filemove — android-build-linaro-trigger
+  /home/ubuntu/snapshots-sync2/linaro-android-build-publish —
+    linaro-android-build-publish
+  /home/ubuntu/snapshots-sync2/linaro-android-build-publish-trigger —
+    linaro-android-build-publish-trigger
 
 To ensure serialization of steps, and allow LAVA submission, these happen as
 build steps, and not as publishing steps.
@@ -204,13 +204,4 @@ snapshots.linaro.org and releases.linaro.org, execute the following:
 
 These tests require an internet connection.
 
-Tests for PHP license-matching logic
-....................................
 
-Unit tests for the license-matching logic written in PHP are automatically
-ran as part of the full test suite (testr run).  However, for a more
-detailed output, you may need to run phpunit directly.
-
-To run the tests separately, do the following:
-
-  $ phpunit tests/LicenseHelperTest
