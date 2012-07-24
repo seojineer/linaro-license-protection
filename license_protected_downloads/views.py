@@ -21,6 +21,7 @@ from django.utils.encoding import smart_str
 from buildinfo import BuildInfo
 from models import License
 from openid_auth import OpenIDAuth
+import config
 
 
 def _hidden_file(file_name):
@@ -163,6 +164,15 @@ def is_protected(path):
     return digests
 
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[-1].strip()
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
 def license_accepted(request, digest):
     return 'license_accepted_' + digest in request.COOKIES
 
@@ -241,7 +251,10 @@ def file_server(request, path):
     file_name = os.path.basename(path)
 
     response = None
-    digests = is_protected(path)
+    if get_client_ip(request) in config.INTERNAL_HOSTS:
+        digests = 'OPEN'
+    else:
+        digests = is_protected(path)
     if not digests:
         # File has no license text but is protected
         response = HttpResponseForbidden(
