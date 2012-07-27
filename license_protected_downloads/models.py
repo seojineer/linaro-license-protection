@@ -2,19 +2,19 @@ from django.db import models
 
 
 class LicenseManager(models.Manager):
-	"""
-	Model manager for License model.
+    """
+    Model manager for License model.
 
-	Provides additional convenience method
-	"""
+    Provides additional convenience method
+    """
 
-	def all_with_hashes(self, hash_list):
-		"""
-		Produce a list of licenses that match the specified list of hashes.
-		The main use case is to convert license digest to something the user
-		can relate to.
-		"""
-		return self.all().filter(digest__in=hash_list)
+    def all_with_hashes(self, hash_list):
+        """
+        Produce a list of licenses that match the specified list of hashes.
+        The main use case is to convert license digest to something the user
+        can relate to.
+        """
+        return self.all().filter(digest__in=hash_list)
 
 
 class License(models.Model):
