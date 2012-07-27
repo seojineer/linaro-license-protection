@@ -39,7 +39,7 @@ python-django-openid-auth
 
 Testing:
   python 2.7, testrepository (>=0.0.6), python-html2text,
-  python-subunit, python-beautifulsoup
+  python-subunit, python-beautifulsoup, python-mock
 
 
 Technical details
@@ -190,8 +190,14 @@ Tests
 Testing infrastructure is based on 'testrepository' and requires at least
 Python and Apache2:
 
+To run tests for publisher:
+
   $ testr init
   $ testr run
+
+To run tests for Django application:
+
+  $ python manage.py test
 
 Test plans
 ..........
