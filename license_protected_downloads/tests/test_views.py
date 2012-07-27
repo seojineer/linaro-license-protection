@@ -331,5 +331,49 @@ class ViewTests(TestCase):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)
 
+    def test_exception_ip_x_forwarded_for(self):
+        internal_host = '50.17.250.69'
+        target_file = 'build-info/origen-blob.txt'
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True,
+            HTTP_X_FORWARDED_FOR=internal_host)
+
+        # If we have access to the file, we will get an X-Sendfile response
+        self.assertEqual(response.status_code, 200)
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        self.assertEqual(response['X-Sendfile'], file_path)
+
+    def test_exception_ip_remote_addr(self):
+        internal_host = '50.17.250.69'
+        target_file = 'build-info/origen-blob.txt'
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True,
+            REMOTE_ADDR=internal_host)
+
+        # If we have access to the file, we will get an X-Sendfile response
+        self.assertEqual(response.status_code, 200)
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        self.assertEqual(response['X-Sendfile'], file_path)
+
+    def test_no_exception_ip(self):
+        internal_host = '10.1.2.3'
+        target_file = 'build-info/origen-blob.txt'
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        build_info = BuildInfo(file_path)
+
+        # Try to fetch file from server - we should be redirected
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True,
+            REMOTE_ADDR=internal_host)
+        digest = hashlib.md5(build_info.get("license-text")).hexdigest()
+        self.assertRedirects(response, '/license?lic=%s&url=%s' %
+                                       (digest, target_file))
+
+        # Make sure that we get the license text in the license page
+        self.assertContains(response, build_info.get("license-text"))
+
+        # Test that we use the "samsung" theme. This contains exynos.png
+        self.assertContains(response, "exynos.png")
+
 if __name__ == '__main__':
     unittest.main()
