@@ -3,7 +3,7 @@
 {% block content %}
 <table>
   <tr>
-    <th></th><th>Name</th><th>Last modified</th><th>Size</th>
+    <th></th><th>Name</th><th>License</th><th>Last modified</th><th>Size</th>
     <tr><th colspan="5"><hr></th>
   </tr>
   {% if up_dir != None %}
@@ -12,6 +12,7 @@
         <img src="{{ STATIC_URL }}/static/go-up.png" alt="Parent Directory"/>
       </td>
       <td><a href="{{ up_dir }}">Parent Directory</a></td>
+      <td></td>
       <td></td>
       <td></td>
     </tr>
@@ -23,6 +24,15 @@
        <img src="{{ STATIC_URL }}/static/{{ value.type }}.png" alt="{{ value.type }}"/>
     </td>
     <td><a href="{{ value.url }}">{{ value.name }}</a></td>
+    <td>
+      {% if value.license_digest_list == "OPEN" %}
+        <i>open</i>
+      {% else %}
+      {% for license in value.license_list %}
+      {{ license.theme }}
+      {% endfor %}
+      {% endif %}
+    </td>
     <td>{{ value.mtime }}</td>
     <td>{% if value.type != 'folder' %}{{ value.size }}{% endif %}</td>
   </tr>
