@@ -21,6 +21,7 @@ from django.utils.encoding import smart_str
 from buildinfo import BuildInfo
 from models import License
 from openid_auth import OpenIDAuth
+from BeautifulSoup import BeautifulSoup
 
 
 def _hidden_file(file_name):
@@ -229,6 +230,16 @@ def file_server(request, path):
         else:
             up_dir = None
 
+        header_html = os.path.join(path, "HEADER.html")
+        header_content = u""
+        if os.path.isfile(header_html):
+            with open(header_html, "r") as infile:
+                body = infile.read()
+            soup = BeautifulSoup(body)
+            for chunk in soup.findAll(id="content"):
+                header_content += chunk.prettify().decode("utf-8")
+            header_content = '\n'.join(header_content.split('\n')[1:-1])
+
         download = None
         if 'dl' in request.GET:
             download = request.GET['dl']
@@ -236,7 +247,8 @@ def file_server(request, path):
         return render_to_response('dir_template.html',
                                   {'dirlist': dir_list(url, path),
                                    'up_dir': up_dir,
-                                   'dl': download})
+                                   'dl': download,
+                                   'header_content': header_content})
 
     file_name = os.path.basename(path)
 
