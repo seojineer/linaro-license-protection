@@ -102,6 +102,24 @@ def _get_theme(path):
     return vendor[1:]
 
 
+def _get_header_html_content(path):
+    """
+        Read HEADER.html in current directory if exists and return
+        contents of <div id="content"> block to include in rendered
+        html.
+    """
+    header_html = os.path.join(path, "HEADER.html")
+    header_content = u""
+    if os.path.isfile(header_html):
+        with open(header_html, "r") as infile:
+            body = infile.read()
+        soup = BeautifulSoup(body)
+        for chunk in soup.findAll(id="content"):
+            header_content += chunk.prettify().decode("utf-8")
+        header_content = '\n'.join(header_content.split('\n')[1:-1])
+    return header_content
+
+
 def is_protected(path):
     build_info = None
     max_index = 1
@@ -230,16 +248,7 @@ def file_server(request, path):
         else:
             up_dir = None
 
-        header_html = os.path.join(path, "HEADER.html")
-        header_content = u""
-        if os.path.isfile(header_html):
-            with open(header_html, "r") as infile:
-                body = infile.read()
-            soup = BeautifulSoup(body)
-            for chunk in soup.findAll(id="content"):
-                header_content += chunk.prettify().decode("utf-8")
-            header_content = '\n'.join(header_content.split('\n')[1:-1])
-
+        header_content = _get_header_html_content(path)
         download = None
         if 'dl' in request.GET:
             download = request.GET['dl']

@@ -331,5 +331,13 @@ class ViewTests(TestCase):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)
 
+    def test_header_html(self):
+        target_file = "~linaro-android"
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        self.assertContains(response,
+            r"Welcome to the Linaro releases server")
+
 if __name__ == '__main__':
     unittest.main()
