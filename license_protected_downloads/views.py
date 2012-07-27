@@ -21,6 +21,7 @@ from django.utils.encoding import smart_str
 from buildinfo import BuildInfo
 from models import License
 from openid_auth import OpenIDAuth
+from BeautifulSoup import BeautifulSoup
 
 
 def _hidden_file(file_name):
@@ -105,6 +106,24 @@ def _get_theme(path):
     eula = glob.glob(path + ".EULA.txt.*")
     vendor = os.path.splitext(eula[0])[1]
     return vendor[1:]
+
+
+def _get_header_html_content(path):
+    """
+        Read HEADER.html in current directory if exists and return
+        contents of <div id="content"> block to include in rendered
+        html.
+    """
+    header_html = os.path.join(path, "HEADER.html")
+    header_content = u""
+    if os.path.isfile(header_html):
+        with open(header_html, "r") as infile:
+            body = infile.read()
+        soup = BeautifulSoup(body)
+        for chunk in soup.findAll(id="content"):
+            header_content += chunk.prettify().decode("utf-8")
+        header_content = '\n'.join(header_content.split('\n')[1:-1])
+    return header_content
 
 
 def is_protected(path):
@@ -235,6 +254,7 @@ def file_server(request, path):
         else:
             up_dir = None
 
+        header_content = _get_header_html_content(path)
         download = None
         if 'dl' in request.GET:
             download = request.GET['dl']
@@ -242,7 +262,8 @@ def file_server(request, path):
         return render_to_response('dir_template.html',
                                   {'dirlist': dir_list(url, path),
                                    'up_dir': up_dir,
-                                   'dl': download})
+                                   'dl': download,
+                                   'header_content': header_content})
 
     file_name = os.path.basename(path)
 
