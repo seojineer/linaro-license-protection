@@ -64,10 +64,16 @@ def dir_list(url, path):
         size = os.path.getsize(file)
         if not re.search(r'^/', url) and url != '':
             url = '/' + url
+
+        pathname = os.path.join(path, name)
+        license_digest_list = is_protected(pathname)
+        license_list = License.objects.all_with_hashes(license_digest_list)
         listing.append({'name': name,
                         'size': size,
                         'type': type,
                         'mtime': mtime,
+                        'license_digest_list': license_digest_list,
+                        'license_list': license_list,
                         'url': url + '/' + name})
     return listing
 
