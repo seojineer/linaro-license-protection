@@ -190,8 +190,14 @@ Tests
 Testing infrastructure is based on 'testrepository' and requires at least
 Python and Apache2:
 
+To run tests for publisher:
+
   $ testr init
   $ testr run
+
+To run tests for Django application:
+
+  $ python manage.py test
 
 Test plans
 ..........
