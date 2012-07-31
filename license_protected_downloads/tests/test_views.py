@@ -9,6 +9,7 @@ import urlparse
 
 from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.views import _insert_license_into_db
+from license_protected_downloads.config import INTERNAL_HOSTS
 
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 TESTSERVER_ROOT = os.path.join(THIS_DIRECTORY, "testserver_root")
@@ -332,7 +333,7 @@ class ViewTests(TestCase):
         self.assertEqual(response['X-Sendfile'], file_path)
 
     def test_exception_ip_x_forwarded_for(self):
-        internal_host = '50.17.250.69'
+        internal_host = INTERNAL_HOSTS[0]
         target_file = 'build-info/origen-blob.txt'
         url = urlparse.urljoin("http://testserver/", target_file)
         response = self.client.get(url, follow=True,
@@ -344,7 +345,7 @@ class ViewTests(TestCase):
         self.assertEqual(response['X-Sendfile'], file_path)
 
     def test_exception_ip_remote_addr(self):
-        internal_host = '50.17.250.69'
+        internal_host = INTERNAL_HOSTS[0]
         target_file = 'build-info/origen-blob.txt'
         url = urlparse.urljoin("http://testserver/", target_file)
         response = self.client.get(url, follow=True,
