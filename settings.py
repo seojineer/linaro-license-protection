@@ -86,6 +86,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'middleware.MultiHostMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -154,3 +155,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages',
     'django.contrib.auth.context_processors.auth',
 )
+
+HOST_MIDDLEWARE_URLCONF_MAP = {
+    "releases.linaro.org": ROOT_DIR + ".releases_urls",
+    "snapshots.linaro.org": ROOT_DIR + ".snapshots_urls",
+}

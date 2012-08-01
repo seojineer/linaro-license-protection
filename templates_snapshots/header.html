@@ -1,0 +1,19 @@
+<head>
+  {% if dl != None %}
+    <meta http-equiv="REFRESH" content="0;url={{ dl }}">
+  {% endif %}
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <title>Linaro Snapshots</title>
+  <link rel="stylesheet" type="text/css" href="resources/css/ext-all.css" />
+  <link href="http://www.linaro.org/remote/css/init.css" rel="stylesheet" type="text/css" >
+  <link href="http://www.linaro.org/remote/css/remote.css" rel="stylesheet" type="text/css" >
+  <script language="javascript" type="text/javascript" src="http://www.linaro.org/remote/js/linarofamily.js"></script>
+</head>
+<body>
+<div id="head">
+  <h1>Linaro Snapshots</h1>
+</div>
+<div id="content">
+  {% block content %}{% endblock %}
+</body>
+
