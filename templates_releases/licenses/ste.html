@@ -1,0 +1,119 @@
+{% extends "license.html" %}
+
+{% block header %}
+<title>License Agreement</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style language="text/css">
+  html, body {
+    background: white;
+    color: black;
+    margin: 0;
+    padding: 0;
+    font-size: 11pt;
+    font-family: Sans;
+  }
+
+  div#head {
+    height: 180px;
+    width: 100%;
+    background-image: url(/static/igloo-bg.png);
+    background-repeat: repeat-x;
+  }
+
+  h1 {
+    height: 180px;
+    padding: 2em;
+    padding-left: 180px;
+    margin: 0;
+    margin-right: 1em;
+    margin-left: 1em;
+    color:white;
+    font-size: 140%;
+    font-weight: bold;
+    text-align: left;
+    background-image: url(/static/igloo.png);
+    background-repeat: no-repeat;
+  }
+
+  #content {
+    margin: 0 auto;
+    min-width: 600px;
+    max-width: 920px;
+  }
+
+  h2 {
+    font-size: 120%;
+  }
+
+  #license-text {
+    background: white;
+    color: black;
+    margin: 2em;
+    padding: 2em;
+    height: 50%;
+    overflow: scroll;
+    text-align: left;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+  }
+
+  #actions {
+    padding: 2em;
+    font-size: 80%;
+    margin-bottom: 2em;
+  }
+
+  #actions .button {
+    background: #08e;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 10px;
+    margin-left: 10px;
+    float: right;
+    font-size: 110%;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+  }
+
+  #actions .button-decline:hover {
+    background: #09f;
+  }
+
+  #actions .button-accept {
+    background: #8b4;
+  }
+
+  #actions .button-accept:hover {
+    background: #9c5;
+  }
+</style>
+{% endblock %}
+
+{% block content-header %}
+<div id="head">
+<h1>
+</h1>
+
+
+</div>
+
+<div id="content">
+
+<div id="license-text">
+{% endblock %}
+{% block content-footer-top %}
+  </div><!-- license-text -->
+
+  <div id="actions">
+
+  <div style="float: left;">If accepting the license doesn't work, enable
+    cookies in your browser.</div><br />
+{% endblock %}
+{% block content-footer-bottom %}
+  </div>
+
+  </div><!-- content -->
+{% endblock %}
