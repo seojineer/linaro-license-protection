@@ -34,6 +34,7 @@ acceptable_job_types = [
     'ubuntu-images',
     'ubuntu-restricted',
     'ubuntu-sysroots',
+    'openembedded',
     'binaries'
     ]
 
@@ -63,6 +64,8 @@ class SnapshotsPublisher(object):
               args.job_type == "ubuntu-images" or
               args.job_type == "ubuntu-restricted" or
               args.job_type == "ubuntu-sysroots"):
+            ret_val = jobname.split('-', 2)
+        elif args.job_type == "openembedded":
             ret_val = jobname.split('-', 2)
         elif args.job_type == "prebuilt":
             # Return value must not be None when we want to ignore it.
@@ -105,6 +108,13 @@ class SnapshotsPublisher(object):
                     [dist_name, hwpack_image, board_rootfs_name,
                      str(args.build_num)])
                 target_dir_path = os.path.join(target_path, target_dir)
+            elif args.job_type == "openembedded":
+                build_dir_path = os.path.join(uploads_path,
+                                              args.job_type,
+                                              args.job_name)
+                target_dir_path = os.path.join(target_path,
+                                              args.job_type,
+                                              args.job_name)
             elif args.job_type == "prebuilt":
                 build_path = '%s/%d' % (args.job_name, args.build_num)
                 build_dir_path = os.path.join(uploads_path, build_path)
