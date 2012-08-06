@@ -69,8 +69,7 @@ def dir_list(url, path):
 
         pathname = os.path.join(path, name)
         license_digest_list = is_protected(pathname)
-        license_list = License.objects.all_with_hashes(license_digest_list,
-                                                       settings.SITE_ID)
+        license_list = License.objects.all_with_hashes(license_digest_list)
         listing.append({'name': name,
                         'size': size,
                         'type': type,
@@ -94,12 +93,8 @@ def test_path(path):
 
 
 def _insert_license_into_db(digest, text, theme):
-    if not License.objects.filter(digest=digest,
-                                  sites__id__exact=settings.SITE_ID):
-        l = License(digest=digest,
-                    text=text,
-                    theme=theme,
-                    sites_id=settings.SITE_ID)
+    if not License.objects.filter(digest=digest):
+        l = License(digest=digest, text=text, theme=theme)
         l.save()
 
 
@@ -209,8 +204,7 @@ def license_accepted(request, digest):
 
 def accept_license(request):
     if "accept" in request.POST:
-        lic = License.objects.filter(digest=request.GET['lic'],
-                                     sites__id__exact=settings.SITE_ID).get()
+        lic = License.objects.filter(digest=request.GET['lic']).get()
         file_url = request.GET['url']
         listing_url = os.path.dirname(file_url)
         response = HttpResponseRedirect(listing_url +
@@ -231,8 +225,7 @@ def show_license(request):
     if 'lic' not in request.GET or 'url' not in request.GET:
         raise Http404
 
-    lic = License.objects.filter(digest=request.GET['lic'],
-                                 sites__id__exact=settings.SITE_ID).get()
+    lic = License.objects.filter(digest=request.GET['lic']).get()
 
     return render_to_response('licenses/' + lic.theme + '.html',
                               {'license': lic,

@@ -20,7 +20,8 @@ sys.path.append("/usr/lib/pymodules/python2.7")
 sys.path.append("/usr/lib/python2.7")
 
 # NOTE: Set actual path to directory containing linaro-license-protection app
-#sys.path.append("linaro-license-protection")
+sys.path.append("/srv/snapshots.linaro.org")
+sys.path.append("/srv/snapshots.linaro.org/linaro-license-protection")
 
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE",
