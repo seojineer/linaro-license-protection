@@ -41,6 +41,22 @@ Testing:
   python 2.7, testrepository (>=0.0.6), python-html2text,
   python-subunit, python-beautifulsoup, python-mock
 
+Deployment steps
+................
+
+- Checkout trunk branch into /srv/releases.linaro.org/linaro-license-protection
+- Create directory for database: /srv/releases.linaro.org/db
+- Create database, from /srv/releases.linaro.org/linaro-license-protection run
+  python ./manage.py syncdb --noinput
+- Create symlink for the application in /srv/snapshots.linaro.org:
+  ln -s /srv/releases.linaro.org/linaro-license-protection \
+  /srv/snapshots.linaro.org/linaro-license-protection
+- Create directory for database: /srv/snapshots.linaro.org/db
+- Create database, from /srv/snapshots.linaro.org/linaro-license-protection run
+  python ./manage.py syncdb --noinput
+- Put apache2 configs from branch lp:~linaro-infrastructure/linaro-license-protection/apache-configs
+  in /etc/apache2/sites-available
+- Enable sites: a2ensite releases.linaro.org snapshots.linaro.org
 
 Technical details
 -----------------
