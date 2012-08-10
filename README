@@ -34,6 +34,7 @@ Dependencies
 ............
 
 libapache2-mod-xsendfile >= 0.10
+libapache2-mod-python
 python-django >= 1.3.1
 python-django-openid-auth
 
