@@ -43,16 +43,26 @@ if __name__ == '__main__':
     refresh_branch(code_root)
     refresh_branch(configs_root)
 
+    os.environ.setdefault(
+        "PYTHONPATH",
+        ":".join(
+            [os.path.dirname(code_root),
+             code_root,
+             os.path.join(configs_root, "django"),
+             os.environ.get("PYTHONPATH", "")]))
+
     # For all configs we've got, do a 'syncdb' and 'collectstatic' steps.
     for config in configs_to_use:
         logger.info("Updating installation with config %s...", config)
-        os.environ.setdefault("DJANGO_SETTINGS_MODULE", config)
+        os.environ["DJANGO_SETTINGS_MODULE"] = config
+        logger.debug("DJANGO_SETTINGS_MODULE=%s",
+                     os.environ.get("DJANGO_SETTINGS_MODULE"))
         logger.debug("Doing 'syncdb'...")
         logger.debug(subprocess.check_output(
-            ["python", "manage.py", "syncdb", "--noinput"], cwd=code_root))
+            ["django-admin", "syncdb", "--noinput"], cwd=code_root))
         # At this time we could only be doing a single 'collectstatic' step,
         # but our configs might change.
         logger.debug("Doing 'collectstatic'...")
         logger.debug(subprocess.check_output(
-            ["python", "manage.py", "collectstatic", "--noinput"],
+            ["django-admin", "collectstatic", "--noinput"],
             cwd=code_root))
