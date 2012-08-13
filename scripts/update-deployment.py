@@ -1,5 +1,39 @@
 #!/usr/bin/env python2.7
 
+"""Update a deployment of lp:linaro-license-protection.
+
+This script assumes that initial deployment has been done in accordance
+with the README as found in lp:linaro-license-protection/configs.
+
+This means at least:
+
+ * /srv/shared-branches/linaro-license-protection
+   Branch of lp:linaro-license-protection (script will do 'bzr pull' on it)
+
+ * /srv/shared-branches/linaro-license-protection-config
+   Branch of lp:linaro-license-protection/configs
+
+ * /srv/staging.snapshots.linaro.org/linaro-license-protection
+   Checkout of /srv/shared-branches/linaro-license-protection
+   (script will do an equivalent of 'bzr update' on it)
+
+   Note that this applies to staging snapshots config.  Replace paths
+   accordingly.
+
+ * /srv/staging.snapshots.linaro.org/configs
+   Checkout of /srv/shared-branches/linaro-license-protection-configs
+
+ * /srv/staging.snapshots.linaro.org/db exists and is writeable by
+   both apache and the user running update-deployment.py script.
+
+ * /srv/staging.snapshots.linaro.org/linaro-license-protection/static
+   is writeable by the user running update-deployment.py script.
+
+Supported configs so far are snapshots.linaro.org, releases.linaro.org,
+staging.snapshots.linaro.org and staging.releases.linaro.org.
+
+"""
+
 import argparse
 import bzrlib.branch
 import logging
@@ -79,6 +113,7 @@ def update_installation(config, installation_root):
     logger.debug(subprocess.check_output(
         ["django-admin", "collectstatic", "--noinput"],
         cwd=code_root))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
