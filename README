@@ -42,89 +42,12 @@ Testing:
   python 2.7, testrepository (>=0.0.6), python-html2text,
   python-subunit, python-beautifulsoup, python-mock
 
-Deployment steps
-................
+Deployment
+..........
 
-This documents our current deployment while at the same time representing
-an example production deployment.
+Please see
 
-1. Install the dependencies
-   (see the "Dependencies" section)
-
-2. Get the code
-
-     mkdir -p /srv/shared-branches
-     cd /srv/shared-branches
-     bzr branch lp:linaro-license-protection
-
-   (we are actually using http URLs since lp: defaults to bzr+ssh which
-   doesn't work on system accounts)
-
-3. Get the configuration
-
-   Configuration files for deploying to snapshots.linaro.org,
-   releases.linaro.org, staging.snapshots.linaro.org
-   and staging.releases.linaro.org all live in
-
-     lp:linaro-license-protection/configs
-
-   We need to branch that into /srv/shared-branches as well:
-
-     cd /srv/shared-branches
-     bzr branch lp:linaro-license-protection/configs linaro-license-protection-configs
-
-4. Checkout branches for the services you want to use:
-
-     (cd /srv/staging.snapshots.linaro.org &&
-      bzr checkout /srv/shared-branches/linaro-license-protection-configs configs &&
-      bzr checkout /srv/shared-branches/linaro-license-protection)
-
-   Replace "/srv/staging.snapshots.linaro.org" with one of
-     /srv/staging.releases.linaro.org
-     /srv/snapshots.linaro.org
-     /srv/releases.linaro.org
-
-   depending on the service you are deploying.
-
-   If you use these paths, none of the config files will need updating.
-
-5. Configure apache2
-
-   Make sure mod-xsendfile and mod-python are enabled.
-   Copy appropriate
-     /srv/staging.snapshots.linaro.org/configs/apache/staging.snapshots.linaro.org
-   files to /etc/apache2/sites-available
-
-   Add appropriate NameVirtualHost directive to
-
-     /etc/apache2/sites-enabled/000-default
-
-   Run "a2ensite staging.snapshots.linaro.org".
-
-   You also need to set up SSL certificate for *snapshots.linaro.org.
-
-6. Create databases and set up static files
-
-   Make sure appropriate configs/django directory is in the PYTHONPATH
-   and set DJANGO_SETTINGS_MODULE and then run django-admin:
-
-     export PYTHONPATH=/srv/staging.snapshots.linaro.org:/srv/staging.snapshots.linaro.org/linaro-license-protection:/srv/staging.snapshots.linaro.org/configs/django
-     export DJANGO_SETTINGS_MODULE=settings_staging_snapshots
-     mkdir -p /srv/staging.snapshots.linaro.org/db
-     django-admin syncdb --noinput
-     django-admin collectstatic --noinput
-
-7. Set up a cron job to keep code updating automatically
-
-   You may want to automatically keep code up to date (mostly for staging)
-   instances.
-
-   There is
-
-     scripts/update-staging.py
-
-   which can be run from a cronjob to keep the above deployment always
-   up to date.
+  http://bazaar.launchpad.net/~linaro-infrastructure/linaro-license-protection/configs/view/head:/README
 
 
 Technical details
