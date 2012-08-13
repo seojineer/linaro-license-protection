@@ -1,18 +1,24 @@
 #!/usr/bin/env python2.7
 
+import argparse
 import bzrlib.branch
 import logging
 import os
+import subprocess
 
 code_base = '/srv/shared-branches'
 branch_name = 'linaro-license-protection'
 configs_branch_name = 'linaro-license-protection-config'
-snapshots_root = '/srv/staging.snapshots.linaro.org'
-releases_root = '/srv/staging.releases.linaro.org'
+snapshots_root = '/srv/snapshots.linaro.org'
+releases_root = '/srv/releases.linaro.org'
+staging_snapshots_root = '/srv/staging.snapshots.linaro.org'
+staging_releases_root = '/srv/staging.releases.linaro.org'
 
 configs_to_use = {
-    "settings_staging_releases": releases_root,
-    "settings_staging_snapshots": snapshots_root,
+    "settings_releases": releases_root,
+    "settings_snapshots": snapshots_root,
+    "settings_staging_releases": staging_releases_root,
+    "settings_staging_snapshots": staging_snapshots_root,
     }
 
 logging_level = logging.DEBUG
@@ -42,41 +48,67 @@ def update_branch(branch_dir):
     code_branch.update()
 
 
+def update_installation(config, installation_root):
+    """Updates a single installation code and databases.
+
+    It expects code and config branches to be simple checkouts so it only
+    does an "update" on them.
+
+    Afterwards, it runs "syncdb" and "collectstatic" steps.
+    """
+    update_branch(os.path.join(installation_root, branch_name))
+    update_branch(os.path.join(installation_root, "configs"))
+    os.environ["PYTHONPATH"] = (
+        ":".join(
+            [installation_root,
+             os.path.join(installation_root, branch_name),
+             os.path.join(installation_root, "configs", "django"),
+             os.environ.get("PYTHONPATH", "")]))
+
+    logger.info("Updating installation in %s with config %s...",
+                installation_root, config)
+    os.environ["DJANGO_SETTINGS_MODULE"] = config
+    logger.debug("DJANGO_SETTINGS_MODULE=%s",
+                 os.environ.get("DJANGO_SETTINGS_MODULE"))
+
+    logger.debug("Doing 'syncdb'...")
+    logger.debug(subprocess.check_output(
+        ["django-admin", "syncdb", "--noinput"], cwd=code_root))
+
+    logger.debug("Doing 'collectstatic'...")
+    logger.debug(subprocess.check_output(
+        ["django-admin", "collectstatic", "--noinput"],
+        cwd=code_root))
+
 if __name__ == '__main__':
-    import subprocess
+    parser = argparse.ArgumentParser(
+        description=(
+            "Update staging deployment of lp:linaro-license-protection."))
+    parser.add_argument(
+        'configs', metavar='CONFIG', nargs='+', choices=configs_to_use.keys(),
+        help=("Django configuration module to use. One of " +
+              ', '.join(configs_to_use.keys())))
+    parser.add_argument("-v", "--verbose", action='count',
+                        help=("Increase the output verbosity. "
+                              "Can be used multiple times"))
+    args = parser.parse_args()
+
+    if args.verbose == 0:
+        logging_level = logging.ERROR
+    elif args.verbose == 1:
+        logging_level = logging.INFO
+    elif args.verbose >= 2:
+        logging_level = logging.DEBUG
 
     logger = logging.getLogger('update-staging')
     logging.basicConfig(
         format='%(asctime)s %(levelname)s: %(message)s',
         level=logging_level)
 
-    # Refresh code.
+    # Refresh code in shared-branches.
     refresh_branch(code_root)
     refresh_branch(configs_root)
 
-    # For all configs we've got, do a 'syncdb' and 'collectstatic' steps.
-    for config in configs_to_use:
-        installation_root = configs_to_use[config]
-        update_branch(os.path.join(installation_root, branch_name))
-        update_branch(os.path.join(installation_root, "configs"))
-        os.environ["PYTHONPATH"] = (
-            ":".join(
-                [installation_root,
-                 os.path.join(installation_root, branch_name),
-                 os.path.join(installation_root, "configs", "django"),
-                 os.environ.get("PYTHONPATH", "")]))
-
-        logger.info("Updating installation in %s with config %s...",
-                    installation_root, config)
-        os.environ["DJANGO_SETTINGS_MODULE"] = config
-        logger.debug("DJANGO_SETTINGS_MODULE=%s",
-                     os.environ.get("DJANGO_SETTINGS_MODULE"))
-        logger.debug("Doing 'syncdb'...")
-        logger.debug(subprocess.check_output(
-            ["django-admin", "syncdb", "--noinput"], cwd=code_root))
-        # At this time we could only be doing a single 'collectstatic' step,
-        # but our configs might change.
-        logger.debug("Doing 'collectstatic'...")
-        logger.debug(subprocess.check_output(
-            ["django-admin", "collectstatic", "--noinput"],
-            cwd=code_root))
+    # We update installations for all the configs we've got.
+    for config in args.configs:
+        update_installation(config, configs_to_use[config])
