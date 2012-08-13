@@ -2,17 +2,23 @@
 
 import bzrlib.branch
 import logging
+import os
 
+code_base = '/srv/shared-branches'
+branch_name = 'linaro-license-protection'
+configs_branch_name = 'linaro-license-protection-config'
+snapshots_root = '/srv/staging.snapshots.linaro.org'
+releases_root = '/srv/staging.releases.linaro.org'
 
-code_root = '/srv/shared-branches/linaro-license-protection'
-configs_root = '/srv/shared-branches/linaro-license-protection-configs'
-
-configs_to_use = [
-    "settings_staging_releases",
-    "settings_staging_snapshots",
-    ]
+configs_to_use = {
+    "settings_staging_releases": releases_root,
+    "settings_staging_snapshots": snapshots_root,
+    }
 
 logging_level = logging.DEBUG
+
+code_root = os.path.join(code_base, branch_name)
+configs_root = os.path.join(code_base, configs_branch_name)
 
 
 def refresh_branch(branch_dir):
@@ -30,8 +36,13 @@ def refresh_branch(branch_dir):
     return code_branch
 
 
+def update_branch(branch_dir):
+    """Does a checkout update."""
+    code_branch = bzrlib.branch.Branch.open(branch_dir)
+    code_branch.update()
+
+
 if __name__ == '__main__':
-    import os
     import subprocess
 
     logger = logging.getLogger('update-staging')
@@ -43,17 +54,20 @@ if __name__ == '__main__':
     refresh_branch(code_root)
     refresh_branch(configs_root)
 
-    os.environ.setdefault(
-        "PYTHONPATH",
-        ":".join(
-            [os.path.dirname(code_root),
-             code_root,
-             os.path.join(configs_root, "django"),
-             os.environ.get("PYTHONPATH", "")]))
-
     # For all configs we've got, do a 'syncdb' and 'collectstatic' steps.
     for config in configs_to_use:
-        logger.info("Updating installation with config %s...", config)
+        installation_root = configs_to_use[config]
+        update_branch(os.path.join(installation_root, branch_name))
+        update_branch(os.path.join(installation_root, "configs"))
+        os.environ["PYTHONPATH"] = (
+            ":".join(
+                [installation_root,
+                 os.path.join(installation_root, branch_name),
+                 os.path.join(installation_root, "configs", "django"),
+                 os.environ.get("PYTHONPATH", "")]))
+
+        logger.info("Updating installation in %s with config %s...",
+                    installation_root, config)
         os.environ["DJANGO_SETTINGS_MODULE"] = config
         logger.debug("DJANGO_SETTINGS_MODULE=%s",
                      os.environ.get("DJANGO_SETTINGS_MODULE"))
