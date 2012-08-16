@@ -18,6 +18,7 @@ from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.utils.encoding import smart_str
 
+import bzr_version
 from buildinfo import BuildInfo
 from models import License
 from openid_auth import OpenIDAuth
@@ -229,7 +230,9 @@ def show_license(request):
 
     return render_to_response('licenses/' + lic.theme + '.html',
                               {'license': lic,
-                               'url': request.GET['url']},
+                               'url': request.GET['url'],
+                               'revno': bzr_version.get_my_bzr_revno(),
+                               },
                               context_instance=RequestContext(request))
 
 
@@ -273,6 +276,7 @@ def file_server(request, path):
                                   {'dirlist': dir_list(url, path),
                                    'up_dir': up_dir,
                                    'dl': download,
+                                   'revno': bzr_version.get_my_bzr_revno(),
                                    'header_content': header_content})
 
     file_name = os.path.basename(path)

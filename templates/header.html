@@ -1,3 +1,4 @@
+<html>
 <head>
   {% if dl != None %}
     <meta http-equiv="REFRESH" content="0;url={{ dl }}">
@@ -8,6 +9,14 @@
   <link href="http://www.linaro.org/remote/css/init.css" rel="stylesheet" type="text/css" >
   <link href="http://www.linaro.org/remote/css/remote.css" rel="stylesheet" type="text/css" >
   <script language="javascript" type="text/javascript" src="http://www.linaro.org/remote/js/linarofamily.js"></script>
+  <style>
+    div#footer {
+      text-align: right;
+      margin: 10px;
+      padding: 10px;
+      width: 75%;
+    }
+  </style>
 </head>
 <body>
 <div id="head">
@@ -15,5 +24,9 @@
 </div>
 <div id="content">
   {% block content %}{% endblock %}
+</div>
+<div id="footer">
+  Running <a href="https://launchpad.net/linaro-license-protection">lp:linaro-license-protection</a> r{{ revno }}.
+</div>
 </body>
-
+</html>
