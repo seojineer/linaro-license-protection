@@ -36,6 +36,7 @@ staging.snapshots.linaro.org and staging.releases.linaro.org.
 
 import argparse
 import bzrlib.branch
+import bzrlib.workingtree
 import logging
 import os
 import subprocess
@@ -54,8 +55,6 @@ configs_to_use = {
     "settings_staging_releases": staging_releases_root,
     "settings_staging_snapshots": staging_snapshots_root,
     }
-
-logging_level = logging.DEBUG
 
 code_root = os.path.join(code_base, branch_name)
 configs_root = os.path.join(code_base, configs_branch_name)
@@ -76,22 +75,22 @@ def refresh_branch(branch_dir):
     return code_branch
 
 
-def update_branch(branch_dir):
+def update_tree(working_tree_dir):
     """Does a checkout update."""
-    code_branch = bzrlib.branch.Branch.open(branch_dir)
-    code_branch.update()
+    code_tree = bzrlib.workingtree.WorkingTree.open(working_tree_dir)
+    code_tree.update()
 
 
 def update_installation(config, installation_root):
     """Updates a single installation code and databases.
 
-    It expects code and config branches to be simple checkouts so it only
-    does an "update" on them.
+    It expects code and config branches to be simple checkouts (working trees)
+    so it only does an "update" on them.
 
     Afterwards, it runs "syncdb" and "collectstatic" steps.
     """
-    update_branch(os.path.join(installation_root, branch_name))
-    update_branch(os.path.join(installation_root, "configs"))
+    update_tree(os.path.join(installation_root, branch_name))
+    update_tree(os.path.join(installation_root, "configs"))
     os.environ["PYTHONPATH"] = (
         ":".join(
             [installation_root,
@@ -128,6 +127,7 @@ if __name__ == '__main__':
                               "Can be used multiple times"))
     args = parser.parse_args()
 
+    logging_level = logging.ERROR
     if args.verbose == 0:
         logging_level = logging.ERROR
     elif args.verbose == 1:
