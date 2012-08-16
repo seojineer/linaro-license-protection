@@ -91,8 +91,8 @@ def update_installation(config, installation_root):
 
     Afterwards, it runs "syncdb" and "collectstatic" steps.
     """
-    update_tree(os.path.join(installation_root, branch_name))
-    update_tree(os.path.join(installation_root, "configs"))
+    refresh_branch(os.path.join(installation_root, branch_name))
+    refresh_branch(os.path.join(installation_root, "configs"))
     os.environ["PYTHONPATH"] = (
         ":".join(
             [installation_root,
