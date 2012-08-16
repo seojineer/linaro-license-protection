@@ -7,6 +7,7 @@ import os
 import unittest
 import urlparse
 
+from license_protected_downloads import bzr_version
 from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.views import _insert_license_into_db
 from license_protected_downloads.config import INTERNAL_HOSTS
@@ -340,6 +341,15 @@ class ViewTests(TestCase):
 
         self.assertContains(response,
             r"Welcome to the Linaro releases server")
+
+    def test_revision_in_header(self):
+        response = self.client.get("http://testserver/", follow=True)
+
+        self.assertContains(response,
+            (r'Running '
+             r'<a href="https://launchpad.net/linaro-license-protection">'
+             r'lp:linaro-license-protection</a> r' +
+             str(bzr_version.get_my_bzr_revno())))
 
     def test_exception_ip_x_forwarded_for(self):
         internal_host = INTERNAL_HOSTS[0]
