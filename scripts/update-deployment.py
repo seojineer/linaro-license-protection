@@ -72,6 +72,8 @@ def refresh_branch(branch_dir):
                     branch_dir, result.old_revno, result.new_revno)
     else:
         logger.info("No changes to pull from %s.", code_branch.get_parent())
+    logger.debug("Updating working tree in %s.", branch_dir)
+    update_tree(branch_dir)
     return code_branch
 
 
