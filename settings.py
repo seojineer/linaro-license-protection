@@ -96,7 +96,9 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = ROOT_DIR + '.urls'
 
-TEMPLATE_DIRS = (os.path.join(PROJECT_ROOT, "templates" ),)
+TEMPLATE_DIRS = (
+    os.path.join(PROJECT_ROOT, "templates" ),
+    )
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -105,11 +107,8 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     'django_openid_auth',
-    # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
     ROOT_DIR + '.license_protected_downloads',
 )
 
@@ -118,13 +117,16 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-LOGIN_URL = '/openid/login/'
+LOGIN_URL = '/linaro-openid/login/'
+LOGIN_REDIRECT_URL = '/'
 
 OPENID_CREATE_USERS = True
 OPENID_SSO_SERVER_URL = 'https://login.launchpad.net/'
-OPENID_LAUNCHPAD_TEAMS_MAPPING = {
-    'linaro': 'linaro',
-}
+OPENID_UPDATE_DETAILS_FROM_SREG = True
+OPENID_LAUNCHPAD_TEAMS_MAPPING_AUTO = True
+OPENID_FOLLOW_RENAMES = True
+OPENID_USE_AS_ADMIN_LOGIN = True
+OPENID_USE_EMAIL_FOR_USERNAME = True
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
