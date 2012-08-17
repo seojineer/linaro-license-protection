@@ -150,7 +150,7 @@ LOGGING = {
     }
 }
 
-SERVED_PATHS = [os.path.join(PROJECT_ROOT, "android")]
+SERVED_PATHS = [os.path.join(PROJECT_ROOT, "sampleroot")]
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages',
