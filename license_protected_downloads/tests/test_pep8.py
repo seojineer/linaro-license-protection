@@ -32,6 +32,7 @@ class TestPep8(TestCase):
         proc = subprocess.Popen(['pep8',
             '--repeat',
             '--ignore=%s' % ','.join(ignore),
+            '--exclude=static',
             '.'],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
