@@ -1,0 +1,96 @@
+Linaro publishing platform development
+======================================
+
+Dependencies
+------------
+
+ * python (>=2.7, untested with python3)
+ * python-beautifulsoup
+ * python-html2text,
+ * python-mock
+ * python-subunit
+ * testrepository (>=0.0.6)
+
+Code structure
+--------------
+
+ * license_protected_downloads/
+
+   Django application doing the file serving for Linaro publishing platform
+
+ * templates/, templates_releases/, templates_snapshots/
+
+   Default and overriding templates for several web sites we run this
+   code on.
+
+ * sampleroot/
+
+   Sample root, helpful for development testing.
+   Contains all possible combinations of options that are supported.
+
+ * scripts/
+
+   Contains a script for moving files from one location to the public
+   location (publish_to_snapshots.py) and a deployment-helper script
+   (update-deployment.py).
+
+   jenkins-post-www.sh is an obsolete script replaced by
+   publish_to_snapshots.
+
+Style
+-----
+
+https://wiki.linaro.org/Platform/Infrastructure/CodingStyle
+
+Upload system
+-------------
+
+Upload system deals with files in a private location and moves them into
+a corresponding subdirectory under the public location (being served through
+the web site).
+
+Script that does that lives in
+
+  scripts/publish_to_snapshots.py
+
+The important concept here is that of "build types": they define what target
+directory a build will end up in, and what, if any, postprocessing to do on it.
+
+A simple 'openembedded' job type is added with the following change:
+
+  https://code.launchpad.net/~fboudra/linaro-license-protection/openembedded-support-lp1032134/+merge/118060
+
+Web site for downloads
+----------------------
+
+This is a django application, so standard django steps apply:
+
+ ./manage.py syncdb
+ ./manage.py collectstatic
+ ./manage.py runserver
+
+Run tests with
+
+ ./manage.py test
+
+Overriding templates for particular hosts
+.........................................
+
+There is already support for providing separate templates for
+releases.linaro.org and snapshots.linaro.org.  Simply put them
+inside one of
+
+  templates_releases/
+  templates_snapshots/
+
+using the same names as in templates/, and they will be given
+preference under appropriate subdomains.
+
+staging instances
+.................
+
+lp:linaro-license-protection code gets automatically rolled out every
+half an hour to
+
+  staging.snapshots.linaro.org
+  staging.releases.linaro.org

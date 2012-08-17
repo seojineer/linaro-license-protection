@@ -1,117 +1,80 @@
-Linaro downloads license protection
-===================================
+Linaro publishing platform
+==========================
 
-Linaro builds sometimes contain "binary blobs"—pieces of binary-only code
+Linaro provides regular builds of Ubuntu, Android, OpenEmbedded, kernels,
+toolchains for supported ARM boards.  They all have slightly differing
+goals and purposes, and require slightly different publication rules.
+
+This code provides a django application allowing restricted and controlled
+access to any published results.  It also contains code which allows for
+publishing in according to structure that the django application requires.
+
+This code is behind snapshots.linaro.org and releases.linaro.org.
+
+Features
+--------
+ * makes use of the regular directory structure on disk
+ * click through licensing with each file potentially having a different
+   license/theme
+ * openid restrictions (by Launchpad teams)
+ * post-processing of all uploads (a script that manages uploads)
+ * per-IP pass-through (for automatic services like a test framework)
+
+Background
+----------
+This code originated as mod_rewrite hacks to provide click-through licensing
+for tarballs containing "binary blobs"—pieces of binary-only code
 which enable extra features like accelerated graphics or multimedia.
 These pieces are distributed under a separate license, and downloading
 images or collections containing them requires some sort of license
 protection.
 
-This code provides such license protection on the hosting web server:
-other parts of infrastructure need to properly integrate with it (see
-eg. android-build.linaro.org section).  At the moment, it's implemented as
-a click-through license acceptance on the server side with Apache+Django.
+However, over time, more and more features were added until a point where
+it was necessary to switch to a better framework for web application
+development such as apache+mod_python+django+mod_xsendfile.
 
-To ensure and prove this keeps working, we are also using automated tests
-with this code.
+Installation and setup
+----------------------
 
+See INSTALL file.
 
-Setup
------
+Publishing new builds
+---------------------
 
-This tree is the base for snapshots.linaro.org and releases.linaro.org www
-roots as served by Apache.  It uses Django and mod_xsendfile.
+To publish a new build, one should include a BUILD-INFO.txt file with
+the build artifacts (see below for the description of the BUILD-INFO.txt
+syntax).
 
-Currently, if BUILD-INFO.txt is found in a directory it is parsed and
-information from that file is used to apply appropriate protection to the
-requested file, otherwise old-style EULA handling is used: if special EULA
-file is found then it is used for selecting license and theme for requested
-file, otherwise all directories/files containing either 'origen' or 'snowball'
-in the URL path are protected with appropriate license (Samsung or ST-E)
-click-through.
+BUILD-INFO.txt file will allow one to specify the access restrictions
+(such as click-through licensing and OpenID-restrictions) and influence
+the display (such as license-theme) of a particular build.
 
-Dependencies
-............
+WARNING: if you want a build type to be protected by OpenID, you need to
+ensure that the appropriate team is added to the list of django groups
+in the database.  Only django admins can do that.
 
-libapache2-mod-xsendfile >= 0.10
-libapache2-mod-python
-python-django >= 1.3.1
-python-django-openid-auth
+Next step is to ensure that
 
-Testing:
-  python 2.7, testrepository (>=0.0.6), python-html2text,
-  python-subunit, python-beautifulsoup, python-mock
+  scripts/publish_to_snapshots.py
 
-Deployment
-..........
+has support for your build type.  Builds are originally placed into
+a single, private location on the target server, and expect a run of
+the above script for them to be placed in the right area.  This script
+can (and should) do any post-processing and checks for your build before
+it is placed in the public area for downloading.
 
-Please see
+Your jenkins job (or whatever is doing the build and pushing the artifacts)
+should use push-over-ssh to push the builds to the server first, and then
+trigger a run of "scripts/publish_to_snapshots.py" with appropriate parameters
+to get it placed under the relevant subtree.
 
-  http://bazaar.launchpad.net/~linaro-infrastructure/linaro-license-protection/configs/view/head:/README
+This ensures that no incomplete files are ever offered for download, and
+allows postprocessing in a secure and controlled manner.
 
-
-Technical details
------------------
-
-releases.linaro.org
-...................
-
-Root directory for releases.linaro.org includes downloadable artifacts served
-by Apache and Django application.
-
-It allows a few hard-coded hosts to bypass the click-through protection,
-by their IPs:
-
- * android-build.linaro.org (50.17.250.69)
- * validation.linaro.org (213.123.120.124)
-
-Currently hosted on mombin.canonical.com.
-
-
-snapshots.linaro.org
-....................
-
-Same basic set-up as releases.linaro.org.
-
-Further, to allow android-build.linaro.org to push to snapshots.linaro.org
-www area directly, we set-up two different users on the system with SSH keys:
-
- * linaro-android-build-publish:
-
-   chrooted to /srv/snapshots.linaro.org/www/android/ and allows sftp
-   access to push files over;  home directory
-
- * linaro-android-build-publish-trigger:
-
-   limited to executing only a single command through
-   /etc/ssh/user-authorized-keys/linaro-android-build-publish-trigger
-
-     command="/home/android-build-linaro-trigger/scripts
-              /trigger-android-build-linaro.sh ${SSH_ORIGINAL_COMMAND#* }"
-
-   (this passes the arguments received from the remote end as well)
-
-   This script does a sudo to 'android-build-linaro' and then runs
-
-     /home/android-build-linaro/scripts/jenkins-post-sftp.sh
-
-   script which moves files from /android/.tmp/ into appropriate
-   build directory.  It expects "build_name/build_number" as command
-   line parameters.
-
-android-build.linaro.org
-........................
-
-Runs Jenkins and uses SFTP plugin to access the above two users.  Private
-keys live in
-
-  /home/ubuntu/snapshots-sync2/linaro-android-build-publish —
-    linaro-android-build-publish
-  /home/ubuntu/snapshots-sync2/linaro-android-build-publish-trigger —
-    linaro-android-build-publish-trigger
-
-To ensure serialization of steps, and allow LAVA submission, these happen as
-build steps, and not as publishing steps.
+After that, if scripts/publish_to_snapshots.py is configured to push
+to the right location, your build files should show up on the host
+running the django application.  BUILD-INFO configuration will take effect,
+so it may be inaccessible to the general public.
 
 
 Build-Info support
@@ -190,32 +153,4 @@ in the same directory as artifacts, finds 'Files-Pattern' block corresponding
 to requested file and applies rules from that block to download procedure.
 If no BUILD-INFO.txt is found it falls back to per-file/per-directory EULA
 protection.
-
-
-Tests
------
-
-Testing infrastructure is based on 'testrepository' and requires at least
-Python and Apache2:
-
-To run tests for publisher:
-
-  $ testr init
-  $ testr run
-
-To run tests for Django application:
-
-  $ python manage.py test
-
-Test plans
-..........
-
-To run the test plans from testplans/ subdirectory against
-snapshots.linaro.org and releases.linaro.org, execute the following:
-
-  $ testr init
-  $ testr run testplans.test_suite
-
-These tests require an internet connection.
-
 

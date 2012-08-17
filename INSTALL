@@ -1,0 +1,78 @@
+Linaro publishing platform installation
+=======================================
+
+Linaro publishing platform currently consists of two separate parts:
+
+ * upload system
+ * web site for downloads
+
+
+Dependencies
+------------
+
+ * python
+ * apache2
+ * libapache2-mod-python
+ * libapache2-mod-xsendfile (>=0.10)
+ * python-django (>=1.3.1)
+ * python-django-openid
+
+To do development, you need a few more dependencies.  Please check the
+HACKING file.
+
+
+Tests
+-----
+
+Testing infrastructure is based on 'testrepository' and requires at least
+Python and Apache2:
+
+To run tests for upload system and helper scripts:
+
+  $ testr init
+  $ testr run
+
+To run tests for Django application:
+
+  $ python manage.py test
+
+Test plans
+..........
+
+To run the test plans from testplans/ subdirectory against
+snapshots.linaro.org and releases.linaro.org, execute the following:
+
+  $ testr init
+  $ testr run testplans.test_suite
+
+These tests require an internet connection.
+
+
+Deployment
+----------
+
+For current Linaro deployment, please see
+
+  http://bazaar.launchpad.net/~linaro-infrastructure/linaro-license-protection/configs/view/head:/README
+
+
+Upload system
+-------------
+
+Upload system deals with files in a private location and moves them into
+a corresponding subdirectory under the public location (being served through
+the web site).
+
+Refer to the Linaro deployment document above to see an example setup.
+
+Web site for downloads
+----------------------
+
+This is a django application, so standard django steps apply:
+
+ ./manage.py syncdb
+ ./manage.py collectstatic
+ ./manage.py runserver
+
+A configuration with mod_wsgi is described in the Linaro deployment README
+(referred to above).
