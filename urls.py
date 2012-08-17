@@ -6,13 +6,13 @@ admin.autodiscover()
 
 
 urlpatterns = patterns('',
-    # Uncomment the admin/doc line below to enable admin documentation:
-    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
 
-    url(r'^openid/', include('django_openid_auth.urls')),
+    # Use "linaro-openid" to allow peaceful coexistence of both
+    # python-apache-openid and django-openid authentication on the
+    # same server.  When we get rid of apache openid protection,
+    # we can go back to using just "openid" here.
+    url(r'^linaro-openid/', include('django_openid_auth.urls')),
     url(r'^logout/$', 'django.contrib.auth.views.logout'),
 
     # The license page...
