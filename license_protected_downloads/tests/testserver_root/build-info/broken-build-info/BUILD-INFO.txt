@@ -1,0 +1,13 @@
+Format-Version: 0asdfk
+
+Files-Patternasdfjklh: *
+Build-Name: landing-snowball
+Theme: stericsson
+License-Type: protasdklfjasfected
+License-Text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p>
+ <p>
+ This Agreement is a legally binding contract between you - either an 
+ individual or a legal entity - (hereinafter referred to as "Licensee") 
+ and ST-Ericsson SA, a company incorporated under the laws of 
+ Switzerland (hereinafter referred to as "ST-Ericsson"). 
+ </p>

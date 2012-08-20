@@ -395,5 +395,21 @@ class ViewTests(TestCase):
         # Test that we use the "samsung" theme. This contains exynos.png
         self.assertContains(response, "exynos.png")
 
+    def test_broken_build_info_directory(self):
+        target_file = "build-info/broken-build-info"
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # If a build-info file is invalid, we don't allow access
+        self.assertEqual(response.status_code, 403)
+
+    def test_broken_build_info_file(self):
+        target_file = "build-info/broken-build-info/test.txt"
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # If a build-info file is invalid, we don't allow access
+        self.assertEqual(response.status_code, 403)
+
 if __name__ == '__main__':
     unittest.main()

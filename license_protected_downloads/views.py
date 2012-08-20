@@ -2,7 +2,6 @@ import glob
 import hashlib
 import mimetypes
 import os
-import os.path
 import re
 import time
 from mimetypes import guess_type
@@ -19,7 +18,7 @@ from django.template import RequestContext
 from django.utils.encoding import smart_str
 
 import bzr_version
-from buildinfo import BuildInfo
+from buildinfo import BuildInfo, IncorrectDataFormatException
 from models import License
 from openid_auth import OpenIDAuth
 from BeautifulSoup import BeautifulSoup
@@ -134,8 +133,15 @@ def is_protected(path):
     buildinfo_path = os.path.join(os.path.dirname(path), "BUILD-INFO.txt")
     open_eula_path = os.path.join(os.path.dirname(path), "OPEN-EULA.txt")
     eula_path = os.path.join(os.path.dirname(path), "EULA.txt")
+
     if os.path.isfile(buildinfo_path):
-        build_info = BuildInfo(path)
+        try:
+            build_info = BuildInfo(path)
+        except IncorrectDataFormatException:
+            # If we can't parse the BuildInfo, return [], which indicates no
+            # license in dir_list and will trigger a 403 error in file_server.
+            return []
+
         license_type = build_info.get("license-type")
         license_text = build_info.get("license-text")
         theme = build_info.get("theme")
@@ -250,7 +256,13 @@ def file_server(request, path):
     path = result[1]
 
     if BuildInfo.build_info_exists(path):
-        build_info = BuildInfo(path)
+        try:
+            build_info = BuildInfo(path)
+        except IncorrectDataFormatException:
+            # If we can't parse the BuildInfo. Return a HttpResponseForbidden.
+            return HttpResponseForbidden(
+                "Error parsing BUILD-INFO.txt")
+
         launchpad_teams = build_info.get("openid-launchpad-teams")
         if launchpad_teams:
             launchpad_teams = launchpad_teams.split(",")
