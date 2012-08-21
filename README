@@ -154,3 +154,14 @@ to requested file and applies rules from that block to download procedure.
 If no BUILD-INFO.txt is found it falls back to per-file/per-directory EULA
 protection.
 
+Custom scripts
+--------------
+
+Validation
+..........
+
+The validation script only purpose is to discover and print the list of
+directories which contain a build but do not have any kind of licensing
+protection. Usage:
+
+./validation.py root_builds_dir
