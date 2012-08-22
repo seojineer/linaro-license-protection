@@ -420,5 +420,15 @@ class ViewTests(TestCase):
         # download it.
         self.assertEqual(response.status_code, 404)
 
+    def test_dot_files_are_hidden(self):
+        target_file = 'open'
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # the directory open contains .hidden.txt - we shouldn't be able to
+        # see it in the listing.
+        self.assertNotContains(response, ".hidden.txt")
+
+
 if __name__ == '__main__':
     unittest.main()
