@@ -1,0 +1,13 @@
+Format-Version: 0.1
+
+Files-Pattern: *protected*
+Build-Name: landing-multi-license
+Theme: samsung
+License-Type: protected
+License-Text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p>
+ <p>
+ </p>
+
+Files-Pattern: *open*
+Build-Name: false-positive
+License-Type: open
