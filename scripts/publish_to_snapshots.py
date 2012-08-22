@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # Move artifacts from a temporary location to a permanent location on s.l.o
 
-import os
-import sys
-import shutil
 import argparse
+import fnmatch
+import os
+import os.path
+import shutil
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--job-type", dest="job_type",
@@ -40,6 +42,23 @@ acceptable_job_types = [
 
 
 class SnapshotsPublisher(object):
+
+    # Files that need no sanitization even when publishing to staging.
+    STAGING_ACCEPTED_FILES = [
+        'BUILD-INFO.txt',
+        'EULA.txt',
+        'OPEN-EULA.txt',
+        '*.EULA.txt.*',
+        ]
+
+    @classmethod
+    def is_accepted_for_staging(cls, filename):
+        """Is filename is in a list of globs in STAGING_ACCEPTED_FILES?"""
+        filename = os.path.basename(filename)
+        for accepted_names in cls.STAGING_ACCEPTED_FILES:
+            if fnmatch.fnmatch(filename, accepted_names):
+                return True
+        return False
 
     def validate_args(self, args):
         # Validate that all the required information

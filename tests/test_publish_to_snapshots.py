@@ -176,6 +176,44 @@ class TestSnapshotsPublisher(TestCase):
         stdout.seek(0)
         self.assertIn("Missing target path", stdout.read())
 
+    def test_is_accepted_for_staging_EULA_txt(self):
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging("EULA.txt"))
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging("/path/to/EULA.txt"))
+        # Full filename should be EULA.txt and nothing should be added to it.
+        self.assertFalse(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "/path/to/EULA.txt.something"))
+
+    def test_is_accepted_for_staging_OPEN_EULA_txt(self):
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "OPEN-EULA.txt"))
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "/path/to/OPEN-EULA.txt"))
+    def test_is_accepted_for_staging_per_file_EULA(self):
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "something.tar.gz.EULA.txt.ste"))
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "/path/to/something.tar.gz.EULA.txt.ste"))
+        # We must have a "theme" for per-file license files in the
+        # EULA-model.
+        self.assertFalse(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "something.tar.gz.EULA.txt"))
+
+    def test_is_accepted_for_staging_build_info(self):
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "BUILD-INFO.txt"))
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "/path/to/BUILD-INFO.txt"))
+
     def test_move_artifacts_kernel_successful_move(self):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
