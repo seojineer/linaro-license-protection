@@ -26,7 +26,7 @@ import config
 
 
 def _hidden_file(file_name):
-    hidden_files = ["BUILD-INFO.txt", "EULA.txt", ".htaccess", "HEADER.html"]
+    hidden_files = ["BUILD-INFO.txt", "EULA.txt", r"^\.", "HEADER.html"]
     for pattern in hidden_files:
         if re.search(pattern, file_name):
             return True
@@ -34,7 +34,7 @@ def _hidden_file(file_name):
 
 
 def _hidden_dir(file_name):
-    hidden_files = [".*openid.*", ".*restricted.*", ".*private.*"]
+    hidden_files = [".*openid.*", ".*restricted.*", ".*private.*", r"^\."]
     for pattern in hidden_files:
         if re.search(pattern, file_name):
             return True
@@ -246,6 +246,20 @@ def redirect_to_root(request):
     return redirect('/')
 
 
+def file_listed(path, url):
+    """Boolean response to "does this files show up in a directory listing."""
+    file_name = os.path.basename(path)
+    dir_name = os.path.dirname(path)
+
+    found = False
+    file_list = dir_list(url, dir_name)
+    for file in file_list:
+        if file["name"] == file_name:
+            found = True
+
+    return found
+
+
 def file_server(request, path):
     url = path
     result = test_path(path)
@@ -292,6 +306,12 @@ def file_server(request, path):
                                    'header_content': header_content})
 
     file_name = os.path.basename(path)
+
+    # If the file listing doesn't contain the file requested for download,
+    # return a 404. This prevents the download of BUILD-INFO.txt and other
+    # hidden files.
+    if not file_listed(path, url):
+        raise Http404
 
     response = None
     if get_client_ip(request) in config.INTERNAL_HOSTS:
