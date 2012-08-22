@@ -64,8 +64,14 @@ class SnapshotsPublisher(object):
     def sanitize_file(cls, file_path):
         """This truncates the file and fills it with its own filename."""
         assert not cls.is_accepted_for_staging(file_path)
+        base_file_name = os.path.basename(file_path)
         protected_file = open(file_path, "w")
+        # Nice property of this is that we are also saving on disk space
+        # needed.
         protected_file.truncate()
+        # To help distinguish files more easily when they are downloaded,
+        # we write out the base file name as the contents.
+        protected_file.write(base_file_name)
         protected_file.close()
 
     def validate_args(self, args):

@@ -223,18 +223,36 @@ class TestSnapshotsPublisher(TestCase):
         self.assertRaises(
             AssertionError, SnapshotsPublisher.sanitize_file, filename)
 
+    def make_temporary_file(self, data):
+        """Creates a temporary file and fills it with data.
+
+        Returns the full file path of the new temporary file.
+        """
+        tmp_file_handle, tmp_filename = tempfile.mkstemp()
+        tmp_file = os.fdopen(tmp_file_handle, "w")
+        tmp_file.write(data)
+        tmp_file.close()
+        return tmp_filename
+
     def test_sanitize_file_loses_original_contents(self):
-        protected_file_handle, protected_filename = tempfile.mkstemp()
-        protected_file = os.fdopen(protected_file_handle, "w")
         original_text = "Some garbage" * 100
-        protected_file.write(original_text)
-        protected_file.close()
+        protected_filename = self.make_temporary_file(original_text)
 
         SnapshotsPublisher.sanitize_file(protected_filename)
-        protected_file = open(protected_filename)
-        new_contents = protected_file.read()
-        protected_file.close()
+        new_contents = open(protected_filename).read()
         self.assertNotEqual(original_text, new_contents)
+        # Clean-up.
+        os.remove(protected_filename)
+
+    def test_sanitize_file_basename_as_contents(self):
+        # It's useful to have an easy way to distinguish files by the content
+        # as well, so we put the basename (filename without a path) in.
+        protected_filename = self.make_temporary_file("Some contents")
+        SnapshotsPublisher.sanitize_file(protected_filename)
+        new_contents = open(protected_filename).read()
+        # Incidentally, the contents are actually the file base name.
+        self.assertEqual(os.path.basename(protected_filename), new_contents)
+        # Clean-up.
         os.remove(protected_filename)
 
     def test_move_artifacts_kernel_successful_move(self):
