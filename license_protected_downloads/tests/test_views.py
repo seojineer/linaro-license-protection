@@ -411,5 +411,24 @@ class ViewTests(TestCase):
         # If a build-info file is invalid, we don't allow access
         self.assertEqual(response.status_code, 403)
 
+    def test_unable_to_download_hidden_files(self):
+        target_file = '~linaro-android/staging-vexpress-a9/OPEN-EULA.txt'
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # This file exists, but isn't listed so we shouldn't be able to
+        # download it.
+        self.assertEqual(response.status_code, 404)
+
+    def test_dot_files_are_hidden(self):
+        target_file = 'open'
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # the directory open contains .hidden.txt - we shouldn't be able to
+        # see it in the listing.
+        self.assertNotContains(response, ".hidden.txt")
+
+
 if __name__ == '__main__':
     unittest.main()
