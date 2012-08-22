@@ -177,7 +177,11 @@ def is_protected(path):
 
     digests = []
 
-    if license_type and license_type != "open":
+    if license_type:
+        if license_type == "open":
+            return "OPEN"
+
+        # File matches a license, isn't open.
         if openid_teams:
             return "OPEN"
         elif license_text:
@@ -189,9 +193,11 @@ def is_protected(path):
                 digests.append(digest)
                 _insert_license_into_db(digest, license_text, theme)
         else:
-            return None
+            # No license text - file as inaccessible.
+            return []
     else:
-        return "OPEN"
+        # No license found - file is inaccessible.
+        return []
 
     return digests
 

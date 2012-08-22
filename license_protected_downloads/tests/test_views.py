@@ -429,6 +429,40 @@ class ViewTests(TestCase):
         # see it in the listing.
         self.assertNotContains(response, ".hidden.txt")
 
+    def test_partial_build_info_file_open(self):
+        target_file = ("partial-license-settings/"
+                       "partially-complete-build-info/"
+                       "should_be_open.txt")
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # If a build-info file specifies this file is open
+        self.assertEqual(response.status_code, 200)
+
+    def test_partial_build_info_file_protected(self):
+        target_file = ("partial-license-settings/"
+                       "partially-complete-build-info/"
+                       "should_be_protected.txt")
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        build_info = BuildInfo(file_path)
+
+        # Try to fetch file from server - we should be redirected
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+        digest = hashlib.md5(build_info.get("license-text")).hexdigest()
+        self.assertRedirects(response, '/license?lic=%s&url=%s' %
+                                       (digest, target_file))
+
+    def test_partial_build_info_file_unspecified(self):
+        target_file = ("partial-license-settings/"
+                       "partially-complete-build-info/"
+                       "should_be_inaccessible.txt")
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # If a build-info file has no information about this file
+        self.assertEqual(response.status_code, 403)
+
 
 if __name__ == '__main__':
     unittest.main()
