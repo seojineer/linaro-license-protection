@@ -67,6 +67,10 @@ def dir_list(url, path):
         if not re.search(r'^/', url) and url != '':
             url = '/' + url
 
+        # Since the code below assume no trailing slash, make sure that
+        # there isn't one.
+        url = re.sub(r'/$', '', url)
+
         pathname = os.path.join(path, name)
         license_digest_list = is_protected(pathname)
         license_list = License.objects.all_with_hashes(license_digest_list)
@@ -267,6 +271,7 @@ def file_listed(path, url):
 
 
 def file_server(request, path):
+    """Serve up a file / directory listing or license page as required"""
     url = path
     result = test_path(path)
     if not result:

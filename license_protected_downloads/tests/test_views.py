@@ -463,6 +463,14 @@ class ViewTests(TestCase):
         # If a build-info file has no information about this file
         self.assertEqual(response.status_code, 403)
 
+    def test_listings_do_not_contain_double_slash_in_link(self):
+        target_file = 'images/'
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # the directory open contains .hidden.txt - we shouldn't be able to
+        # see it in the listing.
+        self.assertNotContains(response, "//origen-blob.txt")
 
 if __name__ == '__main__':
     unittest.main()
