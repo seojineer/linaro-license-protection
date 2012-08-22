@@ -1,26 +1,12 @@
 #!/usr/bin/env python
 # Move artifacts from a temporary location to a permanent location on s.l.o
 
-import os
-import sys
-import shutil
 import argparse
-
-parser = argparse.ArgumentParser()
-parser.add_argument("-t", "--job-type", dest="job_type",
-                    help="Specify the job type (Ex: android/kernel-hwpack)")
-parser.add_argument(
-    "-j", "--job-name", dest="job_name",
-    help=("Specify the job name which resulted the archive to "
-          "be stored. Ex: ${JOB_NAME} should be specified for "
-          "android/ubuntu-{hwpacks,images,sysroots}/binaries and for"
-          "kernel-hwpack ${KERNEL_JOB_NAME}"))
-parser.add_argument(
-        "-n", "--build-num", dest="build_num", type=int,
-        help=("Specify the job build number for android/"
-              "ubuntu-{hwpacks,images,sysroots}/binaries"))
-parser.add_argument("-m", "--manifest", dest="manifest", action='store_true',
-                    help="Optional parameter to generate MANIFEST file")
+import fnmatch
+import os
+import os.path
+import shutil
+import sys
 
 uploads_path = '/srv/snapshots.linaro.org/uploads/'
 target_path = '/srv/snapshots.linaro.org/www/'
@@ -39,20 +25,87 @@ acceptable_job_types = [
     ]
 
 
+def setup_parser():
+    """Set up the argument parser for publish_to_snapshots script."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-s", "--staging", dest="staging", default=False,
+        action='store_true',
+        help=("Perform sanitization on the file to not expose any"
+              "potentially sensitive data.  Used for staging deployment."))
+    parser.add_argument(
+        "-t", "--job-type", dest="job_type",
+        help="Specify the job type (Ex: android/kernel-hwpack)")
+    parser.add_argument(
+        "-j", "--job-name", dest="job_name",
+        help=("Specify the job name which resulted the archive to "
+              "be stored. Ex: ${JOB_NAME} should be specified for "
+              "android/ubuntu-{hwpacks,images,sysroots}/binaries and for"
+              "kernel-hwpack ${KERNEL_JOB_NAME}"))
+    parser.add_argument(
+            "-n", "--build-num", dest="build_num", type=int,
+            help=("Specify the job build number for android/"
+                  "ubuntu-{hwpacks,images,sysroots}/binaries"))
+    parser.add_argument(
+        "-m", "--manifest", dest="manifest",
+        action='store_true',
+        help="Optional parameter to generate MANIFEST file")
+    return parser
+
+
+class PublisherArgumentException(Exception):
+    """There was a problem with one of the publisher arguments."""
+    pass
+
+
 class SnapshotsPublisher(object):
+
+    # Files that need no sanitization even when publishing to staging.
+    STAGING_ACCEPTED_FILES = [
+        'BUILD-INFO.txt',
+        'EULA.txt',
+        'OPEN-EULA.txt',
+        '*.EULA.txt.*',
+        ]
+
+    def __init__(self, argument_parser=None):
+        """Allow moving files around for publishing on snapshots.l.o."""
+        self.argument_parser = argument_parser
+
+    @classmethod
+    def is_accepted_for_staging(cls, filename):
+        """Is filename is in a list of globs in STAGING_ACCEPTED_FILES?"""
+        filename = os.path.basename(filename)
+        for accepted_names in cls.STAGING_ACCEPTED_FILES:
+            if fnmatch.fnmatch(filename, accepted_names):
+                return True
+        return False
+
+    @classmethod
+    def sanitize_file(cls, file_path):
+        """This truncates the file and fills it with its own filename."""
+        assert not cls.is_accepted_for_staging(file_path)
+        base_file_name = os.path.basename(file_path)
+        protected_file = open(file_path, "w")
+        # Nice property of this is that we are also saving on disk space
+        # needed.
+        protected_file.truncate()
+        # To help distinguish files more easily when they are downloaded,
+        # we write out the base file name as the contents.
+        protected_file.write(base_file_name)
+        protected_file.close()
 
     def validate_args(self, args):
         # Validate that all the required information
         # is passed on the command line
         if (args.job_type == None or args.job_name == None or
             args.build_num == None):
-            parser.error(
+            raise PublisherArgumentException(
                 "\nYou must specify job-type, job-name and build-num")
-            return FAIL
 
         if (args.job_type not in acceptable_job_types):
-            parser.error("Invalid job type")
-            return FAIL
+            raise PublisherArgumentException("Invalid job type")
+        return True
 
     def jobname_to_target_subdir(self, args, jobname):
         ret_val = None
@@ -202,7 +255,7 @@ class SnapshotsPublisher(object):
             os.chdir(orig_dir)
             return FAIL
 
-    def move_dir_content(self, src_dir, dest_dir):
+    def move_dir_content(self, src_dir, dest_dir, sanitize=False):
         filelist = os.listdir(src_dir)
         try:
             for file in filelist:
@@ -214,6 +267,11 @@ class SnapshotsPublisher(object):
                         continue
                     else:
                         os.remove(dest)
+                if sanitize and not self.is_accepted_for_staging(src):
+                    # Perform the sanitization before moving the file
+                    # into place.
+                    print "Sanitizing contents of '%s'." % src
+                    self.sanitize_file(src)
                 print "Moving the src '", src, "'to dest'", dest, "'"
                 shutil.move(src, dest)
         except shutil.Error:
@@ -231,7 +289,8 @@ class SnapshotsPublisher(object):
                 if not os.path.isdir(target_dir_path):
                     raise OSError
 
-            self.move_dir_content(build_dir_path, target_dir_path)
+            self.move_dir_content(build_dir_path, target_dir_path,
+                                  sanitize=args.staging)
 
             if (args.job_type == "android" or
                 args.job_type == "ubuntu-hwpacks" or
@@ -265,9 +324,13 @@ class SnapshotsPublisher(object):
 
 
 def main():
-    publisher = SnapshotsPublisher()
-    args = parser.parse_args()
-    publisher.validate_args(args)
+    argument_parser = setup_parser()
+    publisher = SnapshotsPublisher(argument_parser)
+    args = argument_parser.parse_args()
+    try:
+        publisher.validate_args(args)
+    except PublisherArgumentException as exception:
+        argument_parser.error(exception.message)
     try:
         build_dir_path, target_dir_path = publisher.validate_paths(
             args, uploads_path, target_path)

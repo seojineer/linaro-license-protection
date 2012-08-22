@@ -4,10 +4,13 @@ import os
 import sys
 import shutil
 import tempfile
-import argparse
 from StringIO import StringIO
 from testtools import TestCase
-from scripts.publish_to_snapshots import SnapshotsPublisher
+from scripts.publish_to_snapshots import (
+    PublisherArgumentException,
+    SnapshotsPublisher,
+    setup_parser,
+    )
 
 
 class TestSnapshotsPublisher(TestCase):
@@ -18,13 +21,8 @@ class TestSnapshotsPublisher(TestCase):
     orig_dir = os.getcwd()
 
     def setUp(self):
-        self.parser = argparse.ArgumentParser()
-        self.parser.add_argument("-t", "--job-type", dest="job_type")
-        self.parser.add_argument("-j", "--job-name", dest="job_name")
-        self.parser.add_argument("-n", "--build-num", dest="build_num",
-                                 type=int)
-        self.parser.add_argument("-m", "--manifest", dest="manifest",
-                                 action='store_true')
+        self.parser = setup_parser()
+
         if not os.path.isdir(self.uploads_path):
             os.mkdir(self.uploads_path)
 
@@ -72,21 +70,18 @@ class TestSnapshotsPublisher(TestCase):
             ['-t', 'binaries', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
 
+        # Staging parameter is accepted as well.
+        param = self.parser.parse_args(
+            ['--staging', '-t', 'binaries', '-j', 'dummy_job_name', '-n', '1'])
+        self.publisher.validate_args(param)
+
     def test_validate_args_invalid_job_type(self):
-        orig_stderr = sys.stderr
-        stderr = sys.stderr = StringIO()
         self.publisher = SnapshotsPublisher()
         param = self.parser.parse_args(
             ['-t', 'invalid_job_type', '-j', 'dummy_job_name', '-n', '1'])
-        try:
-            self.publisher.validate_args(param)
-        except SystemExit, err:
-            self.assertEqual(err.code, 2, "Expected result")
-        finally:
-            sys.stderr = orig_stderr
-
-        stderr.seek(0)
-        self.assertIn("Invalid job type", stderr.read())
+        self.assertRaisesRegexp(
+            PublisherArgumentException, "Invalid job type",
+            self.publisher.validate_args, param)
 
     def test_validate_args_run_invalid_argument(self):
         orig_stderr = sys.stderr
@@ -120,21 +115,13 @@ class TestSnapshotsPublisher(TestCase):
                       stderr.read())
 
     def test_validate_args_run_none_values(self):
-        orig_stderr = sys.stderr
-        stderr = sys.stderr = StringIO()
         self.publisher = SnapshotsPublisher()
-        try:
-            param = self.parser.parse_args(
-                ['-t', None, '-j', None, '-n', 0])
-            self.publisher.validate_args(param)
-        except SystemExit, err:
-            self.assertEqual(err.code, 2, "None values are not acceptable")
-        finally:
-            sys.stderr = orig_stderr
-
-        stderr.seek(0)
-        self.assertIn("You must specify job-type, job-name and build-num",
-                      stderr.read())
+        param = self.parser.parse_args(
+            ['-t', None, '-j', None, '-n', 0])
+        self.assertRaisesRegexp(
+            PublisherArgumentException,
+            "You must specify job-type, job-name and build-num",
+            self.publisher.validate_args, param)
 
     def test_validate_paths_invalid_uploads_path(self):
         orig_stdout = sys.stdout
@@ -175,6 +162,123 @@ class TestSnapshotsPublisher(TestCase):
 
         stdout.seek(0)
         self.assertIn("Missing target path", stdout.read())
+
+    def test_is_accepted_for_staging_EULA_txt(self):
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging("EULA.txt"))
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging("/path/to/EULA.txt"))
+        # Full filename should be EULA.txt and nothing should be added to it.
+        self.assertFalse(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "/path/to/EULA.txt.something"))
+
+    def test_is_accepted_for_staging_OPEN_EULA_txt(self):
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "OPEN-EULA.txt"))
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "/path/to/OPEN-EULA.txt"))
+
+    def test_is_accepted_for_staging_per_file_EULA(self):
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "something.tar.gz.EULA.txt.ste"))
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "/path/to/something.tar.gz.EULA.txt.ste"))
+        # We must have a "theme" for per-file license files in the
+        # EULA-model.
+        self.assertFalse(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "something.tar.gz.EULA.txt"))
+
+    def test_is_accepted_for_staging_build_info(self):
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "BUILD-INFO.txt"))
+        self.assertTrue(
+            SnapshotsPublisher.is_accepted_for_staging(
+                "/path/to/BUILD-INFO.txt"))
+
+    def test_sanitize_file_assert_on_accepted_files(self):
+        # Since sanitize_file explicitely sanitizes a file,
+        # one needs to ensure outside the function that it's
+        # not being called on one of accepted file names.
+        filename = '/path/to/EULA.txt'
+        self.assertTrue(SnapshotsPublisher.is_accepted_for_staging(filename))
+        self.assertRaises(
+            AssertionError, SnapshotsPublisher.sanitize_file, filename)
+
+    def make_temporary_file(self, data, root=None):
+        """Creates a temporary file and fills it with data.
+
+        Returns the full file path of the new temporary file.
+        """
+        tmp_file_handle, tmp_filename = tempfile.mkstemp(dir=root)
+        tmp_file = os.fdopen(tmp_file_handle, "w")
+        tmp_file.write(data)
+        tmp_file.close()
+        return tmp_filename
+
+    def test_sanitize_file_loses_original_contents(self):
+        original_text = "Some garbage" * 100
+        protected_filename = self.make_temporary_file(original_text)
+
+        SnapshotsPublisher.sanitize_file(protected_filename)
+        new_contents = open(protected_filename).read()
+        self.assertNotEqual(original_text, new_contents)
+        # Clean-up.
+        os.remove(protected_filename)
+
+    def test_sanitize_file_basename_as_contents(self):
+        # It's useful to have an easy way to distinguish files by the content
+        # as well, so we put the basename (filename without a path) in.
+        protected_filename = self.make_temporary_file("Some contents")
+        SnapshotsPublisher.sanitize_file(protected_filename)
+        new_contents = open(protected_filename).read()
+        # Incidentally, the contents are actually the file base name.
+        self.assertEqual(os.path.basename(protected_filename), new_contents)
+        # Clean-up.
+        os.remove(protected_filename)
+
+    def test_move_dir_content_sanitize(self):
+        # A directory containing a file to sanitize is moved with the
+        # data being sanitized first.
+        source_dir = tempfile.mkdtemp()
+        destination_dir = tempfile.mkdtemp()
+        protected_content = "Something secret" * 10
+        protected_file = self.make_temporary_file(protected_content,
+                                                  root=source_dir)
+        publisher = SnapshotsPublisher()
+        publisher.move_dir_content(source_dir, destination_dir, sanitize=True)
+        resulting_file = os.path.join(destination_dir,
+                                      os.path.basename(protected_file))
+        self.assertNotEqual(protected_content,
+                            open(resulting_file).read())
+        shutil.rmtree(source_dir)
+        shutil.rmtree(destination_dir)
+
+    def test_move_dir_content_no_sanitize(self):
+        # A directory containing one of accepted files has it moved
+        # without changes even with sanitization option on.
+        source_dir = tempfile.mkdtemp()
+        destination_dir = tempfile.mkdtemp()
+        allowed_content = "Something public" * 10
+        allowed_file_name = os.path.join(source_dir, "EULA.txt")
+        allowed_file = open(allowed_file_name, "w")
+        allowed_file.write(allowed_content)
+        allowed_file.close()
+
+        publisher = SnapshotsPublisher()
+        publisher.move_dir_content(source_dir, destination_dir, sanitize=True)
+        resulting_file = os.path.join(destination_dir,
+                                      os.path.basename(allowed_file_name))
+        self.assertEqual(allowed_content,
+                         open(resulting_file).read())
+        shutil.rmtree(source_dir)
+        shutil.rmtree(destination_dir)
 
     def test_move_artifacts_kernel_successful_move(self):
         orig_stdout = sys.stdout
