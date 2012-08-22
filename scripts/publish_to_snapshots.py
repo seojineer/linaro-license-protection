@@ -29,6 +29,11 @@ def setup_parser():
     """Set up the argument parser for publish_to_snapshots script."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "-s", "--staging", dest="staging", default=False,
+        action='store_true',
+        help=("Perform sanitization on the file to not expose any"
+              "potentially sensitive data.  Used for staging deployment."))
+    parser.add_argument(
         "-t", "--job-type", dest="job_type",
         help="Specify the job type (Ex: android/kernel-hwpack)")
     parser.add_argument(
@@ -250,7 +255,7 @@ class SnapshotsPublisher(object):
             os.chdir(orig_dir)
             return FAIL
 
-    def move_dir_content(self, src_dir, dest_dir):
+    def move_dir_content(self, src_dir, dest_dir, sanitize=False):
         filelist = os.listdir(src_dir)
         try:
             for file in filelist:
@@ -262,6 +267,11 @@ class SnapshotsPublisher(object):
                         continue
                     else:
                         os.remove(dest)
+                if sanitize and not self.is_accepted_for_staging(src):
+                    # Perform the sanitization before moving the file
+                    # into place.
+                    print "Sanitizing contents of '%s'." % src
+                    self.sanitize_file(src)
                 print "Moving the src '", src, "'to dest'", dest, "'"
                 shutil.move(src, dest)
         except shutil.Error:
@@ -279,7 +289,8 @@ class SnapshotsPublisher(object):
                 if not os.path.isdir(target_dir_path):
                     raise OSError
 
-            self.move_dir_content(build_dir_path, target_dir_path)
+            self.move_dir_content(build_dir_path, target_dir_path,
+                                  sanitize=args.staging)
 
             if (args.job_type == "android" or
                 args.job_type == "ubuntu-hwpacks" or

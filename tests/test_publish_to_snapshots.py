@@ -71,6 +71,11 @@ class TestSnapshotsPublisher(TestCase):
             ['-t', 'binaries', '-j', 'dummy_job_name', '-n', '1'])
         self.publisher.validate_args(param)
 
+        # Staging parameter is accepted as well.
+        param = self.parser.parse_args(
+            ['--staging', '-t', 'binaries', '-j', 'dummy_job_name', '-n', '1'])
+        self.publisher.validate_args(param)
+
     def test_validate_args_invalid_job_type(self):
         self.publisher = SnapshotsPublisher()
         param = self.parser.parse_args(
@@ -206,12 +211,12 @@ class TestSnapshotsPublisher(TestCase):
         self.assertRaises(
             AssertionError, SnapshotsPublisher.sanitize_file, filename)
 
-    def make_temporary_file(self, data):
+    def make_temporary_file(self, data, root=None):
         """Creates a temporary file and fills it with data.
 
         Returns the full file path of the new temporary file.
         """
-        tmp_file_handle, tmp_filename = tempfile.mkstemp()
+        tmp_file_handle, tmp_filename = tempfile.mkstemp(dir=root)
         tmp_file = os.fdopen(tmp_file_handle, "w")
         tmp_file.write(data)
         tmp_file.close()
@@ -237,6 +242,43 @@ class TestSnapshotsPublisher(TestCase):
         self.assertEqual(os.path.basename(protected_filename), new_contents)
         # Clean-up.
         os.remove(protected_filename)
+
+    def test_move_dir_content_sanitize(self):
+        # A directory containing a file to sanitize is moved with the
+        # data being sanitized first.
+        source_dir = tempfile.mkdtemp()
+        destination_dir = tempfile.mkdtemp()
+        protected_content = "Something secret" * 10
+        protected_file = self.make_temporary_file(protected_content,
+                                                  root=source_dir)
+        publisher = SnapshotsPublisher()
+        publisher.move_dir_content(source_dir, destination_dir, sanitize=True)
+        resulting_file = os.path.join(destination_dir,
+                                      os.path.basename(protected_file))
+        self.assertNotEqual(protected_content,
+                            open(resulting_file).read())
+        shutil.rmtree(source_dir)
+        shutil.rmtree(destination_dir)
+
+    def test_move_dir_content_no_sanitize(self):
+        # A directory containing one of accepted files has it moved
+        # without changes even with sanitization option on.
+        source_dir = tempfile.mkdtemp()
+        destination_dir = tempfile.mkdtemp()
+        allowed_content = "Something public" * 10
+        allowed_file_name = os.path.join(source_dir, "EULA.txt")
+        allowed_file = open(allowed_file_name, "w")
+        allowed_file.write(allowed_content)
+        allowed_file.close()
+
+        publisher = SnapshotsPublisher()
+        publisher.move_dir_content(source_dir, destination_dir, sanitize=True)
+        resulting_file = os.path.join(destination_dir,
+                                      os.path.basename(allowed_file_name))
+        self.assertEqual(allowed_content,
+                         open(resulting_file).read())
+        shutil.rmtree(source_dir)
+        shutil.rmtree(destination_dir)
 
     def test_move_artifacts_kernel_successful_move(self):
         orig_stdout = sys.stdout
