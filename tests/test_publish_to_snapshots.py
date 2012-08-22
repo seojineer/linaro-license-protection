@@ -4,7 +4,6 @@ import os
 import sys
 import shutil
 import tempfile
-import argparse
 from StringIO import StringIO
 from testtools import TestCase
 from scripts.publish_to_snapshots import (
@@ -181,6 +180,7 @@ class TestSnapshotsPublisher(TestCase):
         self.assertTrue(
             SnapshotsPublisher.is_accepted_for_staging(
                 "/path/to/OPEN-EULA.txt"))
+
     def test_is_accepted_for_staging_per_file_EULA(self):
         self.assertTrue(
             SnapshotsPublisher.is_accepted_for_staging(
