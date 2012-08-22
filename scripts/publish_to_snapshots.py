@@ -8,22 +8,6 @@ import os.path
 import shutil
 import sys
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-t", "--job-type", dest="job_type",
-                    help="Specify the job type (Ex: android/kernel-hwpack)")
-parser.add_argument(
-    "-j", "--job-name", dest="job_name",
-    help=("Specify the job name which resulted the archive to "
-          "be stored. Ex: ${JOB_NAME} should be specified for "
-          "android/ubuntu-{hwpacks,images,sysroots}/binaries and for"
-          "kernel-hwpack ${KERNEL_JOB_NAME}"))
-parser.add_argument(
-        "-n", "--build-num", dest="build_num", type=int,
-        help=("Specify the job build number for android/"
-              "ubuntu-{hwpacks,images,sysroots}/binaries"))
-parser.add_argument("-m", "--manifest", dest="manifest", action='store_true',
-                    help="Optional parameter to generate MANIFEST file")
-
 uploads_path = '/srv/snapshots.linaro.org/uploads/'
 target_path = '/srv/snapshots.linaro.org/www/'
 PASS = 0
@@ -41,6 +25,34 @@ acceptable_job_types = [
     ]
 
 
+def setup_parser():
+    """Set up the argument parser for publish_to_snapshots script."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-t", "--job-type", dest="job_type",
+        help="Specify the job type (Ex: android/kernel-hwpack)")
+    parser.add_argument(
+        "-j", "--job-name", dest="job_name",
+        help=("Specify the job name which resulted the archive to "
+              "be stored. Ex: ${JOB_NAME} should be specified for "
+              "android/ubuntu-{hwpacks,images,sysroots}/binaries and for"
+              "kernel-hwpack ${KERNEL_JOB_NAME}"))
+    parser.add_argument(
+            "-n", "--build-num", dest="build_num", type=int,
+            help=("Specify the job build number for android/"
+                  "ubuntu-{hwpacks,images,sysroots}/binaries"))
+    parser.add_argument(
+        "-m", "--manifest", dest="manifest",
+        action='store_true',
+        help="Optional parameter to generate MANIFEST file")
+    return parser
+
+
+class PublisherArgumentException(Exception):
+    """There was a problem with one of the publisher arguments."""
+    pass
+
+
 class SnapshotsPublisher(object):
 
     # Files that need no sanitization even when publishing to staging.
@@ -50,6 +62,10 @@ class SnapshotsPublisher(object):
         'OPEN-EULA.txt',
         '*.EULA.txt.*',
         ]
+
+    def __init__(self, argument_parser=None):
+        """Allow moving files around for publishing on snapshots.l.o."""
+        self.argument_parser = argument_parser
 
     @classmethod
     def is_accepted_for_staging(cls, filename):
@@ -79,13 +95,12 @@ class SnapshotsPublisher(object):
         # is passed on the command line
         if (args.job_type == None or args.job_name == None or
             args.build_num == None):
-            parser.error(
+            raise PublisherArgumentException(
                 "\nYou must specify job-type, job-name and build-num")
-            return FAIL
 
         if (args.job_type not in acceptable_job_types):
-            parser.error("Invalid job type")
-            return FAIL
+            raise PublisherArgumentException("Invalid job type")
+        return True
 
     def jobname_to_target_subdir(self, args, jobname):
         ret_val = None
@@ -298,9 +313,13 @@ class SnapshotsPublisher(object):
 
 
 def main():
-    publisher = SnapshotsPublisher()
-    args = parser.parse_args()
-    publisher.validate_args(args)
+    argument_parser = setup_parser()
+    publisher = SnapshotsPublisher(argument_parser)
+    args = argument_parser.parse_args()
+    try:
+        publisher.validate_args(args)
+    except PublisherArgumentException as exception:
+        argument_parser.error(exception.message)
     try:
         build_dir_path, target_dir_path = publisher.validate_paths(
             args, uploads_path, target_path)

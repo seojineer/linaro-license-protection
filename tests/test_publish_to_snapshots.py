@@ -7,7 +7,10 @@ import tempfile
 import argparse
 from StringIO import StringIO
 from testtools import TestCase
-from scripts.publish_to_snapshots import SnapshotsPublisher
+from scripts.publish_to_snapshots import (
+    PublisherArgumentException,
+    SnapshotsPublisher,
+    )
 
 
 class TestSnapshotsPublisher(TestCase):
@@ -73,20 +76,12 @@ class TestSnapshotsPublisher(TestCase):
         self.publisher.validate_args(param)
 
     def test_validate_args_invalid_job_type(self):
-        orig_stderr = sys.stderr
-        stderr = sys.stderr = StringIO()
         self.publisher = SnapshotsPublisher()
         param = self.parser.parse_args(
             ['-t', 'invalid_job_type', '-j', 'dummy_job_name', '-n', '1'])
-        try:
-            self.publisher.validate_args(param)
-        except SystemExit, err:
-            self.assertEqual(err.code, 2, "Expected result")
-        finally:
-            sys.stderr = orig_stderr
-
-        stderr.seek(0)
-        self.assertIn("Invalid job type", stderr.read())
+        self.assertRaisesRegexp(
+            PublisherArgumentException, "Invalid job type",
+            self.publisher.validate_args, param)
 
     def test_validate_args_run_invalid_argument(self):
         orig_stderr = sys.stderr
@@ -120,21 +115,13 @@ class TestSnapshotsPublisher(TestCase):
                       stderr.read())
 
     def test_validate_args_run_none_values(self):
-        orig_stderr = sys.stderr
-        stderr = sys.stderr = StringIO()
         self.publisher = SnapshotsPublisher()
-        try:
-            param = self.parser.parse_args(
-                ['-t', None, '-j', None, '-n', 0])
-            self.publisher.validate_args(param)
-        except SystemExit, err:
-            self.assertEqual(err.code, 2, "None values are not acceptable")
-        finally:
-            sys.stderr = orig_stderr
-
-        stderr.seek(0)
-        self.assertIn("You must specify job-type, job-name and build-num",
-                      stderr.read())
+        param = self.parser.parse_args(
+            ['-t', None, '-j', None, '-n', 0])
+        self.assertRaisesRegexp(
+            PublisherArgumentException,
+            "You must specify job-type, job-name and build-num",
+            self.publisher.validate_args, param)
 
     def test_validate_paths_invalid_uploads_path(self):
         orig_stdout = sys.stdout
