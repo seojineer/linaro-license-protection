@@ -61,4 +61,3 @@ class LinaroScript(object):
         else:
             logging_level = logging.ERROR
         return logging_level
-

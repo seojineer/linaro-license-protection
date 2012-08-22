@@ -34,10 +34,8 @@ staging.snapshots.linaro.org and staging.releases.linaro.org.
 
 """
 
-import argparse
 import bzrlib.branch
 import bzrlib.workingtree
-import logging
 import os
 import subprocess
 
@@ -60,6 +58,7 @@ configs_to_use = {
 
 code_root = os.path.join(code_base, branch_name)
 configs_root = os.path.join(code_base, configs_branch_name)
+
 
 class UpdateDeploymentScript(LinaroScript):
 
@@ -88,8 +87,8 @@ class UpdateDeploymentScript(LinaroScript):
     def update_installation(self, config, installation_root):
         """Updates a single installation code and databases.
 
-        It expects code and config branches to be simple checkouts (working trees)
-        so it only does an "update" on them.
+        It expects code and config branches to be simple checkouts
+        (working trees) so it only does an "update" on them.
 
         Afterwards, it runs "syncdb" and "collectstatic" steps.
         """
