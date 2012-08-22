@@ -41,6 +41,8 @@ import logging
 import os
 import subprocess
 
+from linaroscript import LinaroScript
+
 code_base = '/srv/shared-branches'
 branch_name = 'linaro-license-protection'
 configs_branch_name = 'linaro-license-protection-config'
@@ -59,93 +61,83 @@ configs_to_use = {
 code_root = os.path.join(code_base, branch_name)
 configs_root = os.path.join(code_base, configs_branch_name)
 
+class UpdateDeploymentScript(LinaroScript):
 
-def refresh_branch(branch_dir):
-    """Refreshes a branch checked-out to a branch_dir."""
+    def refresh_branch(self, branch_dir):
+        """Refreshes a branch checked-out to a branch_dir."""
 
-    code_branch = bzrlib.branch.Branch.open(branch_dir)
-    parent_branch = bzrlib.branch.Branch.open(
-        code_branch.get_parent())
-    result = code_branch.pull(source=parent_branch)
-    if result.old_revno != result.new_revno:
-        logger.info("Updated %s from %d to %d.",
-                    branch_dir, result.old_revno, result.new_revno)
-    else:
-        logger.info("No changes to pull from %s.", code_branch.get_parent())
-    logger.debug("Updating working tree in %s.", branch_dir)
-    update_tree(branch_dir)
-    return code_branch
+        code_branch = bzrlib.branch.Branch.open(branch_dir)
+        parent_branch = bzrlib.branch.Branch.open(
+            code_branch.get_parent())
+        result = code_branch.pull(source=parent_branch)
+        if result.old_revno != result.new_revno:
+            self.logger.info("Updated %s from %d to %d.",
+                             branch_dir, result.old_revno, result.new_revno)
+        else:
+            self.logger.info(
+                "No changes to pull from %s.", code_branch.get_parent())
+        self.logger.debug("Updating working tree in %s.", branch_dir)
+        self.update_tree(branch_dir)
+        return code_branch
 
+    def update_tree(self, working_tree_dir):
+        """Does a checkout update."""
+        code_tree = bzrlib.workingtree.WorkingTree.open(working_tree_dir)
+        code_tree.update()
 
-def update_tree(working_tree_dir):
-    """Does a checkout update."""
-    code_tree = bzrlib.workingtree.WorkingTree.open(working_tree_dir)
-    code_tree.update()
+    def update_installation(self, config, installation_root):
+        """Updates a single installation code and databases.
 
+        It expects code and config branches to be simple checkouts (working trees)
+        so it only does an "update" on them.
 
-def update_installation(config, installation_root):
-    """Updates a single installation code and databases.
+        Afterwards, it runs "syncdb" and "collectstatic" steps.
+        """
+        self.refresh_branch(os.path.join(installation_root, branch_name))
+        self.refresh_branch(os.path.join(installation_root, "configs"))
+        os.environ["PYTHONPATH"] = (
+            ":".join(
+                [installation_root,
+                 os.path.join(installation_root, branch_name),
+                 os.path.join(installation_root, "configs", "django"),
+                 os.environ.get("PYTHONPATH", "")]))
 
-    It expects code and config branches to be simple checkouts (working trees)
-    so it only does an "update" on them.
+        self.logger.info("Updating installation in %s with config %s...",
+                         installation_root, config)
+        os.environ["DJANGO_SETTINGS_MODULE"] = config
+        self.logger.debug("DJANGO_SETTINGS_MODULE=%s",
+                          os.environ.get("DJANGO_SETTINGS_MODULE"))
 
-    Afterwards, it runs "syncdb" and "collectstatic" steps.
-    """
-    refresh_branch(os.path.join(installation_root, branch_name))
-    refresh_branch(os.path.join(installation_root, "configs"))
-    os.environ["PYTHONPATH"] = (
-        ":".join(
-            [installation_root,
-             os.path.join(installation_root, branch_name),
-             os.path.join(installation_root, "configs", "django"),
-             os.environ.get("PYTHONPATH", "")]))
+        self.logger.debug("Doing 'syncdb'...")
+        self.logger.debug(subprocess.check_output(
+                ["django-admin", "syncdb", "--noinput"], cwd=code_root))
 
-    logger.info("Updating installation in %s with config %s...",
-                installation_root, config)
-    os.environ["DJANGO_SETTINGS_MODULE"] = config
-    logger.debug("DJANGO_SETTINGS_MODULE=%s",
-                 os.environ.get("DJANGO_SETTINGS_MODULE"))
+        self.logger.debug("Doing 'collectstatic'...")
+        self.logger.debug(subprocess.check_output(
+                ["django-admin", "collectstatic", "--noinput"],
+                cwd=code_root))
 
-    logger.debug("Doing 'syncdb'...")
-    logger.debug(subprocess.check_output(
-        ["django-admin", "syncdb", "--noinput"], cwd=code_root))
+    def setup_parser(self):
+        super(UpdateDeploymentScript, self).setup_parser()
+        self.argument_parser.add_argument(
+            'configs', metavar='CONFIG', nargs='+',
+            choices=configs_to_use.keys(),
+            help=("Django configuration module to use. One of " +
+                  ', '.join(configs_to_use.keys())))
 
-    logger.debug("Doing 'collectstatic'...")
-    logger.debug(subprocess.check_output(
-        ["django-admin", "collectstatic", "--noinput"],
-        cwd=code_root))
+    def work(self):
+        # Refresh code in shared-branches.
+        self.refresh_branch(code_root)
+        self.refresh_branch(configs_root)
+
+        # We update installations for all the configs we've got.
+        for config in self.arguments.configs:
+            self.update_installation(config, configs_to_use[config])
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
+    script = UpdateDeploymentScript(
+        'update-deployment',
         description=(
             "Update staging deployment of lp:linaro-license-protection."))
-    parser.add_argument(
-        'configs', metavar='CONFIG', nargs='+', choices=configs_to_use.keys(),
-        help=("Django configuration module to use. One of " +
-              ', '.join(configs_to_use.keys())))
-    parser.add_argument("-v", "--verbose", action='count',
-                        help=("Increase the output verbosity. "
-                              "Can be used multiple times"))
-    args = parser.parse_args()
-
-    logging_level = logging.ERROR
-    if args.verbose == 0:
-        logging_level = logging.ERROR
-    elif args.verbose == 1:
-        logging_level = logging.INFO
-    elif args.verbose >= 2:
-        logging_level = logging.DEBUG
-
-    logger = logging.getLogger('update-staging')
-    logging.basicConfig(
-        format='%(asctime)s %(levelname)s: %(message)s',
-        level=logging_level)
-
-    # Refresh code in shared-branches.
-    refresh_branch(code_root)
-    refresh_branch(configs_root)
-
-    # We update installations for all the configs we've got.
-    for config in args.configs:
-        update_installation(config, configs_to_use[config])
+    script.run()
