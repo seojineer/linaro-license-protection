@@ -10,6 +10,7 @@ from testtools import TestCase
 from scripts.publish_to_snapshots import (
     PublisherArgumentException,
     SnapshotsPublisher,
+    setup_parser,
     )
 
 
@@ -21,13 +22,8 @@ class TestSnapshotsPublisher(TestCase):
     orig_dir = os.getcwd()
 
     def setUp(self):
-        self.parser = argparse.ArgumentParser()
-        self.parser.add_argument("-t", "--job-type", dest="job_type")
-        self.parser.add_argument("-j", "--job-name", dest="job_name")
-        self.parser.add_argument("-n", "--build-num", dest="build_num",
-                                 type=int)
-        self.parser.add_argument("-m", "--manifest", dest="manifest",
-                                 action='store_true')
+        self.parser = setup_parser()
+
         if not os.path.isdir(self.uploads_path):
             os.mkdir(self.uploads_path)
 
