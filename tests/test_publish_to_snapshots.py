@@ -214,6 +214,15 @@ class TestSnapshotsPublisher(TestCase):
             SnapshotsPublisher.is_accepted_for_staging(
                 "/path/to/BUILD-INFO.txt"))
 
+    def test_sanitize_file_assert_on_accepted_files(self):
+        # Since sanitize_file explicitely sanitizes a file,
+        # one needs to ensure outside the function that it's
+        # not being called on one of accepted file names.
+        filename = '/path/to/EULA.txt'
+        self.assertTrue(SnapshotsPublisher.is_accepted_for_staging(filename))
+        self.assertRaises(
+            AssertionError, SnapshotsPublisher.sanitize_file, filename)
+
     def test_sanitize_file_loses_original_contents(self):
         protected_file_handle, protected_filename = tempfile.mkstemp()
         protected_file = os.fdopen(protected_file_handle, "w")

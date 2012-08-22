@@ -63,7 +63,10 @@ class SnapshotsPublisher(object):
     @classmethod
     def sanitize_file(cls, file_path):
         """This truncates the file and fills it with its own filename."""
-        pass
+        assert not cls.is_accepted_for_staging(file_path)
+        protected_file = open(file_path, "w")
+        protected_file.truncate()
+        protected_file.close()
 
     def validate_args(self, args):
         # Validate that all the required information
