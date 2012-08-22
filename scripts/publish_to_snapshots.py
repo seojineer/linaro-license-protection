@@ -60,6 +60,11 @@ class SnapshotsPublisher(object):
                 return True
         return False
 
+    @classmethod
+    def sanitize_file(cls, file_path):
+        """This truncates the file and fills it with its own filename."""
+        pass
+
     def validate_args(self, args):
         # Validate that all the required information
         # is passed on the command line

@@ -214,6 +214,20 @@ class TestSnapshotsPublisher(TestCase):
             SnapshotsPublisher.is_accepted_for_staging(
                 "/path/to/BUILD-INFO.txt"))
 
+    def test_sanitize_file_loses_original_contents(self):
+        protected_file_handle, protected_filename = tempfile.mkstemp()
+        protected_file = os.fdopen(protected_file_handle, "w")
+        original_text = "Some garbage" * 100
+        protected_file.write(original_text)
+        protected_file.close()
+
+        SnapshotsPublisher.sanitize_file(protected_filename)
+        protected_file = open(protected_filename)
+        new_contents = protected_file.read()
+        protected_file.close()
+        self.assertNotEqual(original_text, new_contents)
+        os.remove(protected_filename)
+
     def test_move_artifacts_kernel_successful_move(self):
         orig_stdout = sys.stdout
         stdout = sys.stdout = StringIO()
