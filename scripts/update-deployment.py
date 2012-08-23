@@ -89,11 +89,14 @@ class UpdateDeploymentScript(LinaroScript):
                                    stderr=subprocess.PIPE)
         process_out, process_err = process.communicate()
         if process_out is not None:
-            logger.debug("stdout:\n" + "\n\t".join(process_out.splitlines()))
+            self.logger.debug(
+                "stdout:\n" + "\n\t".join(process_out.splitlines()))
         if process_err is not None:
-            logger.debug("stderr:\n" + "\n\t".join(process_err.splitlines()))
+            self.logger.debug(
+                "stderr:\n" + "\n\t".join(process_err.splitlines()))
         if process.returncode != 0:
-            logger.error("FAILED %d", process.returncode)
+            self.logger.error(
+                "FAILED %d", process.returncode)
 
     def update_installation(self, config, installation_root):
         """Updates a single installation code and databases.
