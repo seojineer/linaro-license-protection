@@ -1,0 +1,17 @@
+{% extends "header.html" %}
+
+{% block content %}
+  <h1>Forbidden</h1>
+  <p>
+    You do not have the correct group membership to access this file.
+
+    You need to be the member of {{ openid_teams }} in Launchpad.
+
+    If you think you should have access, you can try logging in again and check that
+    one of the required group memberships are selected.
+  </p>
+  <p>
+    <a href="{{ login }}">Login again</a>
+  </p>
+</table>
+{% endblock %}

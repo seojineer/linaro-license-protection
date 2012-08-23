@@ -57,7 +57,23 @@ class TestOpenIDAuth(TestCase):
         response = OpenIDAuth.process_openid_auth(mock_request, openid_teams)
         self.assertIsNotNone(response)
         self.assertTrue(isinstance(response, HttpResponse))
-        self.assertEquals(403, response.status_code)
+        self.assertContains(response,
+            "You need to be the member of the linaro team in Launchpad.",
+            status_code=403)
+
+    def test_check_no_team_membership_authed_multi_teams(self):
+        mock_request = self.make_mock_request()
+        mock_request.user.is_authenticated.return_value = True
+        mock_request.user.groups.all.return_value = [
+            self.make_mock_group("another-group")]
+        openid_teams = ["linaro", "batman", "catwoman", "joker"]
+        response = OpenIDAuth.process_openid_auth(mock_request, openid_teams)
+        self.assertIsNotNone(response)
+        self.assertTrue(isinstance(response, HttpResponse))
+        self.assertContains(response,
+            "You need to be the member of one of the linaro batman, catwoman "
+            "or joker teams in Launchpad.",
+            status_code=403)
 
     @patch("django.contrib.auth.models.Group.objects.get_or_create")
     def test_auto_adding_groups(self, get_or_create_mock):
