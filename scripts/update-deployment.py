@@ -63,7 +63,7 @@ class UpdateDeploymentScript(LinaroScript):
     def refresh_branch(self, branch_dir):
         """Refreshes a branch checked-out to a branch_dir."""
         self.run_subcommand(["bzr", "pull"], branch_dir)
-        self.run_subcommand(["bzr", "up"], working_tree_dir)
+        self.run_subcommand(["bzr", "up"], branch_dir)
 
     def run_subcommand(self, arguments, cwd=None):
         process = subprocess.Popen(arguments, cwd=cwd, stdout=subprocess.PIPE,
