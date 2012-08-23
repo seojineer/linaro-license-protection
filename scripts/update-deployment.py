@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 
 """Update a deployment of lp:linaro-license-protection.
 
@@ -84,6 +84,16 @@ class UpdateDeploymentScript(LinaroScript):
         code_tree = bzrlib.workingtree.WorkingTree.open(working_tree_dir)
         code_tree.update()
 
+    def run_subcommand(self, arguments, cwd=None):
+        process = subprocess.Popen(arguments, cwd=cwd)
+        process_out, process_err = process.communicate()
+        if process_out is not None:
+            logger.debug("stdout:\n" + "\n\t".join(process_out.splitlines()))
+        if process_err is not None:
+            logger.debug("stderr:\n" + "\n\t".join(process_err.splitlines()))
+        if process.returncode != 0:
+            logger.error("FAILED %d", process.returncode)
+
     def update_installation(self, config, installation_root):
         """Updates a single installation code and databases.
 
@@ -108,13 +118,13 @@ class UpdateDeploymentScript(LinaroScript):
                           os.environ.get("DJANGO_SETTINGS_MODULE"))
 
         self.logger.debug("Doing 'syncdb'...")
-        self.logger.debug(subprocess.check_output(
-                ["django-admin", "syncdb", "--noinput"], cwd=code_root))
+        self.run_subcommand(
+                ["django-admin", "syncdb", "--noinput"], cwd=code_root)
 
         self.logger.debug("Doing 'collectstatic'...")
-        self.logger.debug(subprocess.check_output(
+        self.run_subcommand(
                 ["django-admin", "collectstatic", "--noinput"],
-                cwd=code_root))
+                cwd=code_root)
 
     def setup_parser(self):
         super(UpdateDeploymentScript, self).setup_parser()

@@ -55,8 +55,10 @@ class LinaroScript(object):
         if verbosity == 0:
             logging_level = logging.ERROR
         elif verbosity == 1:
+            logging_level = logging.WARNING
+        elif verbosity == 2:
             logging_level = logging.INFO
-        elif verbosity >= 2:
+        elif verbosity >= 3:
             logging_level = logging.DEBUG
         else:
             logging_level = logging.ERROR
