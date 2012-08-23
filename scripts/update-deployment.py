@@ -85,7 +85,8 @@ class UpdateDeploymentScript(LinaroScript):
         code_tree.update()
 
     def run_subcommand(self, arguments, cwd=None):
-        process = subprocess.Popen(arguments, cwd=cwd)
+        process = subprocess.Popen(arguments, cwd=cwd, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
         process_out, process_err = process.communicate()
         if process_out is not None:
             logger.debug("stdout:\n" + "\n\t".join(process_out.splitlines()))
