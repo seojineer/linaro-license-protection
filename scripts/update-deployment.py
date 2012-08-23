@@ -66,12 +66,13 @@ class UpdateDeploymentScript(LinaroScript):
         """Refreshes a branch checked-out to a branch_dir."""
 
         code_branch = bzrlib.branch.Branch.open(branch_dir)
-        parent_branch = bzrlib.branch.Branch.open(
-            code_branch.get_parent())
-        result = code_branch.pull(source=parent_branch)
-        if result.old_revno != result.new_revno:
+        old_revno = code_branch.last_revision_info()[0]
+        self.run_subcommand(["bzr", "pull"], branch_dir)
+        new_revno = code_branch.last_revision_info()[0]
+
+        if old_revno != new_revno:
             self.logger.info("Updated %s from %d to %d.",
-                             branch_dir, result.old_revno, result.new_revno)
+                             branch_dir, old_revno, new_revno)
         else:
             self.logger.info(
                 "No changes to pull from %s.", code_branch.get_parent())
@@ -81,8 +82,7 @@ class UpdateDeploymentScript(LinaroScript):
 
     def update_tree(self, working_tree_dir):
         """Does a checkout update."""
-        code_tree = bzrlib.workingtree.WorkingTree.open(working_tree_dir)
-        code_tree.update()
+        self.run_subcommand(["bzr", "up"], working_tree_dir)
 
     def run_subcommand(self, arguments, cwd=None):
         process = subprocess.Popen(arguments, cwd=cwd, stdout=subprocess.PIPE,
