@@ -10,6 +10,8 @@ import sys
 
 uploads_path = '/srv/snapshots.linaro.org/uploads/'
 target_path = '/srv/snapshots.linaro.org/www/'
+staging_uploads_path = '/srv/staging.snapshots.linaro.org/uploads/'
+staging_target_path = '/srv/staging.snapshots.linaro.org/www/'
 PASS = 0
 FAIL = 1
 acceptable_job_types = [
@@ -324,6 +326,8 @@ class SnapshotsPublisher(object):
 
 
 def main():
+    global uploads_path
+    global target_path
     argument_parser = setup_parser()
     publisher = SnapshotsPublisher(argument_parser)
     args = argument_parser.parse_args()
@@ -331,6 +335,9 @@ def main():
         publisher.validate_args(args)
     except PublisherArgumentException as exception:
         argument_parser.error(exception.message)
+    if args.staging:
+        uploads_path = staging_uploads_path
+        target_path = staging_target_path
     try:
         build_dir_path, target_dir_path = publisher.validate_paths(
             args, uploads_path, target_path)
