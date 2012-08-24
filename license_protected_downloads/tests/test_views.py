@@ -471,7 +471,7 @@ class ViewTests(TestCase):
         # this link should not contain a double slash:
         self.assertNotContains(response, "//origen-blob.txt")
 
-    def test_directory_with_broken_simlink(self):
+    def test_directory_with_broken_symlink(self):
         target_file = 'broken-symlinks'
         url = urlparse.urljoin("http://testserver/", target_file)
         response = self.client.get(url, follow=True)
