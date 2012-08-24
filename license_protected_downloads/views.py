@@ -52,7 +52,13 @@ def dir_list(url, path):
 
         name = file
         file = os.path.join(path, file)
-        mtime = time.ctime(os.path.getmtime(file))
+
+        if os.path.exists(file):
+            mtime = time.ctime(os.path.getmtime(file))
+        else:
+            # If the file we are looking at doesn't exist (broken symlink for
+            # example), it doesn't have a mtime.
+            mtime = 0
 
         type = "other"
         if os.path.isdir(file):
@@ -63,7 +69,13 @@ def dir_list(url, path):
                 if type_tuple[0].split('/')[0] == "text":
                     type = "text"
 
-        size = os.path.getsize(file)
+        if os.path.exists(file):
+            size = os.path.getsize(file)
+        else:
+            # If the file we are looking at doesn't exist (broken symlink for
+            # example), it doesn't have a size
+            size = 0
+
         if not re.search(r'^/', url) and url != '':
             url = '/' + url
 
