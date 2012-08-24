@@ -472,7 +472,7 @@ class ViewTests(TestCase):
         self.assertNotContains(response, "//origen-blob.txt")
 
     def test_directory_with_broken_simlink(self):
-        target_file = 'broken-simlinks'
+        target_file = 'broken-symlinks'
         url = urlparse.urljoin("http://testserver/", target_file)
         response = self.client.get(url, follow=True)
 

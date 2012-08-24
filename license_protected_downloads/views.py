@@ -56,7 +56,7 @@ def dir_list(url, path):
         if os.path.exists(file):
             mtime = time.ctime(os.path.getmtime(file))
         else:
-            # If the file we are looking at doesn't exist (broken simlink for
+            # If the file we are looking at doesn't exist (broken symlink for
             # example), it doesn't have a mtime.
             mtime = 0
 
@@ -72,7 +72,7 @@ def dir_list(url, path):
         if os.path.exists(file):
             size = os.path.getsize(file)
         else:
-            # If the file we are looking at doesn't exist (broken simlink for
+            # If the file we are looking at doesn't exist (broken symlink for
             # example), it doesn't have a size
             size = 0
 
