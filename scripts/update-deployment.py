@@ -34,8 +34,6 @@ staging.snapshots.linaro.org and staging.releases.linaro.org.
 
 """
 
-import bzrlib.branch
-import bzrlib.workingtree
 import os
 import subprocess
 
@@ -64,25 +62,8 @@ class UpdateDeploymentScript(LinaroScript):
 
     def refresh_branch(self, branch_dir):
         """Refreshes a branch checked-out to a branch_dir."""
-
-        code_branch = bzrlib.branch.Branch.open(branch_dir)
-        parent_branch = bzrlib.branch.Branch.open(
-            code_branch.get_parent())
-        result = code_branch.pull(source=parent_branch)
-        if result.old_revno != result.new_revno:
-            self.logger.info("Updated %s from %d to %d.",
-                             branch_dir, result.old_revno, result.new_revno)
-        else:
-            self.logger.info(
-                "No changes to pull from %s.", code_branch.get_parent())
-        self.logger.debug("Updating working tree in %s.", branch_dir)
-        self.update_tree(branch_dir)
-        return code_branch
-
-    def update_tree(self, working_tree_dir):
-        """Does a checkout update."""
-        code_tree = bzrlib.workingtree.WorkingTree.open(working_tree_dir)
-        code_tree.update()
+        self.run_subcommand(["bzr", "pull"], branch_dir)
+        self.run_subcommand(["bzr", "up"], branch_dir)
 
     def run_subcommand(self, arguments, cwd=None):
         process = subprocess.Popen(arguments, cwd=cwd, stdout=subprocess.PIPE,
