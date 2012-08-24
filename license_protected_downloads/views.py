@@ -52,6 +52,12 @@ def dir_list(url, path):
 
         name = file
         file = os.path.join(path, file)
+
+        # If the file we are looking at doesn't exist (broken simlink for
+        # example), ignore it - don't list.
+        if not os.path.exists(file):
+            continue
+
         mtime = time.ctime(os.path.getmtime(file))
 
         type = "other"

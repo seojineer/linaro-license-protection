@@ -471,5 +471,13 @@ class ViewTests(TestCase):
         # this link should not contain a double slash:
         self.assertNotContains(response, "//origen-blob.txt")
 
+    def test_directory_with_broken_simlink(self):
+        target_file = 'broken-simlinks'
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # this test should not cause an exception. Anything else is a pass.
+        self.assertEqual(response.status_code, 200)
+
 if __name__ == '__main__':
     unittest.main()
