@@ -54,7 +54,8 @@ def dir_list(url, path):
         file = os.path.join(path, file)
 
         if os.path.exists(file):
-            mtime = time.ctime(os.path.getmtime(file))
+            mtime = time.strftime('%d-%b-%Y %H:%M',
+                                  time.localtime(os.path.getmtime(file)))
         else:
             # If the file we are looking at doesn't exist (broken symlink for
             # example), it doesn't have a mtime.
