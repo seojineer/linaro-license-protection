@@ -266,8 +266,8 @@ class ViewTests(TestCase):
 
         # If we have access to the file, we will get an X-Sendfile response
         self.assertContains(response,
-            r"<th></th><th>Name</th><th>License</th><th>Last modified</th>"
-            "<th>Size</th>")
+            r"<th></th><th>Name</th><th>Last modified</th>"
+            "<th>Size</th><th>License</th>")
 
     def test_not_found_file(self):
         target_file = "12qwaszx"
