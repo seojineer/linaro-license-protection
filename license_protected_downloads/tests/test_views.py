@@ -10,6 +10,7 @@ import urlparse
 from license_protected_downloads import bzr_version
 from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.views import _insert_license_into_db
+from license_protected_downloads.views import _sizeof_fmt
 from license_protected_downloads.config import INTERNAL_HOSTS
 
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -478,6 +479,14 @@ class ViewTests(TestCase):
 
         # this test should not cause an exception. Anything else is a pass.
         self.assertEqual(response.status_code, 200)
+
+    def test_sizeof_fmt(self):
+        self.assertEqual(_sizeof_fmt(1), '1')
+        self.assertEqual(_sizeof_fmt(1234), '1.2K')
+        self.assertEqual(_sizeof_fmt(1234567), '1.2M')
+        self.assertEqual(_sizeof_fmt(1234567899), '1.1G')
+        self.assertEqual(_sizeof_fmt(1234567899999), '1.1T')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -41,6 +41,19 @@ def _hidden_dir(file_name):
     return False
 
 
+def _sizeof_fmt(num):
+    ''' Returns in human readable format for num.
+    '''
+    if num < 1024 and num > -1024:
+        return str(num)
+    num /= 1024.0
+    for x in ['K', 'M', 'G']:
+        if num < 1024.0 and num > -1024.0:
+            return "%3.1f%s" % (num, x)
+        num /= 1024.0
+    return "%3.1f%s" % (num, 'T')
+
+
 def dir_list(url, path):
     files = os.listdir(path)
     files.sort()
@@ -87,7 +100,7 @@ def dir_list(url, path):
         license_digest_list = is_protected(pathname)
         license_list = License.objects.all_with_hashes(license_digest_list)
         listing.append({'name': name,
-                        'size': size,
+                        'size': _sizeof_fmt(size),
                         'type': type,
                         'mtime': mtime,
                         'license_digest_list': license_digest_list,
