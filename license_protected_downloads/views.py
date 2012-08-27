@@ -5,6 +5,7 @@ import os
 import re
 import time
 from mimetypes import guess_type
+from datetime import datetime
 
 from django.conf import settings
 from django.http import (
@@ -67,8 +68,7 @@ def dir_list(url, path):
         file = os.path.join(path, file)
 
         if os.path.exists(file):
-            mtime = time.strftime('%d-%b-%Y %H:%M',
-                                  time.localtime(os.path.getmtime(file)))
+            mtime = datetime.fromtimestamp(os.path.getmtime(file)).strftime('%d-%b-%Y %H:%M')
         else:
             # If the file we are looking at doesn't exist (broken symlink for
             # example), it doesn't have a mtime.
