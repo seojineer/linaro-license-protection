@@ -5,3 +5,14 @@ INTERNAL_HOSTS = (
     '50.17.250.69',  # android-build.linaro.org
     '82.69.11.23',  # validation.linaro.org
 )
+
+WHITELIST = (
+    '/hwpacks',
+    '/precise/restricted',
+    '/hwpacks/freescale',
+    '/hwpacks/samsung',
+    '/hwpacks/ste',
+    '/hwpacks/ti',
+    '/hwpacks/arm',
+    '/android/~linaro-android-restricted',
+)
