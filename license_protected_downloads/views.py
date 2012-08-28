@@ -3,7 +3,6 @@ import hashlib
 import mimetypes
 import os
 import re
-import time
 from mimetypes import guess_type
 from datetime import datetime
 
@@ -296,6 +295,17 @@ def file_listed(path, url):
     return found
 
 
+def is_whitelisted(url):
+    """ Check if requested file is under whitelisted path.
+    """
+    found = False
+    for path in config.WHITELIST:
+        if re.search(r'^%s' % path, url):
+            found = True
+
+    return found
+
+
 def file_server(request, path):
     """Serve up a file / directory listing or license page as required"""
     url = path
@@ -351,7 +361,8 @@ def file_server(request, path):
         raise Http404
 
     response = None
-    if get_client_ip(request) in config.INTERNAL_HOSTS:
+    if get_client_ip(request) in config.INTERNAL_HOSTS or\
+       is_whitelisted(os.path.join('/', url)):
         digests = 'OPEN'
     else:
         digests = is_protected(path)

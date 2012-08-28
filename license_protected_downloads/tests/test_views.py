@@ -13,6 +13,7 @@ from license_protected_downloads.views import _insert_license_into_db
 from license_protected_downloads.views import _sizeof_fmt
 from license_protected_downloads.config import INTERNAL_HOSTS
 
+
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 TESTSERVER_ROOT = os.path.join(THIS_DIRECTORY, "testserver_root")
 
@@ -486,6 +487,16 @@ class ViewTests(TestCase):
         self.assertEqual(_sizeof_fmt(1234567), '1.2M')
         self.assertEqual(_sizeof_fmt(1234567899), '1.1G')
         self.assertEqual(_sizeof_fmt(1234567899999), '1.1T')
+
+    def test_whitelisted_dirs(self):
+        target_file = "precise/restricted/whitelisted.txt"
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # If we have access to the file, we will get an X-Sendfile response
+        self.assertEqual(response.status_code, 200)
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        self.assertEqual(response['X-Sendfile'], file_path)
 
 
 if __name__ == '__main__':
