@@ -265,17 +265,19 @@ class SnapshotsPublisher(object):
                 dest = os.path.join(dest_dir, file)
                 if os.path.exists(dest):
                     if os.path.isdir(dest):
-                        self.move_dir_content(src, dest)
                         continue
                     else:
                         os.remove(dest)
-                if sanitize and not self.is_accepted_for_staging(src):
-                    # Perform the sanitization before moving the file
-                    # into place.
-                    print "Sanitizing contents of '%s'." % src
-                    self.sanitize_file(src)
-                print "Moving the src '", src, "'to dest'", dest, "'"
-                shutil.move(src, dest)
+                if os.path.isdir(src):
+                    os.mkdir(dest)
+                    self.move_dir_content(src, dest, sanitize)
+                else:
+                    if sanitize and not self.is_accepted_for_staging(src):
+                        # Perform the sanitization before moving the file
+                        # into place.
+                        print "Sanitizing contents of '%s'." % src
+                        self.sanitize_file(src)
+                    shutil.move(src, dest)
         except shutil.Error:
             print "Error while moving the content"
 
