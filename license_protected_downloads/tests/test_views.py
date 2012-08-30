@@ -353,18 +353,6 @@ class ViewTests(TestCase):
              r'lp:linaro-license-protection</a> r' +
              str(bzr_version.get_my_bzr_revno())))
 
-    def test_exception_ip_x_forwarded_for(self):
-        internal_host = INTERNAL_HOSTS[0]
-        target_file = 'build-info/origen-blob.txt'
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True,
-            HTTP_X_FORWARDED_FOR=internal_host)
-
-        # If we have access to the file, we will get an X-Sendfile response
-        self.assertEqual(response.status_code, 200)
-        file_path = os.path.join(TESTSERVER_ROOT, target_file)
-        self.assertEqual(response['X-Sendfile'], file_path)
-
     def test_exception_ip_remote_addr(self):
         internal_host = INTERNAL_HOSTS[0]
         target_file = 'build-info/origen-blob.txt'
