@@ -66,6 +66,7 @@ class UpdateDeploymentScript(LinaroScript):
         self.run_subcommand(["bzr", "up"], branch_dir)
 
     def run_subcommand(self, arguments, cwd=None):
+        self.logger.debug("In %s, running: %s\n", cwd, str(arguments))
         process = subprocess.Popen(arguments, cwd=cwd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
         process_out, process_err = process.communicate()
@@ -114,6 +115,9 @@ class UpdateDeploymentScript(LinaroScript):
     def setup_parser(self):
         super(UpdateDeploymentScript, self).setup_parser()
         self.argument_parser.add_argument(
+            '--bounce-apache', action='store_true', default=False,
+            help="Whether to make Apache reload the configuration.")
+        self.argument_parser.add_argument(
             'configs', metavar='CONFIG', nargs='+',
             choices=configs_to_use.keys(),
             help=("Django configuration module to use. One of " +
@@ -127,6 +131,10 @@ class UpdateDeploymentScript(LinaroScript):
         # We update installations for all the configs we've got.
         for config in self.arguments.configs:
             self.update_installation(config, configs_to_use[config])
+
+        # Finally, bounce apache.
+        if self.arguments.bounce_apache:
+            self.run_subcommand(["sudo", "/etc/init.d/apache2", "reload"])
 
 
 if __name__ == '__main__':
