@@ -620,3 +620,78 @@ class TestSnapshotsPublisher(TestCase):
         msg = "Manifest file " + manifest_file + " generated"
         self.assertIn(msg, res_output)
         self.assertTrue(orig == dest)
+
+    def test_move_artifacts_with_subdirs_successful_move(self):
+        job_dir = 'precise/pre-built/lt-panda/2'
+        orig_stdout = sys.stdout
+        stdout = sys.stdout = StringIO()
+        self.publisher = SnapshotsPublisher()
+        param = self.parser.parse_args(
+            ['-t', 'prebuilt', '-j', 'precise-armhf-ubuntu-desktop',
+             '-n', '1'])
+        self.publisher.validate_args(param)
+        build_dir = '/'.join([param.job_name, str(param.build_num)])
+        build_path = os.path.join(self.uploads_path, build_dir)
+        os.makedirs(build_path)
+        new_subdirs = os.path.join(build_dir, job_dir)
+        new_subdirs_path = os.path.join(self.uploads_path, new_subdirs)
+        os.makedirs(new_subdirs_path)
+        artifact = self.make_temporary_file("Content", root=new_subdirs_path)
+        try:
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(
+                param, self.uploads_path, self.target_path)
+            uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
+            target_dir_path = os.path.join(self.orig_dir, target_dir_path)
+            subdirs = 'precise/pre-built/lt-panda/1'
+            subdirs_path = os.path.join(target_dir_path, subdirs)
+            os.makedirs(subdirs_path)
+            self.publisher.move_artifacts(param, uploads_dir_path,
+                                          target_dir_path)
+
+            moved_artifact = os.path.join(target_dir_path, job_dir,
+                                      os.path.basename(artifact))
+            print moved_artifact
+            self.assertEqual("Content", open(moved_artifact).read())
+        finally:
+            sys.stdout = orig_stdout
+            pass
+
+        stdout.seek(0)
+        self.assertIn("Moved the files from", stdout.read())
+
+    def test_move_artifacts_with_subdirs_sanitizing_successful_move(self):
+        job_dir = 'precise/pre-built/lt-panda/2'
+        orig_stdout = sys.stdout
+        stdout = sys.stdout = StringIO()
+        self.publisher = SnapshotsPublisher()
+        param = self.parser.parse_args(
+            ['-t', 'prebuilt', '-j', 'precise-armhf-ubuntu-desktop',
+             '-n', '1', '-s'])
+        self.publisher.validate_args(param)
+        build_dir = '/'.join([param.job_name, str(param.build_num)])
+        build_path = os.path.join(self.uploads_path, build_dir)
+        os.makedirs(build_path)
+        new_subdirs = os.path.join(build_dir, job_dir)
+        new_subdirs_path = os.path.join(self.uploads_path, new_subdirs)
+        os.makedirs(new_subdirs_path)
+        artifact = self.make_temporary_file("Content", root=new_subdirs_path)
+        try:
+            uploads_dir_path, target_dir_path = self.publisher.validate_paths(
+                param, self.uploads_path, self.target_path)
+            uploads_dir_path = os.path.join(self.orig_dir, uploads_dir_path)
+            target_dir_path = os.path.join(self.orig_dir, target_dir_path)
+            subdirs = 'precise/pre-built/lt-panda/1'
+            subdirs_path = os.path.join(target_dir_path, subdirs)
+            os.makedirs(subdirs_path)
+            self.publisher.move_artifacts(param, uploads_dir_path,
+                                          target_dir_path)
+
+            moved_artifact = os.path.join(target_dir_path, job_dir,
+                                      os.path.basename(artifact))
+        finally:
+            sys.stdout = orig_stdout
+            pass
+
+        stdout.seek(0)
+        self.assertEqual(os.path.basename(artifact), open(moved_artifact).read())
+        self.assertIn("Moved the files from", stdout.read())

@@ -87,15 +87,16 @@ class SnapshotsPublisher(object):
     def sanitize_file(cls, file_path):
         """This truncates the file and fills it with its own filename."""
         assert not cls.is_accepted_for_staging(file_path)
-        base_file_name = os.path.basename(file_path)
-        protected_file = open(file_path, "w")
-        # Nice property of this is that we are also saving on disk space
-        # needed.
-        protected_file.truncate()
-        # To help distinguish files more easily when they are downloaded,
-        # we write out the base file name as the contents.
-        protected_file.write(base_file_name)
-        protected_file.close()
+        if not os.path.isdir(file_path):
+            base_file_name = os.path.basename(file_path)
+            protected_file = open(file_path, "w")
+            # Nice property of this is that we are also saving on disk space
+            # needed.
+            protected_file.truncate()
+            # To help distinguish files more easily when they are downloaded,
+            # we write out the base file name as the contents.
+            protected_file.write(base_file_name)
+            protected_file.close()
 
     def validate_args(self, args):
         # Validate that all the required information
@@ -263,21 +264,22 @@ class SnapshotsPublisher(object):
             for file in filelist:
                 src = os.path.join(src_dir, file)
                 dest = os.path.join(dest_dir, file)
+                if os.path.isdir(src):
+                    if not os.path.exists(dest):
+                        os.makedirs(dest)
+                    self.move_dir_content(src, dest, sanitize)
+                    continue
                 if os.path.exists(dest):
                     if os.path.isdir(dest):
                         continue
                     else:
                         os.remove(dest)
-                if os.path.isdir(src):
-                    os.mkdir(dest)
-                    self.move_dir_content(src, dest, sanitize)
-                else:
-                    if sanitize and not self.is_accepted_for_staging(src):
-                        # Perform the sanitization before moving the file
-                        # into place.
-                        print "Sanitizing contents of '%s'." % src
-                        self.sanitize_file(src)
-                    shutil.move(src, dest)
+                if sanitize and not self.is_accepted_for_staging(src):
+                    # Perform the sanitization before moving the file
+                    # into place.
+                    print "Sanitizing contents of '%s'." % src
+                    self.sanitize_file(src)
+                shutil.move(src, dest)
         except shutil.Error:
             print "Error while moving the content"
 
