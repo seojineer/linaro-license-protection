@@ -6,11 +6,14 @@ import hashlib
 import os
 import unittest
 import urlparse
+import tempfile
 
 from license_protected_downloads import bzr_version
 from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.views import _insert_license_into_db
 from license_protected_downloads.views import _sizeof_fmt
+from license_protected_downloads.views import _process_include_tags
+from license_protected_downloads.views import is_same_parent_dir
 from license_protected_downloads.config import INTERNAL_HOSTS
 
 
@@ -486,6 +489,152 @@ class ViewTests(TestCase):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)
 
+    def make_temporary_file(self, data, root=None):
+        """Creates a temporary file and fills it with data.
+
+        Returns the file name of the new temporary file.
+        """
+        tmp_file_handle, tmp_filename = tempfile.mkstemp(dir=root)
+        tmp_file = os.fdopen(tmp_file_handle, "w")
+        tmp_file.write(data)
+        tmp_file.close()
+        return os.path.basename(tmp_filename)
+
+    def test_replace_self_closing_tag(self):
+        target_file = "readme"
+        old_cwd = os.getcwd()
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        os.chdir(file_path)
+        ret = _process_include_tags(
+                    'Test <linaro:include file="README" /> html')
+        self.assertEqual(ret, r"Test Included from README html")
+        os.chdir(old_cwd)
+
+    def test_replace_self_closing_tag1(self):
+        target_file = "readme"
+        old_cwd = os.getcwd()
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        os.chdir(file_path)
+        ret = _process_include_tags(
+                    'Test <linaro:include file="README"/> html')
+        self.assertEqual(ret, r"Test Included from README html")
+        os.chdir(old_cwd)
+
+    def test_replace_with_closing_tag(self):
+        target_file = "readme"
+        old_cwd = os.getcwd()
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        os.chdir(file_path)
+        ret = _process_include_tags(
+                    'Test <linaro:include file="README">README is missing</linaro:include> html')
+        self.assertEqual(ret, r"Test Included from README html")
+        os.chdir(old_cwd)
+
+    def test_replace_non_existent_file(self):
+        target_file = "readme"
+        old_cwd = os.getcwd()
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        os.chdir(file_path)
+        ret = _process_include_tags(
+                    'Test <linaro:include file="NON_EXISTENT_FILE" /> html')
+        self.assertEqual(ret, r"Test  html")
+        os.chdir(old_cwd)
+
+    def test_replace_empty_file_property(self):
+        target_file = "readme"
+        old_cwd = os.getcwd()
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        os.chdir(file_path)
+        ret = _process_include_tags(
+                    'Test <linaro:include file="" /> html')
+        self.assertEqual(ret, r"Test  html")
+        os.chdir(old_cwd)
+
+    def test_replace_parent_dir(self):
+        target_file = "readme"
+        old_cwd = os.getcwd()
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        os.chdir(file_path)
+        ret = _process_include_tags(
+                    'Test <linaro:include file="../README" /> html')
+        self.assertEqual(ret, r"Test  html")
+        os.chdir(old_cwd)
+
+    def test_replace_subdir(self):
+        target_file = "readme"
+        old_cwd = os.getcwd()
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        os.chdir(file_path)
+        ret = _process_include_tags(
+                    'Test <linaro:include file="subdir/README" /> html')
+        self.assertEqual(ret, r"Test  html")
+        os.chdir(old_cwd)
+
+    def test_replace_subdir_parent_dir(self):
+        target_file = "readme"
+        old_cwd = os.getcwd()
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        os.chdir(file_path)
+        ret = _process_include_tags(
+                    'Test <linaro:include file="subdir/../README" /> html')
+        self.assertEqual(ret, r"Test Included from README html")
+        os.chdir(old_cwd)
+
+    def test_replace_full_path(self):
+        target_file = "readme"
+        old_cwd = os.getcwd()
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        os.chdir(file_path)
+        tmp = self.make_temporary_file("Included from /tmp", root="/tmp")
+        ret = _process_include_tags(
+                    'Test <linaro:include file="/tmp/%s" /> html' % tmp)
+        self.assertEqual(ret, r"Test  html")
+        os.chdir(old_cwd)
+
+    def test_replace_self_dir(self):
+        target_file = "readme"
+        old_cwd = os.getcwd()
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        os.chdir(file_path)
+        ret = _process_include_tags(
+                    'Test <linaro:include file="./README" /> html')
+        self.assertEqual(ret, r"Test Included from README html")
+        os.chdir(old_cwd)
+
+    def test_replace_self_parent_dir(self):
+        target_file = "readme"
+        old_cwd = os.getcwd()
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        os.chdir(file_path)
+        ret = _process_include_tags(
+                    'Test <linaro:include file="./../README" /> html')
+        self.assertEqual(ret, r"Test  html")
+        os.chdir(old_cwd)
+
+    def test_replace_symlink(self):
+        target_file = "readme"
+        old_cwd = os.getcwd()
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        os.chdir(file_path)
+        ret = _process_include_tags(
+                    'Test <linaro:include file="READMELINK" /> html')
+        self.assertEqual(ret, r"Test  html")
+        os.chdir(old_cwd)
+
+    def test_process_include_tags(self):
+        target_file = "readme"
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        self.assertContains(response, r"Included from README")
+
+    def test_is_same_parent_dir_true(self):
+        fname = os.path.join(TESTSERVER_ROOT, "subdir/../file")
+        self.assertTrue(is_same_parent_dir(TESTSERVER_ROOT, fname))
+
+    def test_is_same_parent_dir_false(self):
+        fname = os.path.join(TESTSERVER_ROOT, "../file")
+        self.assertFalse(is_same_parent_dir(TESTSERVER_ROOT, fname))
 
 if __name__ == '__main__':
     unittest.main()

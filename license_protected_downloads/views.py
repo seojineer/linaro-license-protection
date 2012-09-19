@@ -25,6 +25,10 @@ from BeautifulSoup import BeautifulSoup
 import config
 
 
+LINARO_INCLUDE_FILE_RE = re.compile(r'<linaro:include file="(?P<file_name>.*)"[ ]*/>')
+LINARO_INCLUDE_FILE_RE1 = re.compile(r'<linaro:include file="(?P<file_name>.*)">(.*)</linaro:include>')
+
+
 def _hidden_file(file_name):
     hidden_files = ["BUILD-INFO.txt", "EULA.txt", r"^\.", "HEADER.html"]
     for pattern in hidden_files:
@@ -149,11 +153,58 @@ def _get_header_html_content(path):
     if os.path.isfile(header_html):
         with open(header_html, "r") as infile:
             body = infile.read()
+        body = _process_include_tags(body)
         soup = BeautifulSoup(body)
         for chunk in soup.findAll(id="content"):
             header_content += chunk.prettify().decode("utf-8")
         header_content = '\n'.join(header_content.split('\n')[1:-1])
+
     return header_content
+
+
+def is_same_parent_dir(parent, filename):
+    """
+        Checks if filename's parent dir is parent.
+    """
+    full_filename = os.path.join(parent, filename)
+    normalized_path = os.path.normpath(os.path.realpath(full_filename))
+    if parent == os.path.dirname(normalized_path):
+        return True
+
+    return False
+
+
+def read_file_with_include_data(matchobj):
+    """
+        Function to get data for re.sub() in _process_include_tags() from file
+        which name is in named match group 'file_name'.
+        Returns content of file in current directory otherwise empty string.
+    """
+    content = ''
+    current_dir = os.getcwd()
+    fname = matchobj.group('file_name')
+    if is_same_parent_dir(current_dir, fname):
+        if os.path.isfile(fname) and not os.path.islink(fname):
+            with open(fname, "r") as infile:
+                content = infile.read()
+
+    return content
+
+
+def _process_include_tags(content):
+    """
+        Replaces <linaro:include file="README" /> or
+        <linaro:include file="README">text to show</linaro:include> tags
+        with content of README file or empty string if file not found or
+        not allowed.
+    """
+    content = re.sub(LINARO_INCLUDE_FILE_RE,
+                     read_file_with_include_data,
+                     content)
+    content = re.sub(LINARO_INCLUDE_FILE_RE1,
+                     read_file_with_include_data,
+                     content)
+    return content
 
 
 def is_protected(path):
@@ -336,7 +387,10 @@ def file_server(request, path):
         else:
             up_dir = None
 
+        old_cwd = os.getcwd()
+        os.chdir(path)
         header_content = _get_header_html_content(path)
+        os.chdir(old_cwd)
         download = None
         if 'dl' in request.GET:
             download = request.GET['dl']
