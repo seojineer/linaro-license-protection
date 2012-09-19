@@ -576,7 +576,7 @@ class ViewTests(TestCase):
         os.chdir(file_path)
         ret = _process_include_tags(
                     'Test <linaro:include file="subdir/../README" /> html')
-        self.assertEqual(ret, r"Test  html")
+        self.assertEqual(ret, r"Test Included from README html")
         os.chdir(old_cwd)
 
     def test_replace_full_path(self):

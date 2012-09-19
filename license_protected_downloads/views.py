@@ -170,10 +170,13 @@ def read_file_with_include_data(matchobj):
     """
     content = ''
     fname = matchobj.group('file_name')
-    dirname = os.path.dirname(fname)
-    if (not dirname or dirname == '.') and os.path.isfile(fname) and not os.path.islink(fname):
-        with open(fname, "r") as infile:
-            content = infile.read()
+    current_dir = os.getcwd()
+    full_filename = os.path.join(current_dir, fname)
+    normalized_path = os.path.normpath(os.path.realpath(full_filename))
+    if current_dir == os.path.dirname(normalized_path):
+        if os.path.isfile(fname) and not os.path.islink(fname):
+            with open(fname, "r") as infile:
+                content = infile.read()
 
     return content
 
