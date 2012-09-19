@@ -25,6 +25,10 @@ from BeautifulSoup import BeautifulSoup
 import config
 
 
+LINARO_INCLUDE_FILE_RE = re.compile(r'<linaro:include file="(?P<file_name>.*)"[ ]*/>')
+LINARO_INCLUDE_FILE_RE1 = re.compile(r'<linaro:include file="(?P<file_name>.*)">(.*)</linaro:include>')
+
+
 def _hidden_file(file_name):
     hidden_files = ["BUILD-INFO.txt", "EULA.txt", r"^\.", "HEADER.html"]
     for pattern in hidden_files:
@@ -158,14 +162,16 @@ def _get_header_html_content(path):
     return header_content
 
 
-def repl(m):
+def read_file_with_include_data(matchobj):
     """
-        Return content of file in current directory otherwise empty string.
+        Function to get data for re.sub() in _process_include_tags() from file
+        which name is in named match group 'file_name'.
+        Returns content of file in current directory otherwise empty string.
     """
     content = ''
-    fname = m.group('file_name')
+    fname = matchobj.group('file_name')
     dirname = os.path.dirname(fname)
-    if (not dirname or dirname=='.') and os.path.isfile(fname) and not os.path.islink(fname):
+    if (not dirname or dirname == '.') and os.path.isfile(fname) and not os.path.islink(fname):
         with open(fname, "r") as infile:
             content = infile.read()
 
@@ -174,15 +180,17 @@ def repl(m):
 
 def _process_include_tags(content):
     """
-        Replace <linaro:include file="README" /> or
+        Replaces <linaro:include file="README" /> or
         <linaro:include file="README">text to show</linaro:include> tags
         with content of README file or empty string if file not found or
         not allowed.
     """
-    content = re.sub(r'<linaro:include file="(?P<file_name>.*)"[ ]*/>',
-                     repl, content)
-    content = re.sub(r'<linaro:include file="(?P<file_name>.*)">(.*)</linaro:include>',
-                     repl, content)
+    content = re.sub(LINARO_INCLUDE_FILE_RE,
+                     read_file_with_include_data,
+                     content)
+    content = re.sub(LINARO_INCLUDE_FILE_RE1,
+                     read_file_with_include_data,
+                     content)
     return content
 
 
