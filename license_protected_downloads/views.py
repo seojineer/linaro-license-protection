@@ -149,11 +149,41 @@ def _get_header_html_content(path):
     if os.path.isfile(header_html):
         with open(header_html, "r") as infile:
             body = infile.read()
+        body = _process_include_tags(body)
         soup = BeautifulSoup(body)
         for chunk in soup.findAll(id="content"):
             header_content += chunk.prettify().decode("utf-8")
         header_content = '\n'.join(header_content.split('\n')[1:-1])
+
     return header_content
+
+
+def repl(m):
+    """
+        Return content of file in current directory otherwise empty string.
+    """
+    content = ''
+    fname = m.group('file_name')
+    dirname = os.path.dirname(fname)
+    if (not dirname or dirname=='.') and os.path.isfile(fname) and not os.path.islink(fname):
+        with open(fname, "r") as infile:
+            content = infile.read()
+
+    return content
+
+
+def _process_include_tags(content):
+    """
+        Replace <linaro:include file="README" /> or
+        <linaro:include file="README">text to show</linaro:include> tags
+        with content of README file or empty string if file not found or
+        not allowed.
+    """
+    content = re.sub(r'<linaro:include file="(?P<file_name>.*)"[ ]*/>',
+                     repl, content)
+    content = re.sub(r'<linaro:include file="(?P<file_name>.*)">(.*)</linaro:include>',
+                     repl, content)
+    return content
 
 
 def is_protected(path):
@@ -336,7 +366,10 @@ def file_server(request, path):
         else:
             up_dir = None
 
+        old_cwd = os.getcwd()
+        os.chdir(path)
         header_content = _get_header_html_content(path)
+        os.chdir(old_cwd)
         download = None
         if 'dl' in request.GET:
             download = request.GET['dl']
