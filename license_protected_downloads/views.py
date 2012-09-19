@@ -162,6 +162,18 @@ def _get_header_html_content(path):
     return header_content
 
 
+def is_same_parent_dir(parent, filename):
+    """
+        Checks if filename's parent dir is parent.
+    """
+    full_filename = os.path.join(parent, filename)
+    normalized_path = os.path.normpath(os.path.realpath(full_filename))
+    if parent == os.path.dirname(normalized_path):
+        return True
+
+    return False
+
+
 def read_file_with_include_data(matchobj):
     """
         Function to get data for re.sub() in _process_include_tags() from file
@@ -169,11 +181,9 @@ def read_file_with_include_data(matchobj):
         Returns content of file in current directory otherwise empty string.
     """
     content = ''
-    fname = matchobj.group('file_name')
     current_dir = os.getcwd()
-    full_filename = os.path.join(current_dir, fname)
-    normalized_path = os.path.normpath(os.path.realpath(full_filename))
-    if current_dir == os.path.dirname(normalized_path):
+    fname = matchobj.group('file_name')
+    if is_same_parent_dir(current_dir, fname):
         if os.path.isfile(fname) and not os.path.islink(fname):
             with open(fname, "r") as infile:
                 content = infile.read()

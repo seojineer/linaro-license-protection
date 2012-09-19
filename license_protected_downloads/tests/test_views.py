@@ -13,6 +13,7 @@ from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.views import _insert_license_into_db
 from license_protected_downloads.views import _sizeof_fmt
 from license_protected_downloads.views import _process_include_tags
+from license_protected_downloads.views import is_same_parent_dir
 from license_protected_downloads.config import INTERNAL_HOSTS
 
 
@@ -626,6 +627,14 @@ class ViewTests(TestCase):
         response = self.client.get(url, follow=True)
 
         self.assertContains(response, r"Included from README")
+
+    def test_is_same_parent_dir_true(self):
+        fname = os.path.join(TESTSERVER_ROOT, "subdir/../file")
+        self.assertTrue(is_same_parent_dir(TESTSERVER_ROOT, fname))
+
+    def test_is_same_parent_dir_false(self):
+        fname = os.path.join(TESTSERVER_ROOT, "../file")
+        self.assertFalse(is_same_parent_dir(TESTSERVER_ROOT, fname))
 
 if __name__ == '__main__':
     unittest.main()
