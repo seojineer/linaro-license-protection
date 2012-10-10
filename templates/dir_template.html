@@ -46,7 +46,9 @@
 
   {% for title, html_text in rendered_files.items %}
   <div id="tabs-{{ forloop.counter }}">
-    {{ html_text }}
+    {% autoescape off %}
+      {{ html_text }}
+    {% endautoescape %}
   </div>
   {% endfor %}
 
