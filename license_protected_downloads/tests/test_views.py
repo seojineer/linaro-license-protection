@@ -526,7 +526,8 @@ class ViewTests(TestCase):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         os.chdir(file_path)
         ret = _process_include_tags(
-                    'Test <linaro:include file="README">README is missing</linaro:include> html')
+                    'Test <linaro:include file="README">README is missing' + \
+                    '</linaro:include> html')
         self.assertEqual(ret, r"Test Included from README html")
         os.chdir(old_cwd)
 

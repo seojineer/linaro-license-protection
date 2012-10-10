@@ -693,5 +693,6 @@ class TestSnapshotsPublisher(TestCase):
             pass
 
         stdout.seek(0)
-        self.assertEqual(os.path.basename(artifact), open(moved_artifact).read())
+        self.assertEqual(os.path.basename(artifact),
+                         open(moved_artifact).read())
         self.assertIn("Moved the files from", stdout.read())

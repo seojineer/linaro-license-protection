@@ -26,8 +26,10 @@ from BeautifulSoup import BeautifulSoup
 import config
 
 
-LINARO_INCLUDE_FILE_RE = re.compile(r'<linaro:include file="(?P<file_name>.*)"[ ]*/>')
-LINARO_INCLUDE_FILE_RE1 = re.compile(r'<linaro:include file="(?P<file_name>.*)">(.*)</linaro:include>')
+LINARO_INCLUDE_FILE_RE = re.compile(
+    r'<linaro:include file="(?P<file_name>.*)"[ ]*/>')
+LINARO_INCLUDE_FILE_RE1 = re.compile(
+    r'<linaro:include file="(?P<file_name>.*)">(.*)</linaro:include>')
 
 
 def _hidden_file(file_name):
@@ -72,7 +74,8 @@ def dir_list(url, path):
         file = os.path.join(path, file)
 
         if os.path.exists(file):
-            mtime = datetime.fromtimestamp(os.path.getmtime(file)).strftime('%d-%b-%Y %H:%M')
+            mtime = datetime.fromtimestamp(
+                os.path.getmtime(file)).strftime('%d-%b-%Y %H:%M')
         else:
             # If the file we are looking at doesn't exist (broken symlink for
             # example), it doesn't have a mtime.
@@ -403,7 +406,8 @@ def file_server(request, path):
                                    'revno': bzr_version.get_my_bzr_revno(),
                                    'header_content': header_content,
                                    'rendered_files':
-                                   RenderTextFiles.find_and_render(path + "/README")
+                                   RenderTextFiles.find_and_render(
+                                       path + "/README")
                                    })
 
     file_name = os.path.basename(path)

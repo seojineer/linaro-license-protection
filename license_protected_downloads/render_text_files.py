@@ -1,5 +1,5 @@
 from textile.textilefactory import TextileFactory
-import io
+
 
 class RenderTextFiles:
 
@@ -17,7 +17,6 @@ class RenderTextFiles:
         result[title] = formatted
 
         return result
-
 
     @classmethod
     def render_file(cls, file_obj):
