@@ -7,6 +7,9 @@ TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.split(PROJECT_ROOT)[-1]
+ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
+JS_PATH = os.path.join(ROOT_PATH, "js")
+CSS_PATH = os.path.join(ROOT_PATH, "css")
 
 ADMINS = (
     ('linaro-infrastructure', 'infrastructure@linaro.org'),

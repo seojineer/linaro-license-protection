@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.conf.urls.defaults import patterns, include, url
 
 # Uncomment the next two lines to enable the admin:
@@ -14,6 +15,12 @@ urlpatterns = patterns('',
     # we can go back to using just "openid" here.
     url(r'^linaro-openid/', include('django_openid_auth.urls')),
     url(r'^logout/$', 'django.contrib.auth.views.logout'),
+
+    # Handle JS libs and CSS.
+    url(r'^js/(?P<path>.*)$', 'django.views.static.serve',
+        {'document_root': settings.JS_PATH}),
+    url(r'^css/(?P<path>.*)$', 'django.views.static.serve',
+        {'document_root': settings.CSS_PATH}),
 
     # The license page...
     url(r'^license$',

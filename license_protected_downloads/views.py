@@ -19,6 +19,7 @@ from django.utils.encoding import smart_str
 
 import bzr_version
 from buildinfo import BuildInfo, IncorrectDataFormatException
+from render_text_files import RenderTextFiles
 from models import License
 from openid_auth import OpenIDAuth
 from BeautifulSoup import BeautifulSoup
@@ -400,7 +401,10 @@ def file_server(request, path):
                                    'up_dir': up_dir,
                                    'dl': download,
                                    'revno': bzr_version.get_my_bzr_revno(),
-                                   'header_content': header_content})
+                                   'header_content': header_content,
+                                   'rendered_files':
+                                   RenderTextFiles.find_and_render(path)
+                                   })
 
     file_name = os.path.basename(path)
 
