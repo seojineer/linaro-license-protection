@@ -10,7 +10,11 @@ class RenderTextFiles:
     def find_and_render(cls, path):
 
         result = {}
-        file_obj = open(path, 'r')
+
+        try:
+            file_obj = open(path, 'r')
+        except:
+            return None
 
         # TODO: this goes in a loop
         title, formatted = cls.render_file(file_obj)
