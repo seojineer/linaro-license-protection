@@ -9,7 +9,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.split(PROJECT_ROOT)[-1]
 
 ADMINS = (
-    ('linaro-infrastructure', 'infrastructure@linaro.org'),
+    ('linaro-infrastructure', 'linaro-infrastructure-errors@linaro.org'),
 )
 
 MANAGERS = ADMINS
