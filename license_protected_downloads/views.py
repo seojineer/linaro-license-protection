@@ -406,8 +406,7 @@ def file_server(request, path):
                                    'revno': bzr_version.get_my_bzr_revno(),
                                    'header_content': header_content,
                                    'rendered_files':
-                                   RenderTextFiles.find_and_render(
-                                       path + "/README")
+                                   RenderTextFiles.find_and_render(path)
                                    })
 
     file_name = os.path.basename(path)
