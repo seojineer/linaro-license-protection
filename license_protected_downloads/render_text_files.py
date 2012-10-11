@@ -19,6 +19,9 @@ class RenderTextFiles:
             # this is ok, no tabs when none is returned.
             return None
 
+        # TODO: Mocking files. Remove this when gesha is finished implementing
+        # find_relevant_files method.
+        filepaths = ['README', 'HACKING', 'INSTALL']
         if filepaths:
             for filepath in filepaths:
                 try:
