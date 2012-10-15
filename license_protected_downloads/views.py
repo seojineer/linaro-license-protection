@@ -405,6 +405,7 @@ def file_server(request, path):
                                    'dl': download,
                                    'revno': bzr_version.get_my_bzr_revno(),
                                    'header_content': header_content,
+                                   'request': request,
                                    'rendered_files':
                                    RenderTextFiles.find_and_render(path)
                                    })

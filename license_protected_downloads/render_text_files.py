@@ -30,11 +30,9 @@ class RenderTextFiles:
         result = {}
 
         try:
-            # This method should raise some custom error if there is more
-            # then one file of the same type recursively found.
             filepaths = cls.find_relevant_files(path)
         except:
-            # this is ok, no tabs when none is returned.
+            # This is ok, no tabs when none is returned.
             return None
 
         if filepaths:
