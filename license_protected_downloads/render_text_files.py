@@ -8,7 +8,7 @@ UBUNTU_FILES = ('README',
                 'HACKING')
 ANDROID_FILES = ('HOWTO_install.txt',
                  'HOWTO_getsourceandbuild.txt',
-                 'HOWTO_flashuboot.txt')
+                 'HOWTO_flashfirmware.txt')
 
 
 class MultipleFilesException(Exception):
