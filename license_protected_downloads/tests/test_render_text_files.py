@@ -5,8 +5,8 @@ import shutil
 import re
 from license_protected_downloads.render_text_files import RenderTextFiles
 from license_protected_downloads.render_text_files import NoFilesException
-from license_protected_downloads.render_text_files import \
-    MultipleFilesException
+from license_protected_downloads.render_text_files \
+ import MultipleFilesException
 from license_protected_downloads.render_text_files import ANDROID_FILES
 from license_protected_downloads.render_text_files import UBUNTU_FILES
 
@@ -133,6 +133,6 @@ class RenderTextFilesTests(unittest.TestCase):
             full_ubuntu_files.append(os.path.join(path, file))
         paths_list = RenderTextFiles.find_relevant_files(path)
         self.assertEqual(full_ubuntu_files,
-                         sorted(paths_list,
-                                cmp=RenderTextFiles.sort_paths_list_by_files_list))
+            sorted(paths_list,
+                   cmp=RenderTextFiles.sort_paths_list_by_files_list))
         self.assertNotEqual(full_ubuntu_files, paths_list)

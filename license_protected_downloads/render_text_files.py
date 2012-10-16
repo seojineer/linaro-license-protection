@@ -73,12 +73,14 @@ class RenderTextFiles:
         # written above.
         multiple = 0
         filepaths = cls.dirEntries(path, True, UBUNTU_FILES, ANDROID_FILES)
-        if len(filepaths)>0:
+        if len(filepaths) > 0:
             for filepath in UBUNTU_FILES:
-                if len(cls.findall(filepaths, lambda x: re.search(filepath, x)))>1:
+                if len(cls.findall(filepaths,
+                                   lambda x: re.search(filepath, x))) > 1:
                     multiple += 1
             for filepath in ANDROID_FILES:
-                if len(cls.findall(filepaths, lambda x: re.search(filepath, x)))>1:
+                if len(cls.findall(filepaths,
+                                   lambda x: re.search(filepath, x))) > 1:
                     multiple += 1
             if multiple == 0:
                 return filepaths
@@ -131,7 +133,7 @@ class RenderTextFiles:
     def findall(cls, L, test):
         ''' Return indices of list items that pass the 'test'
         '''
-        i=0
+        i = 0
         indices = []
         while(True):
             try:
@@ -141,7 +143,7 @@ class RenderTextFiles:
                 # by searching the value in L[i:]
                 indices.append(L.index(nextvalue, i))
                 # iterate i, that is the next index from where to search
-                i=indices[-1]+1
+                i = indices[-1] + 1
             # when there is no further "good value", filter returns [],
             # hence there is an out of range exception
             except IndexError:
