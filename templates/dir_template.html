@@ -33,4 +33,32 @@
   </tr>
 {% endfor %}
 </table>
+
+
+<br/><br/>
+{% if rendered_files != None %}
+<div id="tabs">
+  <ul id="tabs-titles">
+    {% for title, html_text in rendered_files.items %}
+    <li><a href="#tabs-{{ forloop.counter }}">{{ title }}</a></li>
+    {% endfor %}
+  </ul>
+
+  {% for title, html_text in rendered_files.items %}
+  <div id="tabs-{{ forloop.counter }}">
+    {% autoescape off %}
+      {{ html_text }}
+    {% endautoescape %}
+  </div>
+  {% endfor %}
+
+</div>
+
+<script>
+  $(function() {
+    $("#tabs").tabs();
+  });
+</script>
+{% endif %}
+
 {% endblock %}

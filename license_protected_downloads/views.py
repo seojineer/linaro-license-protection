@@ -19,14 +19,17 @@ from django.utils.encoding import smart_str
 
 import bzr_version
 from buildinfo import BuildInfo, IncorrectDataFormatException
+from render_text_files import RenderTextFiles
 from models import License
 from openid_auth import OpenIDAuth
 from BeautifulSoup import BeautifulSoup
 import config
 
 
-LINARO_INCLUDE_FILE_RE = re.compile(r'<linaro:include file="(?P<file_name>.*)"[ ]*/>')
-LINARO_INCLUDE_FILE_RE1 = re.compile(r'<linaro:include file="(?P<file_name>.*)">(.*)</linaro:include>')
+LINARO_INCLUDE_FILE_RE = re.compile(
+    r'<linaro:include file="(?P<file_name>.*)"[ ]*/>')
+LINARO_INCLUDE_FILE_RE1 = re.compile(
+    r'<linaro:include file="(?P<file_name>.*)">(.*)</linaro:include>')
 
 
 def _hidden_file(file_name):
@@ -71,7 +74,8 @@ def dir_list(url, path):
         file = os.path.join(path, file)
 
         if os.path.exists(file):
-            mtime = datetime.fromtimestamp(os.path.getmtime(file)).strftime('%d-%b-%Y %H:%M')
+            mtime = datetime.fromtimestamp(
+                os.path.getmtime(file)).strftime('%d-%b-%Y %H:%M')
         else:
             # If the file we are looking at doesn't exist (broken symlink for
             # example), it doesn't have a mtime.
@@ -400,7 +404,11 @@ def file_server(request, path):
                                    'up_dir': up_dir,
                                    'dl': download,
                                    'revno': bzr_version.get_my_bzr_revno(),
-                                   'header_content': header_content})
+                                   'header_content': header_content,
+                                   'request': request,
+                                   'rendered_files':
+                                   RenderTextFiles.find_and_render(path)
+                                   })
 
     file_name = os.path.basename(path)
 

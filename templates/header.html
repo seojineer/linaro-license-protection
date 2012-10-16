@@ -5,10 +5,18 @@
   {% endif %}
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
   <title>Linaro Snapshots</title>
-  <link rel="stylesheet" type="text/css" href="resources/css/ext-all.css" />
+  <link rel="stylesheet" type="text/css" href="{% if request.is_secure %}https{% else %}http{% endif %}://{{ request.get_host }}/resources/css/ext-all.css" />
   <link href="http://www.linaro.org/remote/css/init.css" rel="stylesheet" type="text/css" >
   <link href="http://www.linaro.org/remote/css/remote.css" rel="stylesheet" type="text/css" >
   <script language="javascript" type="text/javascript" src="http://www.linaro.org/remote/js/linarofamily.js"></script>
+
+
+  <script type="text/javascript" src="{% if request.is_secure %}https{% else %}http{% endif %}://{{ request.get_host }}/js/jquery-1.7.2.js"></script>
+  <script type="text/javascript" src="{% if request.is_secure %}https{% else %}http{% endif %}://{{ request.get_host }}/js/jquery-ui-1.8.23.custom.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="{% if request.is_secure %}https{% else %}http{% endif %}://{{ request.get_host }}/css/jquery-ui/jquery-ui-1.8.23.custom.css" />
+  <link rel="stylesheet" type="text/css" href="{% if request.is_secure %}https{% else %}http{% endif %}://{{ request.get_host }}/css/linaro.css" />
+
+
   <style>
     div#footer {
       text-align: right;
