@@ -6,6 +6,8 @@ from license_protected_downloads.tests.test_views import ViewTests
 from license_protected_downloads.tests.test_openid_auth import TestOpenIDAuth
 from license_protected_downloads.tests.test_custom_commands \
  import SetsuperuserCommandTest
+from license_protected_downloads.tests.test_render_text_files \
+ import RenderTextFilesTests
 
 #starts the test suite
 __test__ = {
@@ -16,4 +18,5 @@ __test__ = {
     'TestPyflakes': TestPyflakes,
     'TestOpenIDAuth': TestOpenIDAuth,
     'SetsuperuserCommandTest': SetsuperuserCommandTest,
+    'RenderTextFilesTests': RenderTextFilesTests,
 }
