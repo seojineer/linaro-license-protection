@@ -25,6 +25,12 @@ class RenderTextFiles:
         pass
 
     @classmethod
+    def sort_paths_list_by_files_list(cls, a, b):
+        base_list = ANDROID_FILES + UBUNTU_FILES
+        return base_list.index(os.path.basename(a)) - \
+               base_list.index(os.path.basename(b))
+
+    @classmethod
     def find_and_render(cls, path):
 
         result = {}
@@ -32,7 +38,8 @@ class RenderTextFiles:
         try:
             # This method should raise some custom error if there is more
             # then one file of the same type recursively found.
-            filepaths = cls.find_relevant_files(path)
+            filepaths = sorted(cls.find_relevant_files(path),
+                               cmp=cls.sort_paths_list_by_files_list)
         except:
             # this is ok, no tabs when none is returned.
             return None
