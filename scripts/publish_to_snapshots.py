@@ -68,6 +68,10 @@ class SnapshotsPublisher(object):
         'EULA.txt',
         'OPEN-EULA.txt',
         '*.EULA.txt.*',
+        'README',
+        'INSTALL',
+        'HACKING',
+        '*HOWTO_*.txt',
         ]
 
     def __init__(self, argument_parser=None):
