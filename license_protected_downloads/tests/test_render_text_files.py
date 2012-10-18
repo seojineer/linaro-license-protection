@@ -65,8 +65,8 @@ class RenderTextFilesTests(unittest.TestCase):
         full_android_files = []
         for file in ANDROID_FILES:
             full_android_files.append(os.path.join(path, file))
-        self.assertEqual(full_android_files,
-            RenderTextFiles.find_relevant_files(path))
+        self.assertEqual(sorted(full_android_files),
+            sorted(RenderTextFiles.find_relevant_files(path)))
 
     def test_find_relevant_files_android_subdir(self):
         path = self.make_temp_dir()
@@ -75,10 +75,10 @@ class RenderTextFilesTests(unittest.TestCase):
         full_android_files = []
         for file in ANDROID_FILES:
             full_android_files.append(os.path.join(full_path, file))
-        self.assertEqual(full_android_files,
-            RenderTextFiles.find_relevant_files(path))
-        self.assertEqual(full_android_files,
-            RenderTextFiles.find_relevant_files(full_path))
+        self.assertEqual(sorted(full_android_files),
+            sorted(RenderTextFiles.find_relevant_files(path)))
+        self.assertEqual(sorted(full_android_files),
+            sorted(RenderTextFiles.find_relevant_files(full_path)))
 
     def test_find_relevant_files_android_several_subdirs(self):
         path = self.make_temp_dir()
@@ -93,10 +93,10 @@ class RenderTextFilesTests(unittest.TestCase):
             full_android_files2.append(os.path.join(full_path2, file))
         with self.assertRaises(MultipleFilesException):
             RenderTextFiles.find_relevant_files(path)
-        self.assertEqual(full_android_files1,
-            RenderTextFiles.find_relevant_files(full_path1))
-        self.assertEqual(full_android_files2,
-            RenderTextFiles.find_relevant_files(full_path2))
+        self.assertEqual(sorted(full_android_files1),
+            sorted(RenderTextFiles.find_relevant_files(full_path1)))
+        self.assertEqual(sorted(full_android_files2),
+            sorted(RenderTextFiles.find_relevant_files(full_path2)))
 
     def test_find_relevant_files_android_and_ubuntu_samedir(self):
         flist = ANDROID_FILES + UBUNTU_FILES

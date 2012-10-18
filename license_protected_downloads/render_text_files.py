@@ -1,14 +1,30 @@
 import os
 import re
 from textile.textilefactory import TextileFactory
+from collections import OrderedDict
 
 
 UBUNTU_FILES = ('README',
                 'INSTALL',
-                'HACKING')
-ANDROID_FILES = ('HOWTO_install.txt',
+                'HACKING',
+                'FIRMWARE',
+                'RTSM')
+ANDROID_FILES = ('HOWTO_releasenotes.txt',
+                 'HOWTO_install.txt',
                  'HOWTO_getsourceandbuild.txt',
-                 'HOWTO_flashfirmware.txt')
+                 'HOWTO_flashfirmware.txt',
+                 'HOWTO_rtsm.txt')
+
+FILES_MAP = {'HOWTO_releasenotes.txt': 'Release Notes',
+             'HOWTO_install.txt': 'Binary Image Installation',
+             'HOWTO_getsourceandbuild.txt': 'Building From Source',
+             'HOWTO_flashfirmware.txt': 'Firmware Update',
+             'HOWTO_rtsm.txt': 'RTSM',
+             'README': 'Release Notes',
+             'INSTALL': 'Binary Image Installation',
+             'HACKING': 'Building From Source',
+             'FIRMWARE': 'Firmware Update',
+             'RTSM': 'RTSM'}
 
 
 class MultipleFilesException(Exception):
@@ -33,7 +49,7 @@ class RenderTextFiles:
     @classmethod
     def find_and_render(cls, path):
 
-        result = {}
+        result = OrderedDict()
 
         try:
             filepaths = sorted(cls.find_relevant_files(path),
@@ -46,7 +62,8 @@ class RenderTextFiles:
             for filepath in filepaths:
                 try:
                     file_obj = open(filepath, 'r')
-                    title, formatted = cls.render_file(file_obj)
+                    formatted = cls.render_file(file_obj)
+                    title = FILES_MAP[os.path.basename(filepath)]
                     result[title] = formatted
                 except:
                     # TODO: log error or something.
@@ -60,9 +77,8 @@ class RenderTextFiles:
     def render_file(cls, file_obj):
         # TODO: introduce special options to textile factory if necessary.
         textile_factory = TextileFactory()
-        title = file_obj.readline()
-        file_obj.seek(0)
-        return title, textile_factory.process(file_obj.read())
+        file_obj.readline()
+        return textile_factory.process(file_obj.read())
 
     @classmethod
     def find_relevant_files(cls, path):
@@ -70,13 +86,9 @@ class RenderTextFiles:
         # If there are more of the same type then one, throw custom error as
         # written above.
         multiple = 0
-        filepaths = cls.dirEntries(path, True, UBUNTU_FILES, ANDROID_FILES)
+        filepaths = cls.dirEntries(path, True, FILES_MAP.keys())
         if len(filepaths) > 0:
-            for filepath in UBUNTU_FILES:
-                if len(cls.findall(filepaths,
-                                   lambda x: re.search(filepath, x))) > 1:
-                    multiple += 1
-            for filepath in ANDROID_FILES:
+            for filepath in FILES_MAP.keys():
                 if len(cls.findall(filepaths,
                                    lambda x: re.search(filepath, x))) > 1:
                     multiple += 1
