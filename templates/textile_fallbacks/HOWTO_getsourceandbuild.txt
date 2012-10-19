@@ -1,0 +1,1 @@
+Please read these two pages: "Get Source page":https://wiki.linaro.org/Platform/Android/GetSource and "Build Source page":https://wiki.linaro.org/Platform/Android/BuildSource <br><br>For more info, check out this "page":https://wiki.linaro.org/Platform/Android

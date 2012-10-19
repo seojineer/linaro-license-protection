@@ -4,7 +4,6 @@ import tempfile
 import shutil
 import re
 from license_protected_downloads.render_text_files import RenderTextFiles
-from license_protected_downloads.render_text_files import NoFilesException
 from license_protected_downloads.render_text_files \
  import MultipleFilesException
 from license_protected_downloads.render_text_files import ANDROID_FILES
@@ -44,11 +43,6 @@ class RenderTextFilesTests(unittest.TestCase):
                     handle, fname = tempfile.mkstemp(dir=path)
                     shutil.move(fname, os.path.join(path, file))
         return path
-
-    def test_find_relevant_files_no_files(self):
-        path = self.make_temp_dir()
-        with self.assertRaises(NoFilesException):
-            RenderTextFiles.find_relevant_files(path)
 
     def test_find_relevant_files_multiple_files(self):
         path = tempfile.mkdtemp()

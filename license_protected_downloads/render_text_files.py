@@ -2,7 +2,7 @@ import os
 import re
 from textile.textilefactory import TextileFactory
 from collections import OrderedDict
-
+from django.conf import settings
 
 UBUNTU_FILES = ('README',
                 'INSTALL',
@@ -14,6 +14,10 @@ ANDROID_FILES = ('HOWTO_releasenotes.txt',
                  'HOWTO_getsourceandbuild.txt',
                  'HOWTO_flashfirmware.txt',
                  'HOWTO_rtsm.txt')
+
+MANDATORY_ANDROID_FILES = ('HOWTO_install.txt',
+                           'HOWTO_getsourceandbuild.txt',
+                           'HOWTO_flashfirmware.txt')
 
 FILES_MAP = {'HOWTO_releasenotes.txt': 'Release Notes',
              'HOWTO_install.txt': 'Binary Image Installation',
@@ -28,10 +32,6 @@ FILES_MAP = {'HOWTO_releasenotes.txt': 'Release Notes',
 
 
 class MultipleFilesException(Exception):
-    pass
-
-
-class NoFilesException(Exception):
     pass
 
 
@@ -55,29 +55,39 @@ class RenderTextFiles:
             filepaths = sorted(cls.find_relevant_files(path),
                                cmp=cls.sort_paths_list_by_files_list)
         except:
-            # This is ok, no tabs when none is returned.
+            # This is ok, no tabs when multiple returned.
             return None
 
         if filepaths:
             for filepath in filepaths:
-                try:
-                    file_obj = open(filepath, 'r')
-                    formatted = cls.render_file(file_obj)
-                    title = FILES_MAP[os.path.basename(filepath)]
-                    result[title] = formatted
-                except:
-                    # TODO: log error or something.
-                    continue
-        else:
+                title = FILES_MAP[os.path.basename(filepath)]
+                result[title] = cls.render_file(filepath)
+
+        # Switch to fallback data for mandatory files.
+        if cls.check_for_manifest_or_tarballs(path):
+            print path
+            for filename in MANDATORY_ANDROID_FILES:
+                if FILES_MAP[filename] not in result:
+                    filepath = os.path.join(settings.TEXTILE_FALLBACK_PATH,
+                                            filename)
+                    print filepath
+                    title = FILES_MAP[filename]
+                    result[title] = cls.render_file(filepath)
+
+        if not filepaths and len(result) == 0:
             return None
 
         return result
 
     @classmethod
-    def render_file(cls, file_obj):
-        # TODO: introduce special options to textile factory if necessary.
-        textile_factory = TextileFactory()
-        return textile_factory.process(file_obj.read())
+    def render_file(cls, filepath):
+        try:
+            file_obj = open(filepath, 'r')
+            textile_factory = TextileFactory()
+            return textile_factory.process(file_obj.read())
+        except:
+            # Do nothing, parsing failed.
+            pass
 
     @classmethod
     def find_relevant_files(cls, path):
@@ -96,7 +106,7 @@ class RenderTextFiles:
             else:
                 raise MultipleFilesException
         else:
-            raise NoFilesException
+            return filepaths
 
     @classmethod
     def flatten(cls, l, ltypes=(list, tuple)):
@@ -157,3 +167,19 @@ class RenderTextFiles:
             # hence there is an out of range exception
             except IndexError:
                 return indices
+
+    @classmethod
+    def check_for_manifest_or_tarballs(cls, path):
+        ''' Check if there is a MANIFEST file in current path or a tarball.
+        Also check if we are currently somewhere in 'android' path.
+        This hack is necessary for fallback wiki howto links.
+        '''
+        print path
+        if 'android' in path:
+            for filename in os.listdir(path):
+                if "MANIFEST" in filename:
+                    return True
+                if "tar.bz2" in filename:
+                    return True
+
+        return False

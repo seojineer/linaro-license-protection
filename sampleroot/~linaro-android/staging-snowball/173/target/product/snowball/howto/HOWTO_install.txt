@@ -1,0 +1,255 @@
+Binary Image
+
+h1. Binary Image Installation
+
+There are two methods to installing Linaro binary build:
+
+#. Using pare-built image
+#. Assembling your own image using Linaro "Android Image Creator":http://link (l-a-m-c)
+
+Before installation begins, it is important that you ensure you Versatile Express board has the latest firmware and boot loader installed. Please check the firmware tab on this page for the latest "firmware":http://../../ updates.
+
+h2. Pre-Installation Steps
+
+This section talks about setting up your VE board boot loader, or setting up your firmware, etc. The idea is that the hardware state is as close to Linaro state as possible.  Please take a few minutes to configure your Versatile Express board in order to boot Linaro images.
+
+To prepare your VE board, you need to select and configure your boot loader and update the VE motherboard firmware.
+
+**Note:** Instructions in this document assume that you have mounted the Versatile Express motherboard as a mass storage device on your Linux desktop machine to the default location @/media/VEMSD@. To do so, connect the Versatile Express motherobard to your PC via USB, press the black reset button, then at a serial console which is attached to the board enter @usb_on@.  This should cause the PC to detect the firmware disk on the Versatile Express board as an external USB disk. On an Ubuntu PC machine this will be automatically mounted at @/media/VEMSD@, (assuming the disk had the label 'VEMSD').
+
+h3. Preparing boot loader
+
+Currently, you can use UEFI, Uboot and Boot Monitor depending on the CoreTile you wish to use.  Linaro is actively maintaining UEFI support while ARM is maintaining boot monitor. Uboot support is no longer active and may or may not work.
+
+h4. UEFI (A9, TC1, or TC2)
+
+Linaro images use the UEFI bootloader to boot an image from an SD card (MMC). Currently, there are two sources for obtaining a UEFI bootloader binary:
+
+* Copy it from the boot partition of a Linaro Android image
+ 
+pre. $ cp /media/boot/uefi_v2p-ca9.bin /media/VEMSD/SOFTWARE/A9/uefi.bin
+
+* Build your own. Linaro maintains a UEFI source tree with build instructions, which you can obtain from "here":http://
+
+However you get your binary, you will need to configure the board to tell the Versatile Express firmware that you want to boot into the UEFI binary at startup. Configuration instructions for your A5, A9 or A15 boards are "here":http://link_to_UEFI_tab
+
+h4. U-boot (A5, A9, and TC1)
+
+You need to *copy the relevant U-Boot file from the boot partition* of the Linaro disk image to the SOFTWARE directory of the firmware disk, giving it the name uboot.bin. 
+
+??-Where do we get the Linaro disk image from? We need a link.
+
+**Note:** U-boot doesn't support booting TC2. 
+
+* For **A5** CoreTile use @cp /media/boot/u-boot_v2p-ca5s.bin /media/VEMSD/SOFTWARE/u-boot.bin@
+* For **A9** CoreTile use @cp /media/boot/u-boot.bin /media/VEMSD/SOFTWARE/u-boot.bin@
+* for **TC1** CoreTile use @cp /media/boot/u-boot_v2p-ca15-tc1.bin /media/VEMSD/SOFTWARE/u-boot.bin@
+
+Once copied, you need to *add U-boot to the list of NOR images*, this varies depending on which CoreTile you have.
+
+* For **A5** CoreTile, edit @/media/VEMSD/SITE1/HBI0225B/images.txt@ and add an image to the end of the list with.
+
+bc. NOR4UPDATE: AUTO                 ;IMAGE UPDATE:NONE/AUTO/FORCE
+NOR4ADDRESS: 0f800000            ;Image Flash Address
+NOR4FILE: \SOFTWARE\u-boot.bin   ;Image File Name
+NOR4LOAD: 0x80800000             ;Image Load Address
+NOR4ENTRY: 0x80800000            ;Image Entry Point
+
+* For **A9** CoreTile, edit @/media/VEMSD/SITE1/HBI0191B/images.txt@ and add an image to the end of the list with.
+
+bc. NOR4UPDATE: AUTO                 ;IMAGE UPDATE:NONE/AUTO/FORCE
+NOR4ADDRESS: 47800000            ;Image Flash Address
+NOR4FILE: \SOFTWARE\u-boot.bin   ;Image File Name
+NOR4LOAD: 0x60800000             ;Image Load Address
+NOR4ENTRY: 0x60800000            ;Image Entry Point
+
+* For **TC1** CoreTile, edit /media/VEMSD/SITE1/HBI0237A/images.txtand add an image to the end of the list with.
+
+bc. NOR4UPDATE: AUTO                 ;IMAGE UPDATE:NONE/AUTO/FORCE
+NOR4ADDRESS: 0f800000            ;Image Flash Address
+NOR4FILE: \SOFTWARE\u-boot.bin   ;Image File Name
+NOR4LOAD: 0x80800000             ;Image Load Address
+NOR4ENTRY: 0x80800000            ;Image Entry Point
+
+The @TOTALIMAGES:@ line in the file will also need updating to account for this extra image and the 'NOR4' lines added may need to have a different number to '4' if that is not the next in sequence. Also note, the directory names for the CoreTiles may have a different final letter depending on its revision.
+
+To *boot into the Linaro image*:
+
+* look for the name of the BOOTSCRIPT image in the file you edited in the previous step; this should be either @\SOFTWARE\booscr_l.txt@ or @\SOFTWARE\booscr_r.txt@. Edit this bootscript file to have the line:
+
+pre. flash run u-boot
+
+* Put the left DIP switch (next to the black reset button) into the DOWN position. Automatic boot can be disabled later by moving it UP.
+
+Now unmount the firmware disk by issuing:
+
+pre. $ umount /media/VEMS
+
+* Reboot board with red button, should see U-Boot being flashed into NOR. If you went for automated boot, then the board should now also start U-Boot. Otherwise you will need to do this from the boot monitor by entering:
+
+pre. $ flash run u-boot
+
+Before the U-Boot timer reaches zero interrupt it by pressing any key on your serial console, you should get a @Vexpress#@ prompt.
+
+**Note:** Ensure any previous U-Boot install is erased by issuing @$ env default -f@
+
+* Place the SD card with the Linaro image into the Versatile Express then press the red reset button. If you went for the automatic boot option then U-Boot should now load and boot the Linaro image. Otherwise, you will have to enter @flash run u-boot@ at the boot monitor prompt.
+
+h4. Boot Monitor (TC2 CoreTile only)
+
+TC2 board is booted using the ARM Boot Monitor that is shipped with the board. The ARM Boot Monitor stores its images in NOR flash, so these instructions will show you how to copy the images to the board from the SD card that was built using the instructions above.
+
+* Copy the binaries from the SD card to NOR flash
+** Insert the SD Card into your PC
+** Copy the files to the board
+
+(We assume the SD card boot partition is mounted at /media/boot)
+(We assume that your Versatile Express motherboard is mounted to /media/VEMSD)
+
+bc.  mkdir /media/VEMSD/SOFTWARE/TC2/
+     dd if=/media/boot/uImage of=/media/VEMSD/SOFTWARE/TC2/zimage.bin skip=64 bs=1
+     dd if=/media/boot/uInitrd of=/media/VEMSD/SOFTWARE/TC2/initrd.bin skip=64 bs=1 
+
+*** *For Android* 
+
+bc. cp /media/boot/v2p-ca15-tc2.dtb /media/VEMSD/SOFTWARE/TC2/tc2_dtb.bin
+    sync
+
+*** *For Ubuntu*
+
+br. cp /media/rootfs/lib/firmware/3.6.0-1-linaro-vexpress/device-tree/vexpress-v2p-ca15-tc2.dtb  /media/VEMSD/SOFTWARE/TC2/tc2_dtb.bin
+    sync
+
+** Create a boot script
+
+*Example for Android*: @/media/VEMSD/SOFTWARE/TC2/bootscr.txt@
+
+bc.  fl linux fdt tc2_dtb
+     fl linux initrd initrd
+     fl linux boot zimage console=ttyAMA0,38400n8 rootwait ro init=/init androidboot.console=ttyAMA0 mmci.fmax=12000000     
+
+*Example for Ubuntu:* @/media/VEMSD/SOFTWARE/TC2/bootscr.txt@
+
+bc.  fl linux fdt tc2_dtb
+     fl linux initrd initrd
+     fl linux boot zimage console=ttyAMA0,38400n8 root=/dev/mmcblk0p2 rootwait ro mem=1024M ip=dhcp clcd=xvga mmci.fmax=12000000
+
+* Update images.txt to boot these new binaries
+
+*Example @/media/VEMSD/SITE1/HBI0249A/images.txt@*:
+     
+bc..	TITLE: Versatile Express Images Configuration File
+            
+                [IMAGES]
+                TOTALIMAGES: 5                   ;Number of Images (Max : 32)
+                NOR0UPDATE: AUTO                 ;Image Update:NONE/AUTO/FORCE
+                NOR0ADDRESS: BOOT                ;Image Flash Address
+                NOR0FILE: \SOFTWARE\bm_v513r.axf ;Image File Name
+                 
+                NOR1UPDATE: AUTO                 ;IMAGE UPDATE:NONE/AUTO/FORCE
+                NOR1ADDRESS: 0c000000            ;Image Flash Address
+                NOR1FILE: \SOFTWARE\TC2\zimage.bin   ;Image File Name
+                NOR1LOAD: 80008000               ;Image Load Address
+                NOR1ENTRY: 80008000              ;Image Entry Point
+                 
+                NOR2UPDATE: AUTO                 ;IMAGE UPDATE:NONE/AUTO/FORCE
+                NOR2ADDRESS: 00400000            ;Image Flash Address
+                NOR2FILE: \SOFTWARE\TC2\tc2_dtb.bin  ;Image File Name
+                NOR2LOAD: a0000000               ;Image Load Address
+                NOR2ENTRY: a0000000              ;Image Load Address
+                 
+                NOR3UPDATE: AUTO                 ;IMAGE UPDATE:NONE/AUTO/FORCE
+                NOR3ADDRESS: 0d000000            ;Image Flash Address
+                NOR3FILE: \SOFTWARE\TC2\initrd.bin   ;Image File Name
+                NOR3LOAD: a0100000               ;Image Load Address
+                NOR3ENTRY: a0100000              ;Image Entry Point
+                 
+                NOR4UPDATE: AUTO                 ;IMAGE UPDATE:NONE/AUTO/FORCE
+                NOR4ADDRESS: 00000000            ;Image Flash Address
+                NOR4NAME: BOOTSCRIPT             ;Image Flash Name
+                NOR4FILE: \SOFTWARE\TC2\bootscr.txt   ;Image File Name
+            
+* *Ubuntu Device* Tree Blobs.
+
+Ubuntu disks are currently storing the device tree blobs in @/lib/firmware@. After creating an SD card, insert the card and the following command will copy the device tree blobs into the @/boot@ partition:
+
+pre.  cp /media/rootfs/lib/firmware/3.6.0-1-linaro-vexpress/device-tree/*.dtb /media/boot 
+
+* Eject the SD card cleanly from your computer
+
+For Example:
+
+bc.         eject /media/boot
+            eject /media/cache
+            eject /media/sdcard
+            eject /media/system
+            eject /media/userdata
+
+* Boot the board
+** Insert the SD card into the board
+** Reboot the board
+*** “Cmd>" prompt from the Boot Loader"
+*** Press the red reboot button
+
+h2. Using pre-built image
+
+h3. Pre-requisites
+
+* 4GB SD card or larger
+* UEFI installed onto the Versatile Express
+* Download the pre-built image from (here)
+
+h3. Installation Steps
+
+* unzip the downloaded pre-build image
+* Insert SD card and note the assigned '/dev/sdX'
+
+bc.  dmesg
+     SDCARD=/dev/sdX   (sdcard found from dmesg above)
+     sudo dd bs=64k if=vexpress-jb-gcc47-armlt-tracking-open.img.gz of=$SDCARD
+
+* Continue with the instructions below to Configure your board to boot the image.
+
+*Note:* Windows users may use the "Image Writer for Windows":https://launchpad.net/win32-image-writer/+download 
+
+h2. Building a custom image using pre-built components. 
+
+Sometimes, you may wish to build your own custom image for a Versatile Express. Perhaps you wish to use a more recent snapshot of the hardware pack ("?":https://wiki.linaro.org/HardwarePacks) for Ubuntu or take the latest Android build. Whatever the reason, you will want to use the Linaro media tools ("?":https://launchpad.net/linaro-image-tools/) to create a custom image.
+
+?? - Need a wiki page to point us to the definition of the lmc and lamc.
+
+h3. pre-requisites
+
+* Install Ubuntu 12.04 64 bit or newer on your desktop PC (www.ubuntu.com)
+* Get Artifacts
+pre. wget http://releases.linaro.org/12.09/android/images/vexpress-jb-gcc47-armlt-tracking-open/boot.tar.bz2 http://releases.linaro.org/12.09/android/images/vexpress-jb-gcc47-armlt-tracking-open/system.tar.bz2 http://releases.linaro.org/12.09/android/images/vexpress-jb-gcc47-armlt-tracking-open/userdata.tar.bz2 
+* Get linaro image tools
+** Method 1: using binary package for Ubuntu (PPA)
+
+bc.  sudo add-apt-repository ppa:linaro-maintainers/tools
+     sudo apt-get update
+     sudo apt-get install linaro-image-tools
+
+** Method 2: using source code
+
+pre. wget http://releases.linaro.org/12.09/components/platform/linaro-image-tools/linaro-image-tools-2012.09.1.tar.gz
+
+* Insert SD card and note the assigned '/dev/sdX' or '/dev/mmcblk0'
+
+pre. dmesg | less 
+
+Look for a line that looks like the following at the end of the log
+
+pre. [288582.790722] sdc: sdc1 sdc2 sdc3 sdc4 < sdc5 sdc6 >
+
+*WARNING:* In the next step, make sure you use /dev/"whatever you see above". You can erase your hard drive with the wrong parameter.
+
+* Create Media
+
+pre. sudo linaro-android-media-create --mmc /dev/sdX --dev vexpress --system system.tar.bz2 --boot boot.tar.bz2 --userdata userdata.tar.bz2 
+
+* Boot the board
+** Insert the SD card into the board
+** Reboot the board
+*** “Cmd>" prompt from the Boot Loader
+*** Press the red reboot button
