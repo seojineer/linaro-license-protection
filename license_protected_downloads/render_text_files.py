@@ -30,6 +30,11 @@ FILES_MAP = {'HOWTO_releasenotes.txt': 'Release Notes',
              'FIRMWARE': 'Firmware Update',
              'RTSM': 'RTSM'}
 
+TAB_PRIORITY = ['Release Notes',
+                'Binary Image Installation',
+                'Building From Source',
+                'Firmware Update',
+                'RTSM']
 
 class MultipleFilesException(Exception):
     pass
@@ -41,19 +46,17 @@ class RenderTextFiles:
         pass
 
     @classmethod
-    def sort_paths_list_by_files_list(cls, a, b):
-        base_list = ANDROID_FILES + UBUNTU_FILES
-        return base_list.index(os.path.basename(a)) - \
-               base_list.index(os.path.basename(b))
+    def sort_tabs_by_priority(cls, a, b):
+        base_list = TAB_PRIORITY
+        return base_list.index(a[0]) - base_list.index(b[0])
 
     @classmethod
     def find_and_render(cls, path):
 
-        result = OrderedDict()
+        result = {}
 
         try:
-            filepaths = sorted(cls.find_relevant_files(path),
-                               cmp=cls.sort_paths_list_by_files_list)
+            filepaths = cls.find_relevant_files(path)
         except:
             # This is ok, no tabs when multiple returned.
             return None
@@ -75,6 +78,10 @@ class RenderTextFiles:
         if not filepaths and len(result) == 0:
             return None
 
+        result_items = sorted(result.items(), cmp=cls.sort_tabs_by_priority)
+        result = OrderedDict()
+        for v, k in result_items:
+            result[v] = k
         return result
 
     @classmethod
