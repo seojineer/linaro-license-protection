@@ -65,12 +65,10 @@ class RenderTextFiles:
 
         # Switch to fallback data for mandatory files.
         if cls.check_for_manifest_or_tarballs(path):
-            print path
             for filename in MANDATORY_ANDROID_FILES:
                 if FILES_MAP[filename] not in result:
                     filepath = os.path.join(settings.TEXTILE_FALLBACK_PATH,
                                             filename)
-                    print filepath
                     title = FILES_MAP[filename]
                     result[title] = cls.render_file(filepath)
 
@@ -174,12 +172,13 @@ class RenderTextFiles:
         Also check if we are currently somewhere in 'android' path.
         This hack is necessary for fallback wiki howto links.
         '''
-        print path
         if 'android' in path:
             for filename in os.listdir(path):
                 if "MANIFEST" in filename:
                     return True
                 if "tar.bz2" in filename:
+                    return True
+                if ".img" in filename:
                     return True
 
         return False
