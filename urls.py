@@ -37,6 +37,11 @@ urlpatterns = patterns('',
         'license_protected_downloads.views.accept_license',
         name='accept_license'),
 
+    # Recursively get files for rendering (async calls accepted only).
+    url(r'^get-textile-files',
+        'license_protected_downloads.views.get_textile_files',
+        name='get_textile_files'),
+
     # Catch-all. We always return a file (or try to) if it exists.
     # This handler does that.
     url(r'(?P<path>.*)', 'license_protected_downloads.views.file_server'),
