@@ -161,3 +161,36 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages',
     'django.contrib.auth.context_processors.auth',
 )
+
+# Render TEXTILE files settings.
+UBUNTU_FILES = ('README',
+                'INSTALL',
+                'HACKING',
+                'FIRMWARE',
+                'RTSM')
+ANDROID_FILES = ('HOWTO_releasenotes.txt',
+                 'HOWTO_install.txt',
+                 'HOWTO_getsourceandbuild.txt',
+                 'HOWTO_flashfirmware.txt',
+                 'HOWTO_rtsm.txt')
+
+MANDATORY_ANDROID_FILES = ('HOWTO_install.txt',
+                           'HOWTO_getsourceandbuild.txt',
+                           'HOWTO_flashfirmware.txt')
+
+FILES_MAP = {'HOWTO_releasenotes.txt': 'Release Notes',
+             'HOWTO_install.txt': 'Binary Image Installation',
+             'HOWTO_getsourceandbuild.txt': 'Building From Source',
+             'HOWTO_flashfirmware.txt': 'Firmware Update',
+             'HOWTO_rtsm.txt': 'RTSM',
+             'README': 'Release Notes',
+             'INSTALL': 'Binary Image Installation',
+             'HACKING': 'Building From Source',
+             'FIRMWARE': 'Firmware Update',
+             'RTSM': 'RTSM'}
+
+TAB_PRIORITY = ['Release Notes',
+                'Binary Image Installation',
+                'Building From Source',
+                'Firmware Update',
+                'RTSM']

@@ -3,11 +3,10 @@ import unittest
 import tempfile
 import shutil
 import re
+from django.conf import settings
 from license_protected_downloads.render_text_files import RenderTextFiles
 from license_protected_downloads.render_text_files \
  import MultipleFilesException
-from license_protected_downloads.render_text_files import ANDROID_FILES
-from license_protected_downloads.render_text_files import UBUNTU_FILES
 
 
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -55,19 +54,21 @@ class RenderTextFilesTests(unittest.TestCase):
             RenderTextFiles.find_relevant_files(path)
 
     def test_find_relevant_files_android(self):
-        path = self.make_temp_dir(empty=False, file_list=ANDROID_FILES)
+        path = self.make_temp_dir(empty=False,
+                                  file_list=settings.ANDROID_FILES)
         full_android_files = []
-        for file in ANDROID_FILES:
+        for file in settings.ANDROID_FILES:
             full_android_files.append(os.path.join(path, file))
         self.assertEqual(sorted(full_android_files),
             sorted(RenderTextFiles.find_relevant_files(path)))
 
     def test_find_relevant_files_android_subdir(self):
         path = self.make_temp_dir()
-        full_path = self.make_temp_dir(empty=False, file_list=ANDROID_FILES,
+        full_path = self.make_temp_dir(empty=False,
+                                       file_list=settings.ANDROID_FILES,
                                        dir=path)
         full_android_files = []
-        for file in ANDROID_FILES:
+        for file in settings.ANDROID_FILES:
             full_android_files.append(os.path.join(full_path, file))
         self.assertEqual(sorted(full_android_files),
             sorted(RenderTextFiles.find_relevant_files(path)))
@@ -76,13 +77,15 @@ class RenderTextFilesTests(unittest.TestCase):
 
     def test_find_relevant_files_android_several_subdirs(self):
         path = self.make_temp_dir()
-        full_path1 = self.make_temp_dir(empty=False, file_list=ANDROID_FILES,
-            dir=path)
-        full_path2 = self.make_temp_dir(empty=False, file_list=ANDROID_FILES,
-            dir=path)
+        full_path1 = self.make_temp_dir(empty=False,
+                                        file_list=settings.ANDROID_FILES,
+                                        dir=path)
+        full_path2 = self.make_temp_dir(empty=False,
+                                        file_list=settings.ANDROID_FILES,
+                                        dir=path)
         full_android_files1 = []
         full_android_files2 = []
-        for file in ANDROID_FILES:
+        for file in settings.ANDROID_FILES:
             full_android_files1.append(os.path.join(full_path1, file))
             full_android_files2.append(os.path.join(full_path2, file))
         with self.assertRaises(MultipleFilesException):
@@ -93,7 +96,7 @@ class RenderTextFilesTests(unittest.TestCase):
             sorted(RenderTextFiles.find_relevant_files(full_path2)))
 
     def test_find_relevant_files_android_and_ubuntu_samedir(self):
-        flist = ANDROID_FILES + UBUNTU_FILES
+        flist = settings.ANDROID_FILES + settings.UBUNTU_FILES
         path = self.make_temp_dir(empty=False, file_list=flist)
         full_files = []
         for file in flist:
@@ -103,15 +106,17 @@ class RenderTextFilesTests(unittest.TestCase):
 
     def test_find_relevant_files_android_and_ubuntu_different_subdirs(self):
         path = self.make_temp_dir()
-        android_path = self.make_temp_dir(empty=False, file_list=ANDROID_FILES,
+        android_path = self.make_temp_dir(empty=False,
+                                          file_list=settings.ANDROID_FILES,
                                           dir=path)
-        ubuntu_path = self.make_temp_dir(empty=False, file_list=UBUNTU_FILES,
+        ubuntu_path = self.make_temp_dir(empty=False,
+                                         file_list=settings.UBUNTU_FILES,
                                          dir=path)
         full_android_files = []
         full_ubuntu_files = []
-        for file in ANDROID_FILES:
+        for file in settings.ANDROID_FILES:
             full_android_files.append(os.path.join(android_path, file))
-        for file in UBUNTU_FILES:
+        for file in settings.UBUNTU_FILES:
             full_ubuntu_files.append(os.path.join(ubuntu_path, file))
         self.assertEqual(sorted(full_android_files + full_ubuntu_files),
             sorted(RenderTextFiles.find_relevant_files(path)))
