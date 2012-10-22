@@ -454,6 +454,7 @@ def file_server(request, path):
             # the user back to the original directory this file is in?
     return response
 
+
 def get_textile_files(request):
 
     if request.is_ajax():
@@ -461,7 +462,6 @@ def get_textile_files(request):
         if not result:
             raise Http404
 
-        type = result[0]
         path = result[1]
 
         return HttpResponse(json.dumps(RenderTextFiles.find_and_render(path)))
