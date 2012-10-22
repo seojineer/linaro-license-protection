@@ -1,5 +1,6 @@
 import glob
 import hashlib
+import json
 import mimetypes
 import os
 import re
@@ -452,3 +453,17 @@ def file_server(request, path):
             # TODO: Is it possible to add a redirect to response so we can take
             # the user back to the original directory this file is in?
     return response
+
+def get_textile_files(request):
+
+    if request.is_ajax():
+        result = test_path(request.GET.get("path"))
+        if not result:
+            raise Http404
+
+        type = result[0]
+        path = result[1]
+
+        return HttpResponse(json.dumps(RenderTextFiles.find_and_render(path)))
+    else:
+        raise NotImplementedError
