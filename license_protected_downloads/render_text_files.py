@@ -1,6 +1,6 @@
 import os
 import re
-from textile.textilefactory import TextileFactory
+import textile
 from collections import OrderedDict
 from django.conf import settings
 
@@ -35,6 +35,7 @@ TAB_PRIORITY = ['Release Notes',
                 'Building From Source',
                 'Firmware Update',
                 'RTSM']
+
 
 class MultipleFilesException(Exception):
     pass
@@ -88,8 +89,7 @@ class RenderTextFiles:
     def render_file(cls, filepath):
         try:
             file_obj = open(filepath, 'r')
-            textile_factory = TextileFactory()
-            return textile_factory.process(file_obj.read())
+            return textile.textile(file_obj.read())
         except:
             # Do nothing, parsing failed.
             pass
