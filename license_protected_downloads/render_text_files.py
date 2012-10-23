@@ -4,6 +4,8 @@ import textile
 from collections import OrderedDict
 from django.conf import settings
 
+HOWTO_PATH = 'howto/'
+
 UBUNTU_FILES = ('README',
                 'INSTALL',
                 'HACKING',
@@ -16,8 +18,7 @@ ANDROID_FILES = ('HOWTO_releasenotes.txt',
                  'HOWTO_rtsm.txt')
 
 MANDATORY_ANDROID_FILES = ('HOWTO_install.txt',
-                           'HOWTO_getsourceandbuild.txt',
-                           'HOWTO_flashfirmware.txt')
+                           'HOWTO_getsourceandbuild.txt')
 
 FILES_MAP = {'HOWTO_releasenotes.txt': 'Release Notes',
              'HOWTO_install.txt': 'Binary Image Installation',
@@ -100,18 +101,24 @@ class RenderTextFiles:
         # If there are more of the same type then one, throw custom error as
         # written above.
         multiple = 0
-        filepaths = cls.dirEntries(path, True, FILES_MAP.keys())
-        if len(filepaths) > 0:
-            for filepath in FILES_MAP.keys():
-                if len(cls.findall(filepaths,
+        howtopath = os.path.join(path, HOWTO_PATH)
+        androidpaths = cls.dirEntries(howtopath, False, ANDROID_FILES)
+        ubuntupaths = cls.dirEntries(path, False, UBUNTU_FILES)
+        if len(androidpaths) > 0 and len(ubuntupaths) > 0:
+            raise MultipleFilesException
+        if len(androidpaths) > 0:
+            for filepath in ANDROID_FILES:
+                if len(cls.findall(androidpaths,
                                    lambda x: re.search(filepath, x))) > 1:
                     multiple += 1
             if multiple == 0:
-                return filepaths
+                return androidpaths
             else:
                 raise MultipleFilesException
+        elif len(ubuntupaths) > 0:
+            return ubuntupaths
         else:
-            return filepaths
+            return []
 
     @classmethod
     def flatten(cls, l, ltypes=(list, tuple)):
@@ -140,6 +147,8 @@ class RenderTextFiles:
             directory are added to the list.
         '''
         fileList = []
+        if not os.path.exists(path):
+            return fileList
         for file in os.listdir(path):
             dirfile = os.path.join(path, file)
             if os.path.isfile(dirfile):

@@ -8,7 +8,7 @@ from license_protected_downloads.render_text_files \
  import MultipleFilesException
 from license_protected_downloads.render_text_files import ANDROID_FILES
 from license_protected_downloads.render_text_files import UBUNTU_FILES
-
+from license_protected_downloads.render_text_files import HOWTO_PATH
 
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
@@ -35,87 +35,50 @@ class RenderTextFilesTests(unittest.TestCase):
         self.assertEqual([],
             RenderTextFiles.findall(l, lambda x: re.search(r'1', x)))
 
-    def make_temp_dir(self, empty=True, file_list=None, dir=None):
+    def make_temp_dir(self, empty=True, file_list=None, dir=None, subdir=None):
         path = tempfile.mkdtemp(dir=dir)
         if not empty:
             if file_list:
+                if subdir:
+                    movepath = os.path.join(path, HOWTO_PATH)
+                    os.makedirs(movepath)
+                else:
+                    movepath = path
                 for file in file_list:
-                    handle, fname = tempfile.mkstemp(dir=path)
-                    shutil.move(fname, os.path.join(path, file))
+                    handle, fname = tempfile.mkstemp(dir=movepath)
+                    shutil.move(fname, os.path.join(movepath, file))
         return path
 
-    def test_find_relevant_files_multiple_files(self):
-        path = tempfile.mkdtemp()
-        handle, fname = tempfile.mkstemp(dir=path)
-        shutil.move(fname, os.path.join(path, 'README'))
-        path1 = tempfile.mkdtemp(dir=path)
-        handle, fname = tempfile.mkstemp(dir=path1)
-        shutil.move(fname, os.path.join(path1, 'README'))
-        with self.assertRaises(MultipleFilesException):
-            RenderTextFiles.find_relevant_files(path)
-
     def test_find_relevant_files_android(self):
-        path = self.make_temp_dir(empty=False, file_list=ANDROID_FILES)
+        path = self.make_temp_dir(empty=False, file_list=ANDROID_FILES,
+                                  subdir=HOWTO_PATH)
         full_android_files = []
         for file in ANDROID_FILES:
-            full_android_files.append(os.path.join(path, file))
+            full_android_files.append(os.path.join(path, HOWTO_PATH, file))
         self.assertEqual(sorted(full_android_files),
             sorted(RenderTextFiles.find_relevant_files(path)))
 
     def test_find_relevant_files_android_subdir(self):
         path = self.make_temp_dir()
         full_path = self.make_temp_dir(empty=False, file_list=ANDROID_FILES,
-                                       dir=path)
+                                       dir=path, subdir=HOWTO_PATH)
         full_android_files = []
         for file in ANDROID_FILES:
-            full_android_files.append(os.path.join(full_path, file))
-        self.assertEqual(sorted(full_android_files),
+            full_android_files.append(os.path.join(full_path, HOWTO_PATH,
+                                                   file))
+        self.assertEqual([],
             sorted(RenderTextFiles.find_relevant_files(path)))
         self.assertEqual(sorted(full_android_files),
             sorted(RenderTextFiles.find_relevant_files(full_path)))
 
-    def test_find_relevant_files_android_several_subdirs(self):
-        path = self.make_temp_dir()
-        full_path1 = self.make_temp_dir(empty=False, file_list=ANDROID_FILES,
-            dir=path)
-        full_path2 = self.make_temp_dir(empty=False, file_list=ANDROID_FILES,
-            dir=path)
-        full_android_files1 = []
-        full_android_files2 = []
+    def test_find_relevant_files_android_and_ubuntu_samedir(self):
+        path = self.make_temp_dir(empty=False, file_list=UBUNTU_FILES)
+        os.makedirs(os.path.join(path, HOWTO_PATH))
+        full_files = []
         for file in ANDROID_FILES:
-            full_android_files1.append(os.path.join(full_path1, file))
-            full_android_files2.append(os.path.join(full_path2, file))
+            full_files.append(os.path.join(path, HOWTO_PATH, file))
+            open(os.path.join(path, HOWTO_PATH, file), 'w').close()
+        for file in UBUNTU_FILES:
+            full_files.append(os.path.join(path, file))
         with self.assertRaises(MultipleFilesException):
             RenderTextFiles.find_relevant_files(path)
-        self.assertEqual(sorted(full_android_files1),
-            sorted(RenderTextFiles.find_relevant_files(full_path1)))
-        self.assertEqual(sorted(full_android_files2),
-            sorted(RenderTextFiles.find_relevant_files(full_path2)))
-
-    def test_find_relevant_files_android_and_ubuntu_samedir(self):
-        flist = ANDROID_FILES + UBUNTU_FILES
-        path = self.make_temp_dir(empty=False, file_list=flist)
-        full_files = []
-        for file in flist:
-            full_files.append(os.path.join(path, file))
-        self.assertListEqual(sorted(full_files),
-            sorted(RenderTextFiles.find_relevant_files(path)))
-
-    def test_find_relevant_files_android_and_ubuntu_different_subdirs(self):
-        path = self.make_temp_dir()
-        android_path = self.make_temp_dir(empty=False, file_list=ANDROID_FILES,
-                                          dir=path)
-        ubuntu_path = self.make_temp_dir(empty=False, file_list=UBUNTU_FILES,
-                                         dir=path)
-        full_android_files = []
-        full_ubuntu_files = []
-        for file in ANDROID_FILES:
-            full_android_files.append(os.path.join(android_path, file))
-        for file in UBUNTU_FILES:
-            full_ubuntu_files.append(os.path.join(ubuntu_path, file))
-        self.assertEqual(sorted(full_android_files + full_ubuntu_files),
-            sorted(RenderTextFiles.find_relevant_files(path)))
-        self.assertEqual(sorted(full_android_files),
-            sorted(RenderTextFiles.find_relevant_files(android_path)))
-        self.assertEqual(sorted(full_ubuntu_files),
-            sorted(RenderTextFiles.find_relevant_files(ubuntu_path)))
