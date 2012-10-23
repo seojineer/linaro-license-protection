@@ -1,5 +1,7 @@
 # Backport of OrderedDict() class that runs on Python 2.4, 2.5, 2.6, 2.7 and pypy.
 # Passes Python2.7's test suite and incorporates all the latest updates.
+#
+# This code was taken from http://code.activestate.com/recipes/576693/
 
 try:
     from thread import get_ident as _get_ident
