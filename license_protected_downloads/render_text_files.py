@@ -4,38 +4,6 @@ import textile
 from collections import OrderedDict
 from django.conf import settings
 
-UBUNTU_FILES = ('README',
-                'INSTALL',
-                'HACKING',
-                'FIRMWARE',
-                'RTSM')
-ANDROID_FILES = ('HOWTO_releasenotes.txt',
-                 'HOWTO_install.txt',
-                 'HOWTO_getsourceandbuild.txt',
-                 'HOWTO_flashfirmware.txt',
-                 'HOWTO_rtsm.txt')
-
-MANDATORY_ANDROID_FILES = ('HOWTO_install.txt',
-                           'HOWTO_getsourceandbuild.txt',
-                           'HOWTO_flashfirmware.txt')
-
-FILES_MAP = {'HOWTO_releasenotes.txt': 'Release Notes',
-             'HOWTO_install.txt': 'Binary Image Installation',
-             'HOWTO_getsourceandbuild.txt': 'Building From Source',
-             'HOWTO_flashfirmware.txt': 'Firmware Update',
-             'HOWTO_rtsm.txt': 'RTSM',
-             'README': 'Release Notes',
-             'INSTALL': 'Binary Image Installation',
-             'HACKING': 'Building From Source',
-             'FIRMWARE': 'Firmware Update',
-             'RTSM': 'RTSM'}
-
-TAB_PRIORITY = ['Release Notes',
-                'Binary Image Installation',
-                'Building From Source',
-                'Firmware Update',
-                'RTSM']
-
 
 class MultipleFilesException(Exception):
     pass
@@ -48,7 +16,7 @@ class RenderTextFiles:
 
     @classmethod
     def sort_tabs_by_priority(cls, a, b):
-        base_list = TAB_PRIORITY
+        base_list = settings.TAB_PRIORITY
         return base_list.index(a[0]) - base_list.index(b[0])
 
     @classmethod
@@ -64,16 +32,16 @@ class RenderTextFiles:
 
         if filepaths:
             for filepath in filepaths:
-                title = FILES_MAP[os.path.basename(filepath)]
+                title = settings.FILES_MAP[os.path.basename(filepath)]
                 result[title] = cls.render_file(filepath)
 
         # Switch to fallback data for mandatory files.
         if cls.check_for_manifest_or_tarballs(path):
-            for filename in MANDATORY_ANDROID_FILES:
-                if FILES_MAP[filename] not in result:
+            for filename in settings.MANDATORY_ANDROID_FILES:
+                if settings.FILES_MAP[filename] not in result:
                     filepath = os.path.join(settings.TEXTILE_FALLBACK_PATH,
                                             filename)
-                    title = FILES_MAP[filename]
+                    title = settings.FILES_MAP[filename]
                     result[title] = cls.render_file(filepath)
 
         if not filepaths and len(result) == 0:
@@ -100,9 +68,9 @@ class RenderTextFiles:
         # If there are more of the same type then one, throw custom error as
         # written above.
         multiple = 0
-        filepaths = cls.dirEntries(path, True, FILES_MAP.keys())
+        filepaths = cls.dirEntries(path, True, settings.FILES_MAP.keys())
         if len(filepaths) > 0:
-            for filepath in FILES_MAP.keys():
+            for filepath in settings.FILES_MAP.keys():
                 if len(cls.findall(filepaths,
                                    lambda x: re.search(filepath, x))) > 1:
                     multiple += 1

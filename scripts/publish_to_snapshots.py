@@ -69,6 +69,7 @@ class SnapshotsPublisher(object):
         'OPEN-EULA.txt',
         '*.EULA.txt.*',
         'README',
+        'README.textile',
         'INSTALL',
         'HACKING',
         '*HOWTO_*.txt',
