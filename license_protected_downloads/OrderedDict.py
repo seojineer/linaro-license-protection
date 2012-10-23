@@ -5,7 +5,8 @@
 # This code was taken from http://code.activestate.com/recipes/576693/
 
 try:
-    from thread import get_ident as _get_ident
+    import thread
+    _get_ident = thread.get_ident
 except ImportError:
     from dummy_thread import get_ident as _get_ident
 
