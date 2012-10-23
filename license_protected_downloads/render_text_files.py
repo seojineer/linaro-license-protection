@@ -1,7 +1,7 @@
 import os
 import re
 import textile
-from collections import OrderedDict
+import OrderedDict
 from django.conf import settings
 
 
@@ -48,7 +48,7 @@ class RenderTextFiles:
             return None
 
         result_items = sorted(result.items(), cmp=cls.sort_tabs_by_priority)
-        result = OrderedDict()
+        result = OrderedDict.OrderedDict()
         for v, k in result_items:
             result[v] = k
         return result
