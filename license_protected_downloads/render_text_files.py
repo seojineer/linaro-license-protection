@@ -68,18 +68,25 @@ class RenderTextFiles:
         # If there are more of the same type then one, throw custom error as
         # written above.
         multiple = 0
-        filepaths = cls.dirEntries(path, True, settings.FILES_MAP.keys())
-        if len(filepaths) > 0:
-            for filepath in settings.FILES_MAP.keys():
-                if len(cls.findall(filepaths,
+        howtopath = os.path.join(path, settings.HOWTO_PATH)
+        androidpaths = cls.dirEntries(howtopath, False,
+                                      settings.ANDROID_FILES)
+        ubuntupaths = cls.dirEntries(path, False, settings.LINUX_FILES)
+        if len(androidpaths) > 0 and len(ubuntupaths) > 0:
+            raise MultipleFilesException
+        if len(androidpaths) > 0:
+            for filepath in settings.ANDROID_FILES:
+                if len(cls.findall(androidpaths,
                                    lambda x: re.search(filepath, x))) > 1:
                     multiple += 1
             if multiple == 0:
-                return filepaths
+                return androidpaths
             else:
                 raise MultipleFilesException
+        elif len(ubuntupaths) > 0:
+            return ubuntupaths
         else:
-            return filepaths
+            return []
 
     @classmethod
     def flatten(cls, l, ltypes=(list, tuple)):
@@ -108,6 +115,8 @@ class RenderTextFiles:
             directory are added to the list.
         '''
         fileList = []
+        if not os.path.exists(path):
+            return fileList
         for file in os.listdir(path):
             dirfile = os.path.join(path, file)
             if os.path.isfile(dirfile):
