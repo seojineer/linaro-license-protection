@@ -163,11 +163,11 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 # Render TEXTILE files settings.
-UBUNTU_FILES = ('README',
-                'INSTALL',
-                'HACKING',
-                'FIRMWARE',
-                'RTSM')
+LINUX_FILES = ('README',
+               'INSTALL',
+               'HACKING',
+               'FIRMWARE',
+               'RTSM')
 ANDROID_FILES = ('HOWTO_releasenotes.txt',
                  'HOWTO_install.txt',
                  'HOWTO_getsourceandbuild.txt',

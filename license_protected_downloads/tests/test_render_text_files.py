@@ -96,7 +96,7 @@ class RenderTextFilesTests(unittest.TestCase):
             sorted(RenderTextFiles.find_relevant_files(full_path2)))
 
     def test_find_relevant_files_android_and_ubuntu_samedir(self):
-        flist = settings.ANDROID_FILES + settings.UBUNTU_FILES
+        flist = settings.ANDROID_FILES + settings.LINUX_FILES
         path = self.make_temp_dir(empty=False, file_list=flist)
         full_files = []
         for file in flist:
@@ -110,17 +110,17 @@ class RenderTextFilesTests(unittest.TestCase):
                                           file_list=settings.ANDROID_FILES,
                                           dir=path)
         ubuntu_path = self.make_temp_dir(empty=False,
-                                         file_list=settings.UBUNTU_FILES,
+                                         file_list=settings.LINUX_FILES,
                                          dir=path)
         full_android_files = []
-        full_ubuntu_files = []
+        full_linux_files = []
         for file in settings.ANDROID_FILES:
             full_android_files.append(os.path.join(android_path, file))
-        for file in settings.UBUNTU_FILES:
-            full_ubuntu_files.append(os.path.join(ubuntu_path, file))
-        self.assertEqual(sorted(full_android_files + full_ubuntu_files),
+        for file in settings.LINUX_FILES:
+            full_linux_files.append(os.path.join(ubuntu_path, file))
+        self.assertEqual(sorted(full_android_files + full_linux_files),
             sorted(RenderTextFiles.find_relevant_files(path)))
         self.assertEqual(sorted(full_android_files),
             sorted(RenderTextFiles.find_relevant_files(android_path)))
-        self.assertEqual(sorted(full_ubuntu_files),
+        self.assertEqual(sorted(full_linux_files),
             sorted(RenderTextFiles.find_relevant_files(ubuntu_path)))
