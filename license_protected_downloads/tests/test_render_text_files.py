@@ -33,18 +33,13 @@ class RenderTextFilesTests(unittest.TestCase):
         self.assertEqual([],
             RenderTextFiles.findall(l, lambda x: re.search(r'1', x)))
 
-    def make_temp_dir(self, empty=True, file_list=None, dir=None, subdir=None):
+    def make_temp_dir(self, empty=True, file_list=None, dir=None):
         path = tempfile.mkdtemp(dir=dir)
         if not empty:
             if file_list:
-                if subdir:
-                    movepath = os.path.join(path, settings.HOWTO_PATH)
-                    os.makedirs(movepath)
-                else:
-                    movepath = path
                 for file in file_list:
-                    handle, fname = tempfile.mkstemp(dir=movepath)
-                    shutil.move(fname, os.path.join(movepath, file))
+                    handle, fname = tempfile.mkstemp(dir=path)
+                    shutil.move(fname, os.path.join(path, file))
         return path
 
     def test_find_relevant_files_android(self):

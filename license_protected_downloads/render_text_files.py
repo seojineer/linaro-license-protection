@@ -57,16 +57,17 @@ class RenderTextFiles:
         # Go recursively and find howto's, readme's, hackings, installs.
         # If there are more of the same type then one, throw custom error as
         # written above.
-        androidpaths = cls.dirEntries(path, False, settings.ANDROID_FILES)
-        ubuntupaths = cls.dirEntries(path, False, settings.LINUX_FILES)
+        androidpaths = cls.dirEntries(path, subdir=False,
+                                      files_list=settings.ANDROID_FILES)
+        ubuntupaths = cls.dirEntries(path, subdir=False,
+                                     files_list=settings.LINUX_FILES)
         if len(androidpaths) > 0 and len(ubuntupaths) > 0:
             raise MultipleFilesException
-        if len(androidpaths) > 0:
-            return androidpaths
-        elif len(ubuntupaths) > 0:
-            return ubuntupaths
         else:
-            return []
+            if len(androidpaths) > 0:
+                return androidpaths
+            else:
+                return ubuntupaths
 
     @classmethod
     def flatten(cls, l, ltypes=(list, tuple)):
@@ -85,12 +86,12 @@ class RenderTextFiles:
         return ltype(l)
 
     @classmethod
-    def dirEntries(cls, path, subdir, *args):
-        ''' Return a list of file names found in directory 'dir_name'
+    def dirEntries(cls, path, subdir, files_list=None):
+        ''' Return a list of file names found in directory 'path'
             If 'subdir' is True, recursively access subdirectories under
-            'dir_name'.
-            Additional arguments, if any, are file names to match filenames.
-            Matched file names are added to the list.
+            'path'.
+            'files_list' are file names to match filenames. Matched file names
+            are added to the list.
             If there are no additional arguments, all files found in the
             directory are added to the list.
         '''
@@ -100,14 +101,14 @@ class RenderTextFiles:
         for file in os.listdir(path):
             dirfile = os.path.join(path, file)
             if os.path.isfile(dirfile):
-                if not args:
+                if not files_list:
                     fileList.append(dirfile)
                 else:
-                    if file in cls.flatten(args):
+                    if file in cls.flatten(files_list):
                         fileList.append(dirfile)
             # recursively access file names in subdirectories
             elif os.path.isdir(dirfile) and subdir:
-                fileList.extend(cls.dirEntries(dirfile, subdir, *args))
+                fileList.extend(cls.dirEntries(dirfile, subdir, files_list))
         return fileList
 
     @classmethod
