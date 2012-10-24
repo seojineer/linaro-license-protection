@@ -1,1 +1,0 @@
-Please read "Image Installation Wiki page":https://wiki.linaro.org/Platform/Android/ImageInstallation <br><br>For more info, check out this "page":https://wiki.linaro.org/Platform/Android

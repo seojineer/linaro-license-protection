@@ -163,21 +163,17 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 # Render TEXTILE files settings.
-HOWTO_PATH = 'howto/'
-
 LINUX_FILES = ('README',
                'INSTALL',
                'HACKING',
                'FIRMWARE',
                'RTSM')
+
 ANDROID_FILES = ('HOWTO_releasenotes.txt',
                  'HOWTO_install.txt',
                  'HOWTO_getsourceandbuild.txt',
                  'HOWTO_flashfirmware.txt',
                  'HOWTO_rtsm.txt')
-
-MANDATORY_ANDROID_FILES = ('HOWTO_install.txt',
-                           'HOWTO_getsourceandbuild.txt')
 
 FILES_MAP = {'HOWTO_releasenotes.txt': 'Release Notes',
              'HOWTO_install.txt': 'Binary Image Installation',

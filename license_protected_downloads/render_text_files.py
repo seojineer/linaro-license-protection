@@ -1,5 +1,4 @@
 import os
-import re
 import textile
 import OrderedDict
 from django.conf import settings
@@ -35,15 +34,6 @@ class RenderTextFiles:
                 title = settings.FILES_MAP[os.path.basename(filepath)]
                 result[title] = cls.render_file(filepath)
 
-        # Switch to fallback data for mandatory files.
-        if cls.check_for_manifest_or_tarballs(path):
-            for filename in settings.MANDATORY_ANDROID_FILES:
-                if settings.FILES_MAP[filename] not in result:
-                    filepath = os.path.join(settings.TEXTILE_FALLBACK_PATH,
-                                            filename)
-                    title = settings.FILES_MAP[filename]
-                    result[title] = cls.render_file(filepath)
-
         if not filepaths and len(result) == 0:
             return None
 
@@ -67,26 +57,20 @@ class RenderTextFiles:
         # Go recursively and find howto's, readme's, hackings, installs.
         # If there are more of the same type then one, throw custom error as
         # written above.
-        multiple = 0
-        howtopath = os.path.join(path, settings.HOWTO_PATH)
-        androidpaths = cls.dirEntries(howtopath, False,
-                                      settings.ANDROID_FILES)
-        ubuntupaths = cls.dirEntries(path, False, settings.LINUX_FILES)
+        # Raise MultipleFilesException if files from ANDROID_FILES and
+        # LINUX_FILES exist in the same dir.
+
+        androidpaths = cls.dirEntries(path, files_list=settings.ANDROID_FILES)
+        ubuntupaths = cls.dirEntries(path, files_list=settings.LINUX_FILES)
         if len(androidpaths) > 0 and len(ubuntupaths) > 0:
-            raise MultipleFilesException
-        if len(androidpaths) > 0:
-            for filepath in settings.ANDROID_FILES:
-                if len(cls.findall(androidpaths,
-                                   lambda x: re.search(filepath, x))) > 1:
-                    multiple += 1
-            if multiple == 0:
+            # Files from ANDROID_FILES and LINUX_FILES exist in the same dir
+            raise MultipleFilesException("Both Android and Ubuntu HOWTO " \
+             "files are found, which is unsupported.")
+        else:
+            if len(androidpaths) > 0:
                 return androidpaths
             else:
-                raise MultipleFilesException
-        elif len(ubuntupaths) > 0:
-            return ubuntupaths
-        else:
-            return []
+                return ubuntupaths
 
     @classmethod
     def flatten(cls, l, ltypes=(list, tuple)):
@@ -105,29 +89,23 @@ class RenderTextFiles:
         return ltype(l)
 
     @classmethod
-    def dirEntries(cls, path, subdir, *args):
-        ''' Return a list of file names found in directory 'dir_name'
-            If 'subdir' is True, recursively access subdirectories under
-            'dir_name'.
-            Additional arguments, if any, are file names to match filenames.
-            Matched file names are added to the list.
+    def dirEntries(cls, path, files_list=None):
+        ''' Return a list of file names found in directory 'path'
+            'files_list' are file names to match filenames. Matched file names
+            are added to the list.
             If there are no additional arguments, all files found in the
             directory are added to the list.
         '''
         fileList = []
-        if not os.path.exists(path):
-            return fileList
-        for file in os.listdir(path):
-            dirfile = os.path.join(path, file)
-            if os.path.isfile(dirfile):
-                if not args:
-                    fileList.append(dirfile)
-                else:
-                    if file in cls.flatten(args):
+        if os.path.exists(path):
+            for file in os.listdir(path):
+                dirfile = os.path.join(path, file)
+                if os.path.isfile(dirfile):
+                    if not files_list:
                         fileList.append(dirfile)
-            # recursively access file names in subdirectories
-            elif os.path.isdir(dirfile) and subdir:
-                fileList.extend(cls.dirEntries(dirfile, subdir, *args))
+                    else:
+                        if file in cls.flatten(files_list):
+                            fileList.append(dirfile)
         return fileList
 
     @classmethod
@@ -149,20 +127,3 @@ class RenderTextFiles:
             # hence there is an out of range exception
             except IndexError:
                 return indices
-
-    @classmethod
-    def check_for_manifest_or_tarballs(cls, path):
-        ''' Check if there is a MANIFEST file in current path or a tarball.
-        Also check if we are currently somewhere in 'android' path.
-        This hack is necessary for fallback wiki howto links.
-        '''
-        if 'android' in path:
-            for filename in os.listdir(path):
-                if "MANIFEST" in filename:
-                    return True
-                if "tar.bz2" in filename:
-                    return True
-                if ".img" in filename:
-                    return True
-
-        return False
