@@ -35,15 +35,6 @@ class RenderTextFiles:
                 title = settings.FILES_MAP[os.path.basename(filepath)]
                 result[title] = cls.render_file(filepath)
 
-        # Switch to fallback data for mandatory files.
-        if cls.check_for_manifest_or_tarballs(path):
-            for filename in settings.MANDATORY_ANDROID_FILES:
-                if settings.FILES_MAP[filename] not in result:
-                    filepath = os.path.join(settings.TEXTILE_FALLBACK_PATH,
-                                            filename)
-                    title = settings.FILES_MAP[filename]
-                    result[title] = cls.render_file(filepath)
-
         if not filepaths and len(result) == 0:
             return None
 
@@ -149,20 +140,3 @@ class RenderTextFiles:
             # hence there is an out of range exception
             except IndexError:
                 return indices
-
-    @classmethod
-    def check_for_manifest_or_tarballs(cls, path):
-        ''' Check if there is a MANIFEST file in current path or a tarball.
-        Also check if we are currently somewhere in 'android' path.
-        This hack is necessary for fallback wiki howto links.
-        '''
-        if 'android' in path:
-            for filename in os.listdir(path):
-                if "MANIFEST" in filename:
-                    return True
-                if "tar.bz2" in filename:
-                    return True
-                if ".img" in filename:
-                    return True
-
-        return False
