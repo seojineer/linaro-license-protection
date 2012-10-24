@@ -163,8 +163,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 # Render TEXTILE files settings.
-HOWTO_PATH = 'howto/'
-
 LINUX_FILES = ('README',
                'INSTALL',
                'HACKING',

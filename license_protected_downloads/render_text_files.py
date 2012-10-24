@@ -1,5 +1,4 @@
 import os
-import re
 import textile
 import OrderedDict
 from django.conf import settings
@@ -58,22 +57,12 @@ class RenderTextFiles:
         # Go recursively and find howto's, readme's, hackings, installs.
         # If there are more of the same type then one, throw custom error as
         # written above.
-        multiple = 0
-        howtopath = os.path.join(path, settings.HOWTO_PATH)
-        androidpaths = cls.dirEntries(howtopath, False,
-                                      settings.ANDROID_FILES)
+        androidpaths = cls.dirEntries(path, False, settings.ANDROID_FILES)
         ubuntupaths = cls.dirEntries(path, False, settings.LINUX_FILES)
         if len(androidpaths) > 0 and len(ubuntupaths) > 0:
             raise MultipleFilesException
         if len(androidpaths) > 0:
-            for filepath in settings.ANDROID_FILES:
-                if len(cls.findall(androidpaths,
-                                   lambda x: re.search(filepath, x))) > 1:
-                    multiple += 1
-            if multiple == 0:
-                return androidpaths
-            else:
-                raise MultipleFilesException
+            return androidpaths
         elif len(ubuntupaths) > 0:
             return ubuntupaths
         else:
