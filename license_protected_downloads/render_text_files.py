@@ -64,7 +64,8 @@ class RenderTextFiles:
         ubuntupaths = cls.dirEntries(path, files_list=settings.LINUX_FILES)
         if len(androidpaths) > 0 and len(ubuntupaths) > 0:
             # Files from ANDROID_FILES and LINUX_FILES exist in the same dir
-            raise MultipleFilesException
+            raise MultipleFilesException("Both Android and Ubuntu HOWTO " \
+             "files are found, which is unsupported.")
         else:
             if len(androidpaths) > 0:
                 return androidpaths
