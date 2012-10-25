@@ -457,13 +457,10 @@ def file_server(request, path):
 
 def get_textile_files(request):
 
-    if request.is_ajax():
-        result = test_path(request.GET.get("path"))
-        if not result:
-            raise Http404
+    result = test_path(request.GET.get("path"))
+    if not result:
+        raise Http404
 
-        path = result[1]
+    path = result[1]
 
-        return HttpResponse(json.dumps(RenderTextFiles.find_and_render(path)))
-    else:
-        raise NotImplementedError
+    return HttpResponse(json.dumps(RenderTextFiles.find_and_render(path)))
