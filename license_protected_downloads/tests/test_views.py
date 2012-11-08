@@ -6,6 +6,7 @@ import hashlib
 import os
 import unittest
 import urlparse
+import shutil
 import tempfile
 
 from license_protected_downloads import bzr_version
@@ -19,6 +20,41 @@ from license_protected_downloads.config import INTERNAL_HOSTS
 
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 TESTSERVER_ROOT = os.path.join(THIS_DIRECTORY, "testserver_root")
+
+
+class temporary_directory(object):
+    """Creates a context manager for a temporary directory."""
+
+    def __enter__(self):
+        self.root = tempfile.mkdtemp()
+        return self
+
+    def __exit__(self, *args):
+        shutil.rmtree(self.root)
+
+    def make_file(self, name, data=None, with_buildinfo=False):
+        """Creates a file in this temporary directory."""
+        full_path = os.path.join(self.root, name)
+        dir_name = os.path.dirname(full_path)
+        try:
+            os.makedirs(dir_name)
+        except os.error:
+            pass
+        if with_buildinfo:
+            buildinfo_name = os.path.join(dir_name, 'BUILD-INFO.txt')
+            base_name = os.path.basename(full_path)
+            with open(buildinfo_name, 'w') as buildinfo_file:
+                buildinfo_file.write(
+                    'Format-Version: 0.1\n\n'
+                    'Files-Pattern: %s\n'
+                    'License-Type: open\n' % base_name)
+        target = open(full_path, "w")
+        if data is None:
+            return target
+        else:
+            target.write(data)
+            target.close()
+            return full_path
 
 
 class ViewTests(TestCase):
@@ -636,6 +672,64 @@ class ViewTests(TestCase):
     def test_is_same_parent_dir_false(self):
         fname = os.path.join(TESTSERVER_ROOT, "../file")
         self.assertFalse(is_same_parent_dir(TESTSERVER_ROOT, fname))
+
+
+class HowtoViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.old_served_paths = settings.SERVED_PATHS
+        settings.SERVED_PATHS = [os.path.join(THIS_DIRECTORY,
+                                             "testserver_root")]
+
+    def tearDown(self):
+        settings.SERVED_PATHS = self.old_served_paths
+
+    def test_no_howtos(self):
+        with temporary_directory() as serve_root:
+            settings.SERVED_PATHS = [serve_root.root]
+            serve_root.make_file(
+                "build/9/build.tar.bz2", with_buildinfo=True)
+            response = self.client.get('/build/9/')
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, 'build.tar.bz2')
+
+    def test_howtos_without_license(self):
+        with temporary_directory() as serve_root:
+            settings.SERVED_PATHS = [serve_root.root]
+            serve_root.make_file(
+                "build/9/build.tar.bz2", with_buildinfo=True)
+            serve_root.make_file(
+                "build/9/howto/HOWTO_test.txt", data=".h1 HowTo Test")
+            response = self.client.get('/build/9/')
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, 'build.tar.bz2')
+
+    def test_howtos_with_license_in_buildinfo(self):
+        with temporary_directory() as serve_root:
+            settings.SERVED_PATHS = [serve_root.root]
+            serve_root.make_file(
+                "build/9/build.tar.bz2", with_buildinfo=True)
+            serve_root.make_file(
+                "build/9/howto/HOWTO_test.txt", data=".h1 HowTo Test",
+                with_buildinfo=True)
+            response = self.client.get('/build/9/')
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, 'howto')
+
+    def test_howtos_with_license_in_openeula(self):
+        with temporary_directory() as serve_root:
+            settings.SERVED_PATHS = [serve_root.root]
+            serve_root.make_file(
+                "build/9/build.tar.bz2", with_buildinfo=True)
+            serve_root.make_file(
+                "build/9/howto/HOWTO_test.txt", data=".h1 HowTo Test",
+                with_buildinfo=False)
+            serve_root.make_file(
+                "build/9/howto/OPEN-EULA.txt", with_buildinfo=False)
+            response = self.client.get('/build/9/')
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, 'howto')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -215,9 +215,13 @@ def _process_include_tags(content):
 def is_protected(path):
     build_info = None
     max_index = 1
-    buildinfo_path = os.path.join(os.path.dirname(path), "BUILD-INFO.txt")
-    open_eula_path = os.path.join(os.path.dirname(path), "OPEN-EULA.txt")
-    eula_path = os.path.join(os.path.dirname(path), "EULA.txt")
+    base_path = path
+    if not os.path.isdir(base_path):
+        base_path = os.path.dirname(base_path)
+
+    buildinfo_path = os.path.join(base_path, "BUILD-INFO.txt")
+    open_eula_path = os.path.join(base_path, "OPEN-EULA.txt")
+    eula_path = os.path.join(base_path, "EULA.txt")
 
     if os.path.isfile(buildinfo_path):
         try:
@@ -255,7 +259,7 @@ def is_protected(path):
         openid_teams = False
         with open(license_file, "r") as infile:
             license_text = infile.read()
-    elif _check_special_eula(os.path.dirname(path) + "/*"):
+    elif _check_special_eula(base_path + "/*"):
         return "OPEN"
     else:
         return []
