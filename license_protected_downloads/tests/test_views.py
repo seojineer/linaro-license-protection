@@ -712,19 +712,9 @@ class HowtoViewTests(TestCase):
             serve_root.make_file(
                 "build/9/howto/HOWTO_test.txt", data=".h1 HowTo Test",
                 with_buildinfo=True)
-            serve_root.make_file(
-                "build/9/target/product/panda/howto/HOWTO_test.txt",
-                data=".h1 HowTo Test",
-                with_buildinfo=True)
             response = self.client.get('/build/9/')
             self.assertEqual(response.status_code, 200)
             self.assertContains(response, 'howto')
-            response = self.client.get('/build/9/howto/')
-            self.assertEqual(response.status_code, 200)
-            self.assertContains(response, 'HOWTO_')
-            response = self.client.get('/build/9/target/product/panda/howto/')
-            self.assertEqual(response.status_code, 200)
-            self.assertContains(response, 'HOWTO_')
 
     def test_howtos_with_license_in_openeula(self):
         with temporary_directory() as serve_root:
@@ -739,6 +729,23 @@ class HowtoViewTests(TestCase):
             response = self.client.get('/build/9/')
             self.assertEqual(response.status_code, 200)
             self.assertContains(response, 'howto')
+
+    def test_howtos_product_dir(self):
+        with temporary_directory() as serve_root:
+            settings.SERVED_PATHS = [serve_root.root]
+            serve_root.make_file(
+                "build/9/build.tar.bz2", with_buildinfo=True)
+            serve_root.make_file(
+                "build/9/howto/HOWTO_releasenotes.txt", data=".h1 HowTo Test")
+            serve_root.make_file(
+                "build/9/target/product/panda/howto/HOWTO_releasenotes.txt",
+                data=".h1 HowTo Test")
+            response = self.client.get('/build/9/howto/')
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, 'HowTo Test')
+            response = self.client.get('/build/9/target/product/panda/howto/')
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, 'HowTo Test')
 
 
 if __name__ == '__main__':
