@@ -4,6 +4,10 @@ import OrderedDict
 from django.conf import settings
 
 
+HOWTO_PATH = "howto"
+HOWTO_PRODUCT_PATH = "target/product"
+
+
 class MultipleFilesException(Exception):
     pass
 
@@ -61,6 +65,14 @@ class RenderTextFiles:
         # LINUX_FILES exist in the same dir.
 
         androidpaths = cls.dirEntries(path, files_list=settings.ANDROID_FILES)
+
+        howto_path = os.path.join(path, HOWTO_PATH)
+        howto_product_path = cls.getHowtoProductPath(path)
+        androidpaths += cls.dirEntries(howto_path,
+                                       files_list=settings.ANDROID_FILES)
+        androidpaths += cls.dirEntries(howto_product_path,
+                                       files_list=settings.ANDROID_FILES)
+
         ubuntupaths = cls.dirEntries(path, files_list=settings.LINUX_FILES)
         if len(androidpaths) > 0 and len(ubuntupaths) > 0:
             # Files from ANDROID_FILES and LINUX_FILES exist in the same dir
@@ -127,3 +139,20 @@ class RenderTextFiles:
             # hence there is an out of range exception
             except IndexError:
                 return indices
+
+    @classmethod
+    def getHowtoProductPath(cls, path):
+        """ Return the 'target/product/*/howto/ path.
+
+        In case there is no such folder, return empty string.
+        """
+        howto_path = ""
+        path = os.path.join(path, HOWTO_PRODUCT_PATH)
+        if os.path.exists(path):
+            for file in os.listdir(path):
+                product_path = os.path.join(path, file)
+                if os.path.isdir(product_path):
+                    howto_path = os.path.join(product_path, HOWTO_PATH)
+                    break
+
+        return howto_path
