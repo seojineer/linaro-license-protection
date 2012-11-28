@@ -4,6 +4,7 @@ import os
 import unittest
 from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.buildinfo import IncorrectDataFormatException
+from license_protected_downloads.tests.helpers import temporary_directory
 
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
@@ -273,6 +274,22 @@ class BuildInfoTests(unittest.TestCase):
         build_info.remove_false_positives()
 
         self.assertEquals(build_info.file_info_array, [{}])
+
+
+class FileNameMatchingTests(unittest.TestCase):
+    def test_buildinfo_simple_filename(self):
+        with temporary_directory() as serve_root:
+            sample_file = serve_root.make_file("MD5SUM", data="blah")
+            serve_root.make_file(
+                "BUILD-INFO.txt",
+                data=(
+                    "Format-Version: 2.0\n\n"
+                    "Files-Pattern: MD5SUM\n"
+                    "License-Type: open\n"
+                    ))
+            build_info = BuildInfo(sample_file)
+            file_info = build_info.getInfoForFile()
+            self.assertEqual('open', file_info[0]['license-type'])
 
 
 if __name__ == '__main__':
