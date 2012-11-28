@@ -4,60 +4,25 @@ from django.conf import settings
 from django.test import Client, TestCase
 import hashlib
 import os
+import tempfile
 import unittest
 import urlparse
-import shutil
-import tempfile
 
 from license_protected_downloads import bzr_version
 from license_protected_downloads.buildinfo import BuildInfo
-from license_protected_downloads.views import _insert_license_into_db
-from license_protected_downloads.views import _sizeof_fmt
-from license_protected_downloads.views import _process_include_tags
-from license_protected_downloads.views import is_same_parent_dir
 from license_protected_downloads.config import INTERNAL_HOSTS
+from license_protected_downloads.tests.helpers import temporary_directory
+from license_protected_downloads.views import _insert_license_into_db
+from license_protected_downloads.views import _process_include_tags
+from license_protected_downloads.views import _sizeof_fmt
+from license_protected_downloads.views import is_same_parent_dir
 
 
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 TESTSERVER_ROOT = os.path.join(THIS_DIRECTORY, "testserver_root")
 
 
-class temporary_directory(object):
-    """Creates a context manager for a temporary directory."""
-
-    def __enter__(self):
-        self.root = tempfile.mkdtemp()
-        return self
-
-    def __exit__(self, *args):
-        shutil.rmtree(self.root)
-
-    def make_file(self, name, data=None, with_buildinfo=False):
-        """Creates a file in this temporary directory."""
-        full_path = os.path.join(self.root, name)
-        dir_name = os.path.dirname(full_path)
-        try:
-            os.makedirs(dir_name)
-        except os.error:
-            pass
-        if with_buildinfo:
-            buildinfo_name = os.path.join(dir_name, 'BUILD-INFO.txt')
-            base_name = os.path.basename(full_path)
-            with open(buildinfo_name, 'w') as buildinfo_file:
-                buildinfo_file.write(
-                    'Format-Version: 0.1\n\n'
-                    'Files-Pattern: %s\n'
-                    'License-Type: open\n' % base_name)
-        target = open(full_path, "w")
-        if data is None:
-            return target
-        else:
-            target.write(data)
-            target.close()
-            return full_path
-
-
-class ViewTests(TestCase):
+class BaseServeViewTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.old_served_paths = settings.SERVED_PATHS
@@ -67,6 +32,7 @@ class ViewTests(TestCase):
     def tearDown(self):
         settings.SERVED_PATHS = self.old_served_paths
 
+class ViewTests(BaseServeViewTest):
     def test_license_directly(self):
         response = self.client.get('/licenses/license.html', follow=True)
         self.assertEqual(response.status_code, 200)
@@ -674,16 +640,7 @@ class ViewTests(TestCase):
         self.assertFalse(is_same_parent_dir(TESTSERVER_ROOT, fname))
 
 
-class HowtoViewTests(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.old_served_paths = settings.SERVED_PATHS
-        settings.SERVED_PATHS = [os.path.join(THIS_DIRECTORY,
-                                             "testserver_root")]
-
-    def tearDown(self):
-        settings.SERVED_PATHS = self.old_served_paths
-
+class HowtoViewTests(BaseServeViewTest):
     def test_no_howtos(self):
         with temporary_directory() as serve_root:
             settings.SERVED_PATHS = [serve_root.root]
@@ -752,6 +709,20 @@ class HowtoViewTests(TestCase):
             response = self.client.get('/build/9/target/product/panda/howto/')
             self.assertEqual(response.status_code, 200)
             self.assertContains(response, 'HowTo Test')
+
+
+class FileViewTests(BaseServeViewTest):
+    def test_static_file(self):
+        with temporary_directory() as serve_root:
+            settings.SERVED_PATHS = [serve_root.root]
+            serve_root.make_file("MD5SUM")
+            serve_root.make_file(
+                "BUILD-INFO.txt",
+                data=("Format-Version: 2.0\n\n"
+                      "Files-Pattern: MD5SUM\n"
+                      "License-Type: open\n"))
+            response = self.client.get('/MD5SUM')
+            self.assertEqual(response.status_code, 200)
 
 
 if __name__ == '__main__':
