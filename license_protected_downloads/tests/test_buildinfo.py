@@ -279,7 +279,7 @@ class BuildInfoTests(unittest.TestCase):
 class FileNameMatchingTests(unittest.TestCase):
     def test_buildinfo_simple_filename(self):
         with temporary_directory() as serve_root:
-            sample_file = serve_root.make_file("MD5SUM")
+            sample_file = serve_root.make_file("MD5SUM", data="blah")
             serve_root.make_file(
                 "BUILD-INFO.txt",
                 data=(
@@ -289,7 +289,7 @@ class FileNameMatchingTests(unittest.TestCase):
                     ))
             build_info = BuildInfo(sample_file)
             file_info = build_info.getInfoForFile()
-            self.assertEqual('open', file_info['license-type'])
+            self.assertEqual('open', file_info[0]['license-type'])
 
 
 if __name__ == '__main__':

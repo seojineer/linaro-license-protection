@@ -1,8 +1,12 @@
-from license_protected_downloads.tests.test_buildinfo import BuildInfoTests
+from license_protected_downloads.tests.test_buildinfo import (
+    BuildInfoTests,
+    FileNameMatchingTests,
+    )
 from license_protected_downloads.tests.test_models import LicenseTestCase
 from license_protected_downloads.tests.test_pep8 import TestPep8
 from license_protected_downloads.tests.test_pyflakes import TestPyflakes
 from license_protected_downloads.tests.test_views import (
+    FileViewTests,
     HowtoViewTests,
     ViewTests,
     )
@@ -14,13 +18,15 @@ from license_protected_downloads.tests.test_render_text_files \
 
 #starts the test suite
 __test__ = {
-    'LicenseTestCase': LicenseTestCase,
-    'ViewTests': ViewTests,
-    'HowtoViewTests': HowtoViewTests,
     'BuildInfoTests': BuildInfoTests,
+    'FileNameMatchingTests': FileNameMatchingTests,
+    'FileViewTests': FileViewTests,
+    'HowtoViewTests': HowtoViewTests,
+    'LicenseTestCase': LicenseTestCase,
+    'RenderTextFilesTests': RenderTextFilesTests,
+    'SetsuperuserCommandTest': SetsuperuserCommandTest,
+    'TestOpenIDAuth': TestOpenIDAuth,
     'TestPep8': TestPep8,
     'TestPyflakes': TestPyflakes,
-    'TestOpenIDAuth': TestOpenIDAuth,
-    'SetsuperuserCommandTest': SetsuperuserCommandTest,
-    'RenderTextFilesTests': RenderTextFilesTests,
+    'ViewTests': ViewTests,
 }
