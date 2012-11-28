@@ -40,7 +40,6 @@ class BuildInfo:
                 os.path.join(cls.get_search_path(path), "BUILD-INFO.txt"))
 
     def _set(self, key, value):
-        key = key.lower()
         if key in self.build_info_array[self.index]:
             # A repeated key indicates we have found another chunk of
             # build-info
@@ -175,9 +174,7 @@ class BuildInfo:
                 self.file_info_array.pop(index)
 
 if __name__ == "__main__":
-    bi = BuildInfo("/var/www/build-info/origen-blob.txt")
-#   print bi.build_info_array
-#    print "file_info_array: %s" % bi.file_info_array
-#    print bi.getFormatVersion()
+    import sys
+    bi = BuildInfo(sys.argv[1])
     for field in bi.fields_defined:
         print field + " = " + str(bi.get(field))
