@@ -39,4 +39,3 @@ class temporary_directory(object):
             target.write(data)
             target.close()
             return full_path
-
