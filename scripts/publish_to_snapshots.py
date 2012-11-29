@@ -106,8 +106,8 @@ class SnapshotsPublisher(object):
     def validate_args(self, args):
         # Validate that all the required information
         # is passed on the command line
-        if (args.job_type == None or args.job_name == None or
-            args.build_num == None):
+        if (args.job_type is None or args.job_name is None or
+            args.build_num is None):
             raise PublisherArgumentException(
                 "\nYou must specify job-type, job-name and build-num")
 
@@ -138,7 +138,7 @@ class SnapshotsPublisher(object):
     def validate_paths(self, args, uploads_path, target_path):
         build_dir_path = target_dir_path = None
         ret_val = self.jobname_to_target_subdir(args, args.job_name)
-        if ret_val != None:
+        if ret_val is not None:
             if args.job_type == "android":
                 build_path = '/'.join([args.job_type, args.job_name,
                                       str(args.build_num)])
@@ -220,7 +220,7 @@ class SnapshotsPublisher(object):
             if os.path.islink(symlink_path):
                 os.unlink(symlink_path)
 
-            if  os.path.islink(header_symlink_path):
+            if os.path.islink(header_symlink_path):
                 os.unlink(header_symlink_path)
 
             os.symlink(header_path, header_symlink_path)
@@ -350,7 +350,7 @@ def main():
     try:
         build_dir_path, target_dir_path = publisher.validate_paths(
             args, uploads_path, target_path)
-        if build_dir_path == None or target_dir_path == None:
+        if build_dir_path is None or target_dir_path is None:
             print "Problem with build/target path, move failed"
             return FAIL
         ret = publisher.move_artifacts(args, build_dir_path, target_dir_path)

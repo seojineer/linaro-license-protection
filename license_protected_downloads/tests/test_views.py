@@ -32,6 +32,7 @@ class BaseServeViewTest(TestCase):
     def tearDown(self):
         settings.SERVED_PATHS = self.old_served_paths
 
+
 class ViewTests(BaseServeViewTest):
     def test_license_directly(self):
         response = self.client.get('/licenses/license.html', follow=True)
@@ -528,7 +529,7 @@ class ViewTests(BaseServeViewTest):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         os.chdir(file_path)
         ret = _process_include_tags(
-                    'Test <linaro:include file="README">README is missing' + \
+                    'Test <linaro:include file="README">README is missing'
                     '</linaro:include> html')
         self.assertEqual(ret, r"Test Included from README html")
         os.chdir(old_cwd)

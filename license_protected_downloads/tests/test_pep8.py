@@ -23,11 +23,8 @@ from testtools import TestCase
 
 class TestPep8(TestCase):
     def test_pep8(self):
-        # Errors we have to ignore for now:
-        #  * E202 whitespace before ')' or ']'
-        # E202 is actually only reported with the natty version of pep8 and
-        # can be re-enabled once we drop support for natty.
-        ignore = ['E202']
+        # Errors we have to ignore for now: use pep8 error codes like 'E202'.
+        ignore = []
         # Ignore return code.
         proc = subprocess.Popen(['pep8',
             '--repeat',
