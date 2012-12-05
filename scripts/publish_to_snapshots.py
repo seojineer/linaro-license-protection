@@ -12,6 +12,7 @@ uploads_path = '/srv/snapshots.linaro.org/uploads/'
 target_path = '/srv/snapshots.linaro.org/www/'
 staging_uploads_path = '/srv/staging.snapshots.linaro.org/uploads/'
 staging_target_path = '/srv/staging.snapshots.linaro.org/www/'
+product_dir_path = 'target/product'
 PASS = 0
 FAIL = 1
 acceptable_job_types = [
@@ -263,6 +264,29 @@ class SnapshotsPublisher(object):
             os.chdir(orig_dir)
             return FAIL
 
+    def reshuffle_android_artifacts(self, src_dir):
+        dst_dir = src_dir
+        full_product_path = os.path.join(src_dir, product_dir_path)
+        filelist = os.listdir(full_product_path)
+        try:
+            for file in filelist:
+                src = os.path.join(full_product_path, file)
+                if os.path.isdir(src):
+                    for artifact in os.listdir(src):
+                        dest = os.path.join(dst_dir, artifact)
+                        if os.path.exists(dest):
+                            if os.path.isdir(dest):
+                                continue
+                            else:
+                                os.remove(dest)
+                        shutil.move(os.path.join(src, artifact), dest)
+        except shutil.Error:
+            print "Error while reshuffling the content"
+        try:
+            shutil.rmtree(os.path.dirname(full_product_path))
+        except shutil.Error:
+            print "Error removing empty product dir"
+
     def move_dir_content(self, src_dir, dest_dir, sanitize=False):
         filelist = os.listdir(src_dir)
         try:
@@ -299,6 +323,9 @@ class SnapshotsPublisher(object):
                 os.makedirs(target_dir_path, 0775)
                 if not os.path.isdir(target_dir_path):
                     raise OSError
+
+            if (args.job_type == "android"):
+                self.reshuffle_android_artifacts(build_dir_path)
 
             self.move_dir_content(build_dir_path, target_dir_path,
                                   sanitize=args.staging)
