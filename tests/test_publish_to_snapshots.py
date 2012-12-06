@@ -10,6 +10,7 @@ from scripts.publish_to_snapshots import (
     PublisherArgumentException,
     SnapshotsPublisher,
     setup_parser,
+    product_dir_path,
     )
 
 
@@ -696,3 +697,32 @@ class TestSnapshotsPublisher(TestCase):
         self.assertEqual(os.path.basename(artifact),
                          open(moved_artifact).read())
         self.assertIn("Moved the files from", stdout.read())
+
+    def test_flatten_android_artifacts(self):
+        source_dir = tempfile.mkdtemp()
+        full_product_path = os.path.join(source_dir, product_dir_path)
+        full_board_path = os.path.join(full_product_path, 'board')
+        full_howto_path = os.path.join(full_board_path, 'howto')
+        os.makedirs(full_howto_path)
+
+        content = "file_content"
+        file_name = os.path.join(full_board_path, "artifact.txt")
+        file = open(file_name, "w")
+        file.write(content)
+        file.close()
+
+        howto_content = "howto_file_content"
+        howto_file_name = os.path.join(full_howto_path, "HOWTO_install.txt")
+        file = open(howto_file_name, "w")
+        file.write(howto_content)
+        file.close()
+
+        publisher = SnapshotsPublisher()
+        publisher.reshuffle_android_artifacts(source_dir)
+        resulting_file = os.path.join(source_dir,
+                                      os.path.basename(file_name))
+        resulting_howto_file = os.path.join(source_dir, 'howto',
+                                      os.path.basename(howto_file_name))
+        self.assertEqual(content, open(resulting_file).read())
+        self.assertEqual(howto_content, open(resulting_howto_file).read())
+        shutil.rmtree(source_dir)
