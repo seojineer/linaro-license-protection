@@ -208,7 +208,11 @@ class SnapshotsPublisher(object):
 
         return build_dir_path, target_dir_path
 
-    def create_symlink(self, args, target_dir_path):
+    def create_symlink(self, args, build_dir_path, target_dir_path):
+        if args.job_type == "prebuilt":
+            for root, dirs, files in os.walk(build_dir_path):
+                for dir in dirs:
+                    target_dir_path = os.path.join(target_dir_path, dir)
         symlink_path = os.path.dirname(target_dir_path)
         if args.job_type == "android":
             symlink_path = os.path.join(symlink_path, "lastSuccessful")
@@ -332,11 +336,13 @@ class SnapshotsPublisher(object):
                                   sanitize=args.staging)
 
             if (args.job_type == "android" or
+                args.job_type == "prebuilt" or
                 args.job_type == "ubuntu-hwpacks" or
                 args.job_type == "ubuntu-images" or
                 args.job_type == "ubuntu-restricted" or
                 args.job_type == "ubuntu-sysroots"):
-                ret = self.create_symlink(args, target_dir_path)
+                ret = self.create_symlink(
+                    args, build_dir_path, target_dir_path)
                 if ret != PASS:
                     return ret
 
