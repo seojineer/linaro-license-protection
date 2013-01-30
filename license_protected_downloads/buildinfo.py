@@ -106,6 +106,8 @@ class BuildInfo:
             return False
 
     def parseData(self, lines):
+        if not lines:
+            raise IncorrectDataFormatException("Array is empty.")
         if not isinstance(lines, list):
             raise IncorrectDataFormatException("No array provided.")
         format_line = lines.pop(0)

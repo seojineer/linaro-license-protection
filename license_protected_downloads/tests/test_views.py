@@ -407,6 +407,14 @@ class ViewTests(BaseServeViewTest):
         # If a build-info file is invalid, we don't allow access
         self.assertEqual(response.status_code, 403)
 
+    def test_empty_build_info_file(self):
+        target_file = "build-info/empty-build-info/test.txt"
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True)
+
+        # If a build-info file is invalid, we don't allow access
+        self.assertEqual(response.status_code, 403)
+
     def test_unable_to_download_hidden_files(self):
         target_file = '~linaro-android/staging-vexpress-a9/OPEN-EULA.txt'
         url = urlparse.urljoin("http://testserver/", target_file)
