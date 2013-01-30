@@ -398,6 +398,9 @@ def main():
         ret = publisher.check_buildinfo(build_dir_path)
         if ret != PASS:
             print "BUILD-INFO.txt is not present in artifacts being published"
+            # Remove artifacts from upload dir
+            if os.path.isdir(build_dir_path):
+                shutil.rmtree(build_dir_path)
             return FAIL
         ret = publisher.move_artifacts(args, build_dir_path, target_dir_path)
         if ret != PASS:
