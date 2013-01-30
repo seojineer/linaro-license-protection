@@ -744,7 +744,7 @@ class TestSnapshotsPublisher(TestCase):
         file = open(file_name, "w")
         file.close()
 
-        self.assertEqual(PASS, self.publisher.check_buildinfo(build_dir))
+        self.assertEqual(PASS, self.publisher.check_buildinfo(build_path))
 
     def test_check_buildinfo_no_file(self):
         self.publisher = SnapshotsPublisher()
@@ -756,4 +756,4 @@ class TestSnapshotsPublisher(TestCase):
         build_path = os.path.join(self.uploads_path, build_dir)
         os.makedirs(build_path)
 
-        self.assertEqual(FAIL, self.publisher.check_buildinfo(build_dir))
+        self.assertEqual(FAIL, self.publisher.check_buildinfo(build_path))
