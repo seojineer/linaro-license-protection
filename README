@@ -92,7 +92,7 @@ Paragraphs
 Header paragraph (once)
 .......................
 
-The following fields may be present in a header paragraph:
+The following fields must be present in a header paragraph:
  * Format-Version: (required)
     Version of the BUILD-INFO format.
 
