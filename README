@@ -94,7 +94,7 @@ Header paragraph (once)
 
 The following fields must be present in a header paragraph:
  * Format-Version: (required)
-    Version of the BUILD-INFO format.
+    Version of the BUILD-INFO format (currently "0.1").
 
 Files paragraph (repeatable)
 ............................
