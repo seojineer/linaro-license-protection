@@ -397,8 +397,8 @@ def main():
             return FAIL
         ret = publisher.check_buildinfo(build_dir_path)
         if ret != PASS:
-            print "BUILD-INFO.txt is not present in build."
-            print "WARNING: Nothing was published because BUILD-INFO.txt is absent."
+            print "ERROR: BUILD-INFO.txt is not present in build."
+            print "WARNING: Nothing was published."
             # Remove artifacts from upload dir
             if os.path.isdir(build_dir_path):
                 shutil.rmtree(build_dir_path)
