@@ -438,29 +438,30 @@ def file_server(request, path):
     if not file_listed(path, url):
         raise Http404
 
-    response = None
     if get_client_ip(request) in config.INTERNAL_HOSTS or\
        is_whitelisted(os.path.join('/', url)):
         digests = 'OPEN'
     else:
         digests = is_protected(path)
+
+    response = None
     if not digests:
         # File has no license text but is protected
         response = HttpResponseForbidden(
             "You do not have permission to access this file.")
-
-    # Return a file...
+    elif digests == "OPEN":
+        response = None
     else:
-        if digests == "OPEN":
-            response = None
-        else:
-            for digest in digests:
-                if not license_accepted(request, digest):
-                    response = redirect(
-                        '/license?lic=' + digest + "&url=" + url)
+        for digest in digests:
+            if not license_accepted(request, digest):
+                # Make sure that user accepted each license one by one
+                response = redirect(
+                    '/license?lic=' + digest + "&url=" + url)
+                break
 
-        if not response:
-            response = send_file(path)
+    # If we didn't have any other response, it's ok to send file now
+    if not response:
+        response = send_file(path)
 
     return response
 
