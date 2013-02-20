@@ -362,6 +362,23 @@ def is_whitelisted(url):
     return found
 
 
+def send_file(path):
+    "Return HttpResponse which will send path to user's browser."
+    file_name = os.path.basename(path)
+    mimetypes.init()
+    mime = mimetypes.guess_type(path)[0]
+    if mime is None:
+        mime = "application/force-download"
+    response = HttpResponse(mimetype=mime)
+    response['Content-Disposition'] = ('attachment; filename=%s' %
+                                       smart_str(file_name))
+    response['X-Sendfile'] = smart_str(path)
+    #response['Content-Length'] = os.path.getsize(path)
+    # TODO: Is it possible to add a redirect to response so we can take
+    # the user back to the original directory this file is in?
+    return response
+
+
 def file_server(request, path):
     """Serve up a file / directory listing or license page as required"""
     url = path
@@ -415,8 +432,6 @@ def file_server(request, path):
                                    RenderTextFiles.find_and_render(path)
                                    })
 
-    file_name = os.path.basename(path)
-
     # If the file listing doesn't contain the file requested for download,
     # return a 404. This prevents the download of BUILD-INFO.txt and other
     # hidden files.
@@ -445,17 +460,8 @@ def file_server(request, path):
                         '/license?lic=' + digest + "&url=" + url)
 
         if not response:
-            mimetypes.init()
-            mime = mimetypes.guess_type(path)[0]
-            if mime is None:
-                mime = "application/force-download"
-            response = HttpResponse(mimetype=mime)
-            response['Content-Disposition'] = ('attachment; filename=%s' %
-                                               smart_str(file_name))
-            response['X-Sendfile'] = smart_str(path)
-            #response['Content-Length'] = os.path.getsize(path)
-            # TODO: Is it possible to add a redirect to response so we can take
-            # the user back to the original directory this file is in?
+            response = send_file(path)
+
     return response
 
 
