@@ -14,15 +14,16 @@ class BuildInfoTests(unittest.TestCase):
         self.buildinfo_file_path = os.path.join(THIS_DIRECTORY,
                                                 "BUILD-INFO.txt")
 
-    def test_readFile_nonFile(self):
+    def test_apply_to_dir(self):
+        self.assertTrue(os.path.isdir("license_protected_downloads"))
         with self.assertRaises(IOError):
             BuildInfo("license_protected_downloads")
 
-    def test_readFile_nonexistentFile(self):
+    def test_apply_to_nonexistent_file(self):
         with self.assertRaises(IOError):
             BuildInfo("nonexistent.file")
 
-    def test_readFile_File(self):
+    def test_apply_to_file(self):
         build_info = BuildInfo(self.buildinfo_file_path)
 
         self.assertIn("Files-Pattern: *.txt", build_info.lines)
