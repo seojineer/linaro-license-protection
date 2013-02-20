@@ -16,8 +16,8 @@ class BuildInfoTests(unittest.TestCase):
 
     def test_apply_to_dir(self):
         self.assertTrue(os.path.isdir("license_protected_downloads"))
-        with self.assertRaises(IOError):
-            BuildInfo("license_protected_downloads")
+        build_info = BuildInfo("license_protected_downloads")
+        self.assertEquals(build_info.getInfoForFile(), [{}])
 
     def test_apply_to_nonexistent_file(self):
         with self.assertRaises(IOError):
