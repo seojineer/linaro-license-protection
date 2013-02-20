@@ -14,10 +14,20 @@ class BuildInfoTests(unittest.TestCase):
         self.buildinfo_file_path = os.path.join(THIS_DIRECTORY,
                                                 "BUILD-INFO.txt")
 
+    def test_no_buildinfo(self):
+        file_path = THIS_DIRECTORY + \
+            '/testserver_root/build-info/no-build-info/file'
+        with self.assertRaises(IOError):
+            BuildInfo(file_path)
+
     def test_apply_to_dir(self):
-        self.assertTrue(os.path.isdir("license_protected_downloads"))
-        build_info = BuildInfo("license_protected_downloads")
-        self.assertEquals(build_info.getInfoForFile(), [{}])
+        dir_path = THIS_DIRECTORY + \
+            '/testserver_root/build-info/subdir'
+        build_info = BuildInfo(dir_path)
+        self.assertEquals(build_info.getInfoForFile(),
+            [{'build-name': 'landing-protected',
+              'license-type': 'protected',
+              'openid-launchpad-teams': 'linaro'}])
 
     def test_apply_to_nonexistent_file(self):
         with self.assertRaises(IOError):
