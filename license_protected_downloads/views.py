@@ -389,6 +389,10 @@ def file_server(request, path):
     type = result[0]
     path = result[1]
 
+    if get_client_ip(request) in config.INTERNAL_HOSTS:
+        # For internal trusted hosts, short-circuit any further checks
+        return send_file(path)
+
     if BuildInfo.build_info_exists(path):
         try:
             build_info = BuildInfo(path)
