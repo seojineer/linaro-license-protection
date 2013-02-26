@@ -483,10 +483,10 @@ def get_textile_files(request):
 
 
 def get_remote_static(request):
-
+    """Fetches remote static files based on the dict map in settings.py."""
     name = request.GET.get("name")
     if name not in settings.SUPPORTED_REMOTE_STATIC_FILES:
-        raise Http404
+        raise Http404("File name not supported.")
 
     data = urllib2.urlopen(settings.SUPPORTED_REMOTE_STATIC_FILES[name])
     return HttpResponse(data)

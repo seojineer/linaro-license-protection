@@ -672,6 +672,15 @@ class ViewTests(BaseServeViewTest):
         fname = os.path.join(TESTSERVER_ROOT, "../file")
         self.assertFalse(is_same_parent_dir(TESTSERVER_ROOT, fname))
 
+    def test_get_remote_static_unsupported_file(self):
+        response = self.client.get('/get-remote-static?name=init.css')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'INIT CSS')
+
+    def test_get_remote_static(self):
+        response = self.client.get('/get-remote-static?name=unsupported.name')
+        self.assertEqual(response.status_code, 404)
+
 
 class HowtoViewTests(BaseServeViewTest):
     def test_no_howtos(self):
