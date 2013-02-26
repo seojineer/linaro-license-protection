@@ -4,6 +4,7 @@ import json
 import mimetypes
 import os
 import re
+import urllib2
 from mimetypes import guess_type
 from datetime import datetime
 
@@ -479,3 +480,13 @@ def get_textile_files(request):
     path = result[1]
 
     return HttpResponse(json.dumps(RenderTextFiles.find_and_render(path)))
+
+
+def get_remote_static(request):
+
+    name = request.GET.get("name")
+    if name not in settings.SUPPORTED_REMOTE_STATIC_FILES:
+        raise Http404
+
+    data = urllib2.urlopen(settings.SUPPORTED_REMOTE_STATIC_FILES[name])
+    return HttpResponse(data)

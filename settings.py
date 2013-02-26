@@ -191,3 +191,9 @@ TAB_PRIORITY = ['Release Notes',
                 'Building From Source',
                 'Firmware Update',
                 'RTSM']
+
+SUPPORTED_REMOTE_STATIC_FILES = {
+    "linarofamily.js": "http://www.linaro.org/remote/js/linarofamily.js",
+    "init.css": "http://www.linaro.org/remote/css/init.css",
+    "remote.css": "http://www.linaro.org/remote/css/remote.css",
+    }
