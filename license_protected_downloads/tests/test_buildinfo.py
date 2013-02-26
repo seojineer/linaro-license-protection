@@ -89,12 +89,6 @@ class BuildInfoTests(unittest.TestCase):
         with self.assertRaises(IncorrectDataFormatException):
             build_info.parseLine(line)
 
-    def test_parseData_empty_fails(self):
-        build_info = BuildInfo(self.buildinfo_file_path)
-
-        with self.assertRaises(IncorrectDataFormatException):
-            build_info.parseData([])
-
     def test_parseData_no_format_version_fails(self):
         build_info = BuildInfo(self.buildinfo_file_path)
 
