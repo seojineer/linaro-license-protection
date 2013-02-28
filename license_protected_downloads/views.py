@@ -488,5 +488,10 @@ def get_remote_static(request):
     if name not in settings.SUPPORTED_REMOTE_STATIC_FILES:
         raise Http404("File name not supported.")
 
-    data = urllib2.urlopen(settings.SUPPORTED_REMOTE_STATIC_FILES[name])
+    try:
+        data = urllib2.urlopen(settings.SUPPORTED_REMOTE_STATIC_FILES[name])
+    except urllib2.HTTPError:
+        # TODO: send an email to infrastructure-errors list
+        raise
+
     return HttpResponse(data)

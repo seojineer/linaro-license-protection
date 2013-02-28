@@ -7,7 +7,6 @@ import tempfile
 import threading
 import BaseHTTPServer
 import SocketServer
-import urllib2
 
 
 class temporary_directory(object):
@@ -55,9 +54,11 @@ class HttpHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_error(404, 'URL %s not found' % self.path)
             self.end_headers()
 
+
 class ThreadedHTTPServer(SocketServer.ThreadingMixIn,
                          BaseHTTPServer.HTTPServer):
     pass
+
 
 class TestHttpServer(object):
     """Creates a context manager for a temporary directory."""
