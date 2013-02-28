@@ -3,6 +3,7 @@
 <html>
 <head>
   {% block header %}{% endblock %}
+  {% include 'google-analytics.html' %}
 </head>
 <body>
   {% block content-header %}{% endblock %}
@@ -10,7 +11,14 @@
   {% block content-footer-top %}{% endblock %}
   <form action="/accept-license?lic={{ license.digest }}&url={{ url }}" method="post">
     {% csrf_token %}
-    <input class="button button-accept" type="submit" value="Accept" name="accept" /> <input class="button button-decline" type="submit" value="Reject" name="reject"/>
+    <input class="button button-accept" type="submit" value="Accept"
+           name="accept"
+           onclick="javascript:trackDownload('License Accepted', '{{ url }}');"
+           />
+    <input class="button button-decline" type="submit" value="Reject"
+           name="reject"
+           onclick="javascript:trackDownload('License Rejected', '{{ url }}');"
+           />
   </form>
   {% block content-footer-bottom %}{% endblock %}
 </body>
