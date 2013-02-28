@@ -20,7 +20,23 @@
   {% endif %}
 
 {% for value in dirlist %}
-  <tr><td valign="top"><img src="{{ STATIC_URL }}/static/{{ value.type }}.png" alt="{{ value.type }}"/></td><td><a href="{{ value.url }}">{{ value.name }}</a></td><td align="right">{{ value.mtime }}  </td><td align="right"> {% if value.type != 'folder' %}{{ value.size }}{% endif %}</td>
+  <tr>
+    <td valign="top">
+      <img src="{{ STATIC_URL }}/static/{{ value.type }}.png"
+           alt="{{ value.type }}"/>
+    </td>
+    <td>
+      <a href="{{ value.url }}"
+       {% if value.type  != 'folder' %}
+         onclick="javascript:trackDownload(
+                    'Download Attempted', '{{ value.url }}');"
+       {% endif %}
+         >{{ value.name }}</a>
+    </td>
+    <td align="right">{{ value.mtime }}  </td>
+    <td align="right">
+      {% if value.type != 'folder' %}{{ value.size }}{% endif %}
+    </td>
     <td>
       {% if value.license_digest_list == "OPEN" %}
         <i>open</i>
