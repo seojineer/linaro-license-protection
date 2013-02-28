@@ -491,7 +491,8 @@ def get_remote_static(request):
     try:
         data = urllib2.urlopen(settings.SUPPORTED_REMOTE_STATIC_FILES[name])
     except urllib2.HTTPError:
-        # TODO: send an email to infrastructure-errors list
+        # TODO: send an email to infrastructure-errors list,
+        # then implement raising of Http404 instead of HTTPError
         raise
 
     return HttpResponse(data)
