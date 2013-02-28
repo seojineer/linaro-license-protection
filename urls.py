@@ -22,6 +22,10 @@ urlpatterns = patterns('',
     url(r'^css/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.CSS_PATH}),
 
+    url(r'^get-remote-static',
+        'license_protected_downloads.views.get_remote_static',
+        name='get_remote_static'),
+
     # The license page...
     url(r'^license$',
         'license_protected_downloads.views.show_license',

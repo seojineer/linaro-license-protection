@@ -6,17 +6,18 @@ import hashlib
 import os
 import tempfile
 import unittest
+import urllib2
 import urlparse
 
 from license_protected_downloads import bzr_version
 from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.config import INTERNAL_HOSTS
 from license_protected_downloads.tests.helpers import temporary_directory
+from license_protected_downloads.tests.helpers import TestHttpServer
 from license_protected_downloads.views import _insert_license_into_db
 from license_protected_downloads.views import _process_include_tags
 from license_protected_downloads.views import _sizeof_fmt
 from license_protected_downloads.views import is_same_parent_dir
-
 
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 TESTSERVER_ROOT = os.path.join(THIS_DIRECTORY, "testserver_root")
@@ -663,6 +664,33 @@ class ViewTests(BaseServeViewTest):
     def test_is_same_parent_dir_false(self):
         fname = os.path.join(TESTSERVER_ROOT, "../file")
         self.assertFalse(is_same_parent_dir(TESTSERVER_ROOT, fname))
+
+    def test_get_remote_static_unsupported_file(self):
+        response = self.client.get('/get-remote-static?name=unsupported.css')
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_remote_static_nonexisting_file(self):
+        pages = {"/": "index"}
+
+        with TestHttpServer(pages) as http_server:
+            css_url = '%s/init.css' % http_server.base_url
+            settings.SUPPORTED_REMOTE_STATIC_FILES = {
+                'init.css': css_url}
+
+            self.assertRaises(urllib2.HTTPError, self.client.get,
+                              '/get-remote-static?name=init.css')
+
+    def test_get_remote_static(self):
+        pages = {"/": "index", "/init.css": "test CSS"}
+
+        with TestHttpServer(pages) as http_server:
+            css_url = '%s/init.css' % http_server.base_url
+            settings.SUPPORTED_REMOTE_STATIC_FILES = {
+                'init.css': css_url}
+
+            response = self.client.get('/get-remote-static?name=init.css')
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, 'test CSS')
 
 
 class HowtoViewTests(BaseServeViewTest):
