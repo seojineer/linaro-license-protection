@@ -8,6 +8,7 @@ import tempfile
 import unittest
 import urllib2
 import urlparse
+import json
 
 from license_protected_downloads import bzr_version
 from license_protected_downloads.buildinfo import BuildInfo
@@ -187,6 +188,65 @@ class ViewTests(BaseServeViewTest):
         response = client.get(url)
 
         # If we have access to the file, we will get an X-Sendfile response
+        self.assertEqual(response.status_code, 200)
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        self.assertEqual(response['X-Sendfile'], file_path)
+
+    def test_api_get_license_list(self):
+        target_file = "build-info/snowball-blob.txt"
+        digest = self.set_up_license(target_file)
+
+        license_url = "/api/license/" + target_file
+
+        # Download JSON containing license information
+        response = self.client.get(license_url)
+        data = json.loads(response.content)["licenses"]
+
+        # Extract digests
+        digests = [d["digest"] for d in data]
+
+        # Make sure digests match what is in the database
+        self.assertIn(digest, digests)
+        self.assertEqual(len(digests), 1)
+
+    def test_api_get_license_list_multi_license(self):
+        target_file = "build-info/multi-license.txt"
+        digest_1 = self.set_up_license(target_file)
+        digest_2 = self.set_up_license(target_file, 1)
+
+        license_url = "/api/license/" + target_file
+
+        # Download JSON containing license information
+        response = self.client.get(license_url)
+        data = json.loads(response.content)["licenses"]
+
+        # Extract digests
+        digests = [d["digest"] for d in data]
+
+        # Make sure digests match what is in the database
+        self.assertIn(digest_1, digests)
+        self.assertIn(digest_2, digests)
+        self.assertEqual(len(digests), 2)
+
+    def test_api_download_file(self):
+        target_file = "build-info/snowball-blob.txt"
+        digest = self.set_up_license(target_file)
+
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True,
+                                   HTTP_LICENSE_ACCEPTED=digest)
+        self.assertEqual(response.status_code, 200)
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        self.assertEqual(response['X-Sendfile'], file_path)
+
+    def test_api_download_file_multi_license(self):
+        target_file = "build-info/multi-license.txt"
+        digest_1 = self.set_up_license(target_file)
+        digest_2 = self.set_up_license(target_file, 1)
+
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True,
+                        HTTP_LICENSE_ACCEPTED=" ".join([digest_1, digest_2]))
         self.assertEqual(response.status_code, 200)
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)

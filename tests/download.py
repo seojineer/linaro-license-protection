@@ -8,6 +8,7 @@ import os
 
 # Example of how to use the API to download a file from a known location
 url = "http://localhost:8001/build-info/multi-license.txt"
+url = "http://localhost:8001/build-info/snowball-blob.txt"
 
 # Generate the URL that will return the license information. This is the URL
 # if the file with /api/license prepended to the path.
