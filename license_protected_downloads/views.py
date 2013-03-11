@@ -83,14 +83,14 @@ def dir_list(url, path):
             # example), it doesn't have a mtime.
             mtime = 0
 
-        type = "other"
+        target_type = "other"
         if os.path.isdir(file):
-            type = "folder"
+            target_type = "folder"
         else:
             type_tuple = guess_type(name)
             if type_tuple and type_tuple[0]:
                 if type_tuple[0].split('/')[0] == "text":
-                    type = "text"
+                    target_type = "text"
 
         if os.path.exists(file):
             size = os.path.getsize(file)
@@ -111,7 +111,7 @@ def dir_list(url, path):
         license_list = License.objects.all_with_hashes(license_digest_list)
         listing.append({'name': name,
                         'size': _sizeof_fmt(size),
-                        'type': type,
+                        'type': target_type,
                         'mtime': mtime,
                         'license_digest_list': license_digest_list,
                         'license_list': license_list,
@@ -298,6 +298,11 @@ def get_client_ip(request):
 
 
 def license_accepted(request, digest):
+    license_header = "HTTP_LICENSE_ACCEPTED"
+    if license_header in request.META:
+        if digest in request.META[license_header].split():
+            return True
+
     return 'license_accepted_' + digest in request.COOKIES
 
 
@@ -387,7 +392,7 @@ def file_server(request, path):
     if not result:
         raise Http404
 
-    type = result[0]
+    target_type = result[0]
     path = result[1]
 
     if get_client_ip(request) in config.INTERNAL_HOSTS:
@@ -411,7 +416,7 @@ def file_server(request, path):
             if openid_response:
                 return openid_response
 
-    if type == "dir":
+    if target_type == "dir":
         # Generate a link to the parent directory (if one exists)
         if url != '/' and url != '':
             up_dir = "/" + os.path.split(url)[0]
@@ -496,3 +501,59 @@ def get_remote_static(request):
         raise
 
     return HttpResponse(data)
+
+
+def list_files_api(request, path):
+    url = path
+    result = test_path(path)
+    if not result:
+        raise Http404
+
+    target_type = result[0]
+    path = result[1]
+
+    if target_type == "dir":
+        listing = dir_list(url, path)
+
+        clean_listing = []
+        for entry in listing:
+            if len(entry["license_list"]) == 0:
+                entry["license_list"] = ["Open"]
+
+            clean_listing.append({
+                "name": entry["name"],
+                "size": entry["size"],
+                "type": entry["type"],
+                "mtime": entry["mtime"],
+                "url": entry["url"],
+            })
+
+        data = json.dumps({"files": clean_listing})
+    else:
+        data = json.dumps({"files": ["File not found."]})
+
+    return HttpResponse(data, mimetype='application/json')
+
+
+def get_license_api(request, path):
+    result = test_path(path)
+    if not result:
+        raise Http404
+
+    target_type = result[0]
+    path = result[1]
+
+    if target_type == "dir":
+        data = json.dumps({"licenses":
+                           ["File not found."]})
+    else:
+        license_digest_list = is_protected(path)
+        license_list = License.objects.all_with_hashes(license_digest_list)
+        if len(license_list) == 0:
+            license_list = ["Open"]
+        else:
+            license_list = [{"text": l.text, "digest": l.digest}
+                            for l in license_list]
+        data = json.dumps({"licenses": license_list})
+
+    return HttpResponse(data, mimetype='application/json')
