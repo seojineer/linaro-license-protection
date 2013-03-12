@@ -1,5 +1,6 @@
 __author__ = 'dooferlad'
 
+from datetime import datetime
 from django.conf import settings
 from django.test import Client, TestCase
 import hashlib
@@ -250,6 +251,27 @@ class ViewTests(BaseServeViewTest):
         self.assertEqual(response.status_code, 200)
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)
+
+    def test_api_get_listing(self):
+        url = "/api/ls/build-info"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)["files"]
+
+        # For each file listed, check some key attributes
+        for file_info in data:
+            file_path = os.path.join(TESTSERVER_ROOT,
+                                     file_info["url"].lstrip("/"))
+            if file_info["type"] == "folder":
+                self.assertTrue(os.path.isdir(file_path))
+            else:
+                self.assertTrue(os.path.isfile(file_path))
+
+            mtime = datetime.fromtimestamp(
+                os.path.getmtime(file_path)).strftime('%d-%b-%Y %H:%M')
+
+            self.assertEqual(mtime, file_info["mtime"])
 
     def test_OPEN_EULA_txt(self):
         target_file = '~linaro-android/staging-vexpress-a9/test.txt'
