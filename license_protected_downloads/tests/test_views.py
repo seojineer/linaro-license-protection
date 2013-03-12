@@ -229,6 +229,14 @@ class ViewTests(BaseServeViewTest):
         self.assertIn(digest_2, digests)
         self.assertEqual(len(digests), 2)
 
+    def test_api_get_license_list_404(self):
+        target_file = "build-info/snowball-b"
+        license_url = "/api/license/" + target_file
+
+        # Download JSON containing license information
+        response = self.client.get(license_url)
+        self.assertEqual(response.status_code, 404)
+
     def test_api_download_file(self):
         target_file = "build-info/snowball-blob.txt"
         digest = self.set_up_license(target_file)
@@ -252,6 +260,15 @@ class ViewTests(BaseServeViewTest):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)
 
+    def test_api_download_file_404(self):
+        target_file = "build-info/snowball-blob.txt"
+        digest = self.set_up_license(target_file)
+
+        url = urlparse.urljoin("http://testserver/", target_file[:-2])
+        response = self.client.get(url, follow=True,
+                                   HTTP_LICENSE_ACCEPTED=digest)
+        self.assertEqual(response.status_code, 404)
+
     def test_api_get_listing(self):
         url = "/api/ls/build-info"
         response = self.client.get(url)
@@ -272,6 +289,11 @@ class ViewTests(BaseServeViewTest):
                 os.path.getmtime(file_path)).strftime('%d-%b-%Y %H:%M')
 
             self.assertEqual(mtime, file_info["mtime"])
+
+    def test_api_get_listing_404(self):
+        url = "/api/ls/buld-info"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
 
     def test_OPEN_EULA_txt(self):
         target_file = '~linaro-android/staging-vexpress-a9/test.txt'
