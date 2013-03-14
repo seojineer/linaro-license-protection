@@ -1,5 +1,6 @@
 __author__ = 'dooferlad'
 
+from datetime import datetime
 from django.conf import settings
 from django.test import Client, TestCase
 import hashlib
@@ -8,6 +9,7 @@ import tempfile
 import unittest
 import urllib2
 import urlparse
+import json
 
 from license_protected_downloads import bzr_version
 from license_protected_downloads.buildinfo import BuildInfo
@@ -190,6 +192,108 @@ class ViewTests(BaseServeViewTest):
         self.assertEqual(response.status_code, 200)
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)
+
+    def test_api_get_license_list(self):
+        target_file = "build-info/snowball-blob.txt"
+        digest = self.set_up_license(target_file)
+
+        license_url = "/api/license/" + target_file
+
+        # Download JSON containing license information
+        response = self.client.get(license_url)
+        data = json.loads(response.content)["licenses"]
+
+        # Extract digests
+        digests = [d["digest"] for d in data]
+
+        # Make sure digests match what is in the database
+        self.assertIn(digest, digests)
+        self.assertEqual(len(digests), 1)
+
+    def test_api_get_license_list_multi_license(self):
+        target_file = "build-info/multi-license.txt"
+        digest_1 = self.set_up_license(target_file)
+        digest_2 = self.set_up_license(target_file, 1)
+
+        license_url = "/api/license/" + target_file
+
+        # Download JSON containing license information
+        response = self.client.get(license_url)
+        data = json.loads(response.content)["licenses"]
+
+        # Extract digests
+        digests = [d["digest"] for d in data]
+
+        # Make sure digests match what is in the database
+        self.assertIn(digest_1, digests)
+        self.assertIn(digest_2, digests)
+        self.assertEqual(len(digests), 2)
+
+    def test_api_get_license_list_404(self):
+        target_file = "build-info/snowball-b"
+        license_url = "/api/license/" + target_file
+
+        # Download JSON containing license information
+        response = self.client.get(license_url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_api_download_file(self):
+        target_file = "build-info/snowball-blob.txt"
+        digest = self.set_up_license(target_file)
+
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True,
+                                   HTTP_LICENSE_ACCEPTED=digest)
+        self.assertEqual(response.status_code, 200)
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        self.assertEqual(response['X-Sendfile'], file_path)
+
+    def test_api_download_file_multi_license(self):
+        target_file = "build-info/multi-license.txt"
+        digest_1 = self.set_up_license(target_file)
+        digest_2 = self.set_up_license(target_file, 1)
+
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url, follow=True,
+                        HTTP_LICENSE_ACCEPTED=" ".join([digest_1, digest_2]))
+        self.assertEqual(response.status_code, 200)
+        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        self.assertEqual(response['X-Sendfile'], file_path)
+
+    def test_api_download_file_404(self):
+        target_file = "build-info/snowball-blob.txt"
+        digest = self.set_up_license(target_file)
+
+        url = urlparse.urljoin("http://testserver/", target_file[:-2])
+        response = self.client.get(url, follow=True,
+                                   HTTP_LICENSE_ACCEPTED=digest)
+        self.assertEqual(response.status_code, 404)
+
+    def test_api_get_listing(self):
+        url = "/api/ls/build-info"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)["files"]
+
+        # For each file listed, check some key attributes
+        for file_info in data:
+            file_path = os.path.join(TESTSERVER_ROOT,
+                                     file_info["url"].lstrip("/"))
+            if file_info["type"] == "folder":
+                self.assertTrue(os.path.isdir(file_path))
+            else:
+                self.assertTrue(os.path.isfile(file_path))
+
+            mtime = datetime.fromtimestamp(
+                os.path.getmtime(file_path)).strftime('%d-%b-%Y %H:%M')
+
+            self.assertEqual(mtime, file_info["mtime"])
+
+    def test_api_get_listing_404(self):
+        url = "/api/ls/buld-info"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
 
     def test_OPEN_EULA_txt(self):
         target_file = '~linaro-android/staging-vexpress-a9/test.txt'

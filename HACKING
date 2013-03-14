@@ -94,3 +94,31 @@ half an hour to
 
   staging.snapshots.linaro.org
   staging.releases.linaro.org
+
+API
+---
+An API is provided to allow scripts to easily interact with the service without
+having to scrape the web interface. It is designed as a RESTful service and is
+demonstrated in scripts/download.py, which:
+
+ * Gets a directory listing using /api/ls
+   - <server>/api/ls/<path to file> returns a JSON document containing all the
+     data shown by a file listing on the web interface.
+ * Downloads each file, using the type key from /api/ls to avoid directories
+ * Displays the license that protects the file to the user by fetching it
+   using /api/license.
+   - <server>/api/license/<path to file> returns a JSON document containing
+     the licence information for the file pointed to. Both the license text
+     and the digest used to accept the license are returned. Including the
+     digest means that the choice of digest used internally can change without
+     re-writing clients - to the client this is just a magic string and they
+     don't need to care how it is generated.
+ * Stores the digest for each license that the user accepts to avoid asking
+   them to accept the same license twice.
+ * Downloads each file in the directory by providing the appropriate license
+   accept header.
+   - The existing web service stores which licenses have been accepted in a
+     cookie. This is incompatible with a stateless API and is also
+     inconvenient to manage in scripts. The license accept check function now
+     checks for a header containing accepted license digests, which scripts
+     should use.

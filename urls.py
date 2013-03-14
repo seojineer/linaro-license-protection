@@ -46,6 +46,12 @@ urlpatterns = patterns('',
         'license_protected_downloads.views.get_textile_files',
         name='get_textile_files'),
 
+    url(r'^api/ls/(?P<path>.*)$',
+        'license_protected_downloads.views.list_files_api'),
+
+    url(r'^api/license/(?P<path>.*)$',
+        'license_protected_downloads.views.get_license_api'),
+
     # Catch-all. We always return a file (or try to) if it exists.
     # This handler does that.
     url(r'(?P<path>.*)', 'license_protected_downloads.views.file_server'),
