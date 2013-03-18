@@ -69,9 +69,12 @@ class ApiUrls():
     object this is a convenience object to perform the manipulations for us"""
     def __init__(self, input_url):
         self.parsed_url = [c for c in urlparse.urlsplit(input_url)]
+        self.path = self.parsed_url[2]
 
-    def ls(self):
-        self.parsed_url[2] = "/api/ls" + self.parsed_url[2]
+    def ls(self, path=None):
+        if not path:
+            path = self.path
+        self.parsed_url[2] = "/api/ls" + path
         return urlparse.urlunsplit(self.parsed_url)
 
     def license(self, path):
