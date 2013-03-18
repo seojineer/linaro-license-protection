@@ -90,7 +90,7 @@ if __name__ == '__main__':
         'make-sanitized-tree-copy',
         description=(
             "Makes a copy of a directory tree in a temporary location "
-            "and sanitize file that can contain potentially restricted "
+            "and sanitize files that can contain potentially restricted "
             "content. "
             "Returns the path of a newly created temporary directory."))
     script.run()
