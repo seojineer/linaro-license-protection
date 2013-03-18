@@ -290,6 +290,30 @@ class ViewTests(BaseServeViewTest):
 
             self.assertEqual(mtime, file_info["mtime"])
 
+    def test_api_get_listing_single_file(self):
+        url = "/api/ls/build-info/snowball-blob.txt"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)["files"]
+
+        # Should be a listing for a single file
+        self.assertEqual(len(data), 1)
+
+        # For each file listed, check some key attributes
+        for file_info in data:
+            file_path = os.path.join(TESTSERVER_ROOT,
+                                     file_info["url"].lstrip("/"))
+            if file_info["type"] == "folder":
+                self.assertTrue(os.path.isdir(file_path))
+            else:
+                self.assertTrue(os.path.isfile(file_path))
+
+            mtime = datetime.fromtimestamp(
+                os.path.getmtime(file_path)).strftime('%d-%b-%Y %H:%M')
+
+            self.assertEqual(mtime, file_info["mtime"])
+
     def test_api_get_listing_404(self):
         url = "/api/ls/buld-info"
         response = self.client.get(url)
