@@ -68,23 +68,23 @@ def dir_list(url, path):
     files.sort()
     listing = []
 
-    for file in files:
-        if _hidden_file(file):
+    for file_name in files:
+        if _hidden_file(file_name):
             continue
 
-        name = file
-        file = os.path.join(path, file)
+        name = file_name
+        file_name = os.path.join(path, file_name)
 
-        if os.path.exists(file):
+        if os.path.exists(file_name):
             mtime = datetime.fromtimestamp(
-                os.path.getmtime(file)).strftime('%d-%b-%Y %H:%M')
+                os.path.getmtime(file_name)).strftime('%d-%b-%Y %H:%M')
         else:
             # If the file we are looking at doesn't exist (broken symlink for
             # example), it doesn't have a mtime.
             mtime = 0
 
         target_type = "other"
-        if os.path.isdir(file):
+        if os.path.isdir(file_name):
             target_type = "folder"
         else:
             type_tuple = guess_type(name)
@@ -92,8 +92,8 @@ def dir_list(url, path):
                 if type_tuple[0].split('/')[0] == "text":
                     target_type = "text"
 
-        if os.path.exists(file):
-            size = os.path.getsize(file)
+        if os.path.exists(file_name):
+            size = os.path.getsize(file_name)
         else:
             # If the file we are looking at doesn't exist (broken symlink for
             # example), it doesn't have a size
@@ -512,11 +512,22 @@ def list_files_api(request, path):
     target_type = result[0]
     path = result[1]
 
-    if target_type == "dir":
+    if target_type:
+        if target_type == "file":
+            file_url = url
+            if file_url[0] != "/":
+                file_url = "/" + file_url
+            path = os.path.dirname(path)
+            url = os.path.dirname(url)
+
         listing = dir_list(url, path)
 
         clean_listing = []
         for entry in listing:
+            if target_type == "file" and file_url != entry["url"]:
+                # If we are getting a listing for a single file, skip the rest
+                continue
+
             if len(entry["license_list"]) == 0:
                 entry["license_list"] = ["Open"]
 
@@ -545,7 +556,7 @@ def get_license_api(request, path):
 
     if target_type == "dir":
         data = json.dumps({"licenses":
-                           ["File not found."]})
+                           ["ERROR: License only shown for a single file."]})
     else:
         license_digest_list = is_protected(path)
         license_list = License.objects.all_with_hashes(license_digest_list)
