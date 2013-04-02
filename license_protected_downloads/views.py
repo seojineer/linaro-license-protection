@@ -17,7 +17,7 @@ from django.http import (
 )
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
-from django.utils.encoding import smart_str
+from django.utils.encoding import smart_str, iri_to_uri
 
 import bzr_version
 from buildinfo import BuildInfo, IncorrectDataFormatException
@@ -387,6 +387,7 @@ def send_file(path):
 
 def file_server(request, path):
     """Serve up a file / directory listing or license page as required"""
+    path = iri_to_uri(path)
     url = path
     result = test_path(path)
     if not result:
@@ -504,6 +505,7 @@ def get_remote_static(request):
 
 
 def list_files_api(request, path):
+    path = iri_to_uri(path)
     url = path
     result = test_path(path)
     if not result:
@@ -547,6 +549,7 @@ def list_files_api(request, path):
 
 
 def get_license_api(request, path):
+    path = iri_to_uri(path)
     result = test_path(path)
     if not result:
         raise Http404
