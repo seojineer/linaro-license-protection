@@ -63,7 +63,7 @@ def _sizeof_fmt(num):
     return "%3.1f%s" % (num, 'T')
 
 
-def dir_list(url, path):
+def dir_list(url, path, human_readable=True):
     files = os.listdir(path)
     files.sort()
     listing = []
@@ -76,21 +76,16 @@ def dir_list(url, path):
         file_name = os.path.join(path, file_name)
 
         if os.path.exists(file_name):
-            mtime = datetime.fromtimestamp(
-                os.path.getmtime(file_name)).strftime('%d-%b-%Y %H:%M')
+            mtime = os.path.getmtime(file_name)
         else:
             # If the file we are looking at doesn't exist (broken symlink for
             # example), it doesn't have a mtime.
             mtime = 0
 
-        target_type = "other"
         if os.path.isdir(file_name):
             target_type = "folder"
         else:
-            type_tuple = guess_type(name)
-            if type_tuple and type_tuple[0]:
-                if type_tuple[0].split('/')[0] == "text":
-                    target_type = "text"
+            target_type = guess_type(name)[0]
 
         if os.path.exists(file_name):
             size = os.path.getsize(file_name)
@@ -106,11 +101,23 @@ def dir_list(url, path):
         # there isn't one.
         url = re.sub(r'/$', '', url)
 
+        if human_readable:
+            if mtime:
+                mtime = datetime.fromtimestamp(mtime).strftime(
+                                                        '%d-%b-%Y %H:%M')
+            if target_type:
+                if target_type.split('/')[0] == "text":
+                    target_type = "text"
+            else:
+                target_type = "other"
+
+            size = _sizeof_fmt(size)
+
         pathname = os.path.join(path, name)
         license_digest_list = is_protected(pathname)
         license_list = License.objects.all_with_hashes(license_digest_list)
         listing.append({'name': name,
-                        'size': _sizeof_fmt(size),
+                        'size': size,
                         'type': target_type,
                         'mtime': mtime,
                         'license_digest_list': license_digest_list,
@@ -520,7 +527,7 @@ def list_files_api(request, path):
             path = os.path.dirname(path)
             url = os.path.dirname(url)
 
-        listing = dir_list(url, path)
+        listing = dir_list(url, path, human_readable=False)
 
         clean_listing = []
         for entry in listing:

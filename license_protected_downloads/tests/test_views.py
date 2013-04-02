@@ -1,6 +1,5 @@
 __author__ = 'dooferlad'
 
-from datetime import datetime
 from django.conf import settings
 from django.test import Client, TestCase
 import hashlib
@@ -285,8 +284,7 @@ class ViewTests(BaseServeViewTest):
             else:
                 self.assertTrue(os.path.isfile(file_path))
 
-            mtime = datetime.fromtimestamp(
-                os.path.getmtime(file_path)).strftime('%d-%b-%Y %H:%M')
+            mtime = os.path.getmtime(file_path)
 
             self.assertEqual(mtime, file_info["mtime"])
 
@@ -309,8 +307,7 @@ class ViewTests(BaseServeViewTest):
             else:
                 self.assertTrue(os.path.isfile(file_path))
 
-            mtime = datetime.fromtimestamp(
-                os.path.getmtime(file_path)).strftime('%d-%b-%Y %H:%M')
+            mtime = os.path.getmtime(file_path)
 
             self.assertEqual(mtime, file_info["mtime"])
 
