@@ -286,6 +286,15 @@ class BuildInfoTests(unittest.TestCase):
 
         self.assertEquals(build_info.file_info_array, [{}])
 
+    def test_write_from_array(self):
+        build_info = BuildInfo(self.buildinfo_file_path)
+        file_path = THIS_DIRECTORY + \
+            '/testserver_root/build-info/write-test/BUILD-INFO.txt'
+        BuildInfo.write_from_array(build_info.build_info_array, file_path)
+        build_info_test = BuildInfo(file_path)
+        self.assertEquals(build_info_test.build_info_array,
+                          build_info.build_info_array)
+
 
 class FileNameMatchingTests(unittest.TestCase):
     def test_buildinfo_simple_filename(self):

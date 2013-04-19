@@ -2,6 +2,8 @@ from license_protected_downloads.tests.test_buildinfo import (
     BuildInfoTests,
     FileNameMatchingTests,
     )
+from license_protected_downloads.tests.test_splicebuildinfos \
+  import SpliceBuildInfosTests
 from license_protected_downloads.tests.test_models import LicenseTestCase
 from license_protected_downloads.tests.test_pep8 import TestPep8
 from license_protected_downloads.tests.test_pyflakes import TestPyflakes
@@ -19,6 +21,7 @@ from license_protected_downloads.tests.test_render_text_files \
 #starts the test suite
 __test__ = {
     'BuildInfoTests': BuildInfoTests,
+    'SpliceBuildInfosTests': SpliceBuildInfosTests,
     'FileNameMatchingTests': FileNameMatchingTests,
     'FileViewTests': FileViewTests,
     'HowtoViewTests': HowtoViewTests,

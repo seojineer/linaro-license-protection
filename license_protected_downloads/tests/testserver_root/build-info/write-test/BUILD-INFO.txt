@@ -1,0 +1,42 @@
+Format-Version: 0.1
+
+Files-Pattern: *openid*
+license-type: protected
+build-name: landing-protected
+openid-launchpad-teams: linaro
+
+Files-Pattern: *panda*
+license-type: open
+build-name: landing-panda
+
+Files-Pattern: *.txt
+license-type: protected
+build-name: landing-protected
+openid-launchpad-teams: 
+theme: stericsson
+collect-user-data: yes
+license-text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p>
+ <p>
+   THIS IS A LEGALLY BINDING AGREEMENT
+ </p>
+
+Files-Pattern: *origen*
+theme: samsung
+license-type: protected
+build-name: landing-origen
+license-text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p>
+ <p>
+  THIS IS A LEGALLY BINDING AGREEMENT BETWEEN YOU, an individual or a
+  legal entity, (“LICENSEE”) AND HAL 1000.
+ </p>
+
+Files-Pattern: *snowball*
+theme: stericsson
+license-type: protected
+build-name: landing-snowball
+license-text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p>
+ <p>
+  THIS IS A LEGALLY BINDING AGREEMENT BETWEEN YOU, an individual or a
+  legal entity, (“LICENSEE”) AND ME, THE TEST SERVER.
+ </p>
+
