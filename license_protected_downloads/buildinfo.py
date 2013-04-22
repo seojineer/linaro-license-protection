@@ -173,6 +173,21 @@ class BuildInfo:
             for index in open_type:
                 self.file_info_array.pop(index)
 
+    @classmethod
+    def write_from_array(cls, build_info_array, file_path):
+        with open(file_path, "w") as outfile:
+            outfile.write("Format-Version: 0.1\n\n")
+            for key in build_info_array[0]:
+                if key != "format-version":
+                    outfile.write("Files-Pattern: %s\n" % key)
+                    for item in build_info_array[0][key][0]:
+                        text = build_info_array[0][key][0][item]
+                        if item == "license-text":
+                            text = text.replace("\n", "\n ")
+                        outfile.write("%s: %s\n" % (item, text))
+                    outfile.write("\n")
+
+
 if __name__ == "__main__":
     import sys
     bi = BuildInfo(sys.argv[1])

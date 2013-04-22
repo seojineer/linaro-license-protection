@@ -1,0 +1,7 @@
+Format-Version: 0.1
+
+
+Files-Pattern: *, *.txt
+Build-Name: landing-protected
+License-Type: protected
+OpenID-Launchpad-Teams: linaro
