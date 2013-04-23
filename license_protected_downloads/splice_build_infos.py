@@ -19,8 +19,10 @@ class SpliceBuildInfos:
                 for filename in files:
                     if path == build_info_path:
                         if filename not in IGNORED_FILES:
-                            self.build_infos.append(
-                                BuildInfo(os.path.join(path, filename)))
+                            build_info = BuildInfo(os.path.join(path,
+                                                                filename))
+                            if len(build_info.file_info_array[0]):
+                                self.build_infos.append(build_info)
 
     def splice(self, build_info_path):
 
@@ -29,7 +31,7 @@ class SpliceBuildInfos:
             build_info_res[build_info.fname] = build_info.file_info_array
 
         build_info_res = self.merge_duplicates(build_info_res)
-        BuildInfo.write_from_array(build_info_res, build_info_path)
+        BuildInfo.write_from_array([build_info_res], build_info_path)
 
     @classmethod
     def merge_duplicates(cls, build_info_dict):
