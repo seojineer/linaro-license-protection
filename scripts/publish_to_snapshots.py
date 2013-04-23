@@ -15,6 +15,7 @@ staging_target_path = '/srv/staging.snapshots.linaro.org/www/'
 product_dir_path = 'target/product'
 PASS = 0
 FAIL = 1
+buildinfo = 'BUILD-INFO.txt'
 acceptable_job_types = [
     'android',
     'prebuilt',
@@ -367,6 +368,22 @@ class SnapshotsPublisher(object):
             print "Failed to move files destination path", target_dir_path
             return FAIL
 
+    def check_buildinfo(self, build_dir_path, target_dir_path):
+        bi_dirs = []
+        for path, subdirs, files in os.walk(build_dir_path):
+            for filename in files:
+                if buildinfo in filename:
+                    bi_dirs.append(path)
+        for path, subdirs, files in os.walk(target_dir_path):
+            for filename in files:
+                if buildinfo in filename:
+                    bi_dirs.append(path)
+
+        if not bi_dirs:
+            return FAIL
+
+        return PASS
+
 
 def main():
     global uploads_path
@@ -386,6 +403,10 @@ def main():
             args, uploads_path, target_path)
         if build_dir_path is None or target_dir_path is None:
             print "Problem with build/target path, move failed"
+            return FAIL
+        ret = publisher.check_buildinfo(build_dir_path, target_dir_path)
+        if ret != PASS:
+            print "BUILD-INFO.txt is not present for build being published"
             return FAIL
         ret = publisher.move_artifacts(args, build_dir_path, target_dir_path)
         if ret != PASS:

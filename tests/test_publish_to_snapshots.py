@@ -11,6 +11,9 @@ from scripts.publish_to_snapshots import (
     SnapshotsPublisher,
     setup_parser,
     product_dir_path,
+    FAIL,
+    PASS,
+    buildinfo
     )
 
 
@@ -726,3 +729,56 @@ class TestSnapshotsPublisher(TestCase):
         self.assertEqual(content, open(resulting_file).read())
         self.assertEqual(howto_content, open(resulting_howto_file).read())
         shutil.rmtree(source_dir)
+
+    def test_check_buildinfo_upload_dir(self):
+        self.publisher = SnapshotsPublisher()
+        param = self.parser.parse_args(
+            ['-t', 'prebuilt', '-j', 'precise-armhf-ubuntu-desktop',
+             '-n', '1'])
+        self.publisher.validate_args(param)
+        build_dir = '/'.join([param.job_name, str(param.build_num)])
+        build_path = os.path.join(self.uploads_path, build_dir)
+        os.makedirs(build_path)
+        www_path = os.path.join(self.target_path, build_dir)
+        os.makedirs(www_path)
+
+        file_name = os.path.join(build_path, buildinfo)
+        file = open(file_name, "w")
+        file.close()
+
+        self.assertEqual(PASS,
+                         self.publisher.check_buildinfo(build_path, www_path))
+
+    def test_check_buildinfo_target_dir(self):
+        self.publisher = SnapshotsPublisher()
+        param = self.parser.parse_args(
+            ['-t', 'prebuilt', '-j', 'precise-armhf-ubuntu-desktop',
+             '-n', '1'])
+        self.publisher.validate_args(param)
+        build_dir = '/'.join([param.job_name, str(param.build_num)])
+        build_path = os.path.join(self.uploads_path, build_dir)
+        os.makedirs(build_path)
+        www_path = os.path.join(self.target_path, build_dir)
+        os.makedirs(www_path)
+
+        file_name = os.path.join(www_path, buildinfo)
+        file = open(file_name, "w")
+        file.close()
+
+        self.assertEqual(PASS,
+                         self.publisher.check_buildinfo(build_path, www_path))
+
+    def test_check_buildinfo_no_file(self):
+        self.publisher = SnapshotsPublisher()
+        param = self.parser.parse_args(
+            ['-t', 'prebuilt', '-j', 'precise-armhf-ubuntu-desktop',
+             '-n', '1'])
+        self.publisher.validate_args(param)
+        build_dir = '/'.join([param.job_name, str(param.build_num)])
+        build_path = os.path.join(self.uploads_path, build_dir)
+        os.makedirs(build_path)
+        www_path = os.path.join(self.target_path, build_dir)
+        os.makedirs(www_path)
+
+        self.assertEqual(FAIL,
+                         self.publisher.check_buildinfo(build_path, www_path))
