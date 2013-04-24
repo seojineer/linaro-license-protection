@@ -11,8 +11,7 @@ from scripts.publish_to_snapshots import (
     SnapshotsPublisher,
     setup_parser,
     product_dir_path,
-    FAIL,
-    PASS,
+    BuildInfoException,
     buildinfo
     )
 
@@ -746,8 +745,7 @@ class TestSnapshotsPublisher(TestCase):
         file = open(file_name, "w")
         file.close()
 
-        self.assertEqual(PASS,
-                         self.publisher.check_buildinfo(build_path, www_path))
+        self.assertIsNone(self.publisher.check_buildinfo(build_path, www_path))
 
     def test_check_buildinfo_target_dir(self):
         self.publisher = SnapshotsPublisher()
@@ -765,8 +763,7 @@ class TestSnapshotsPublisher(TestCase):
         file = open(file_name, "w")
         file.close()
 
-        self.assertEqual(PASS,
-                         self.publisher.check_buildinfo(build_path, www_path))
+        self.assertIsNone(self.publisher.check_buildinfo(build_path, www_path))
 
     def test_check_buildinfo_no_file(self):
         self.publisher = SnapshotsPublisher()
@@ -780,5 +777,6 @@ class TestSnapshotsPublisher(TestCase):
         www_path = os.path.join(self.target_path, build_dir)
         os.makedirs(www_path)
 
-        self.assertEqual(FAIL,
-                         self.publisher.check_buildinfo(build_path, www_path))
+        self.assertRaises(
+            BuildInfoException,
+            self.publisher.check_buildinfo, build_path, www_path)

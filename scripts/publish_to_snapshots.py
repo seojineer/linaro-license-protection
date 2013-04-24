@@ -62,6 +62,11 @@ class PublisherArgumentException(Exception):
     pass
 
 
+class BuildInfoException(Exception):
+    """BUILD-INFO.txt is absent."""
+    pass
+
+
 class SnapshotsPublisher(object):
 
     # Files that need no sanitization even when publishing to staging.
@@ -380,9 +385,8 @@ class SnapshotsPublisher(object):
                     bi_dirs.append(path)
 
         if not bi_dirs:
-            return FAIL
-
-        return PASS
+            raise BuildInfoException(
+                      "BUILD-INFO.txt is not present for build being published.")
 
 
 def main():
@@ -404,10 +408,7 @@ def main():
         if build_dir_path is None or target_dir_path is None:
             print "Problem with build/target path, move failed"
             return FAIL
-        ret = publisher.check_buildinfo(build_dir_path, target_dir_path)
-        if ret != PASS:
-            print "BUILD-INFO.txt is not present for build being published"
-            return FAIL
+        publisher.check_buildinfo(build_dir_path, target_dir_path)
         ret = publisher.move_artifacts(args, build_dir_path, target_dir_path)
         if ret != PASS:
             print "Move Failed"
