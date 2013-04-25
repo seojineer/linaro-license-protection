@@ -391,7 +391,7 @@ class SnapshotsPublisher(object):
 
         if not bi_dirs:
             raise BuildInfoException(
-                      "BUILD-INFO.txt is not present for build being published.")
+                    "BUILD-INFO.txt is not present for build being published.")
 
 
 def main():
