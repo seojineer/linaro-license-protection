@@ -15,6 +15,7 @@ staging_target_path = '/srv/staging.snapshots.linaro.org/www/'
 product_dir_path = 'target/product'
 PASS = 0
 FAIL = 1
+buildinfo = 'BUILD-INFO.txt'
 acceptable_job_types = [
     'android',
     'prebuilt',
@@ -59,6 +60,16 @@ def setup_parser():
 class PublisherArgumentException(Exception):
     """There was a problem with one of the publisher arguments."""
     pass
+
+
+class BuildInfoException(Exception):
+    """BUILD-INFO.txt is absent."""
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
 
 
 class SnapshotsPublisher(object):
@@ -367,6 +378,21 @@ class SnapshotsPublisher(object):
             print "Failed to move files destination path", target_dir_path
             return FAIL
 
+    def check_buildinfo(self, build_dir_path, target_dir_path):
+        bi_dirs = []
+        for path, subdirs, files in os.walk(build_dir_path):
+            for filename in files:
+                if buildinfo in filename:
+                    bi_dirs.append(path)
+        for path, subdirs, files in os.walk(target_dir_path):
+            for filename in files:
+                if buildinfo in filename:
+                    bi_dirs.append(path)
+
+        if not bi_dirs:
+            raise BuildInfoException(
+                    "BUILD-INFO.txt is not present for build being published.")
+
 
 def main():
     global uploads_path
@@ -386,6 +412,11 @@ def main():
             args, uploads_path, target_path)
         if build_dir_path is None or target_dir_path is None:
             print "Problem with build/target path, move failed"
+            return FAIL
+        try:
+            publisher.check_buildinfo(build_dir_path, target_dir_path)
+        except BuildInfoException as e:
+            print e.value
             return FAIL
         ret = publisher.move_artifacts(args, build_dir_path, target_dir_path)
         if ret != PASS:
