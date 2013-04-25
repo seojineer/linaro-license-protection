@@ -64,7 +64,12 @@ class PublisherArgumentException(Exception):
 
 class BuildInfoException(Exception):
     """BUILD-INFO.txt is absent."""
-    pass
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
 
 
 class SnapshotsPublisher(object):
@@ -408,7 +413,11 @@ def main():
         if build_dir_path is None or target_dir_path is None:
             print "Problem with build/target path, move failed"
             return FAIL
-        publisher.check_buildinfo(build_dir_path, target_dir_path)
+        try:
+            publisher.check_buildinfo(build_dir_path, target_dir_path)
+        except BuildInfoException as e:
+            print e.value
+            return FAIL
         ret = publisher.move_artifacts(args, build_dir_path, target_dir_path)
         if ret != PASS:
             print "Move Failed"
