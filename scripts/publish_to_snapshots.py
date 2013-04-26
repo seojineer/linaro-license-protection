@@ -7,6 +7,12 @@ import os
 import os.path
 import shutil
 import sys
+import tempfile
+
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                 "../license_protected_downloads")))
+from splice_build_infos import SpliceBuildInfos
 
 uploads_path = '/srv/snapshots.linaro.org/uploads/'
 target_path = '/srv/snapshots.linaro.org/www/'
@@ -27,6 +33,28 @@ acceptable_job_types = [
     'openembedded',
     'binaries'
     ]
+open_buildinfo_files = [
+    'MANIFEST',
+    '*manifest.xml',
+    'MD5SUMS',
+    '*build_cmds.sh',
+    'kernel_config',
+    'HOWTO_*'
+    ]
+open_buildinfo = 'Files-Pattern: %s\nLicense-Type: open\n'
+
+
+def append_open_buildinfo(buildinfo_path, files=open_buildinfo_files):
+    """Append BUILD-INFO.txt with open section for open_buildinfo_files"""
+    try:
+        bifile = open(os.path.join(buildinfo_path, buildinfo), "a")
+        try:
+            bifile.write(open_buildinfo % ', '.join(files))
+        finally:
+            bifile.close()
+    except IOError:
+        print "Unable to write to BUILD-INFO.txt"
+        pass
 
 
 def setup_parser():
@@ -393,6 +421,19 @@ class SnapshotsPublisher(object):
             raise BuildInfoException(
                     "BUILD-INFO.txt is not present for build being published.")
 
+    def combine_buildinfo(self, build_dir_path, target_dir_path, tmp_bi):
+        bi_path = os.path.join(target_dir_path, buildinfo)
+        bi_dirs = []
+        for path, subdirs, files in os.walk(build_dir_path):
+            for filename in files:
+                if buildinfo in filename:
+                    bi_dirs.append(path)
+        if os.path.exists(bi_path):
+            bi_dirs.append(target_dir_path)
+        if bi_dirs:
+            common_bi = SpliceBuildInfos(bi_dirs)
+            common_bi.splice(tmp_bi)
+
 
 def main():
     global uploads_path
@@ -418,11 +459,19 @@ def main():
         except BuildInfoException as e:
             print e.value
             return FAIL
+        fd, tmp_bi = tempfile.mkstemp()
+        os.close(fd)
+        publisher.combine_buildinfo(build_dir_path, target_dir_path, tmp_bi)
         ret = publisher.move_artifacts(args, build_dir_path, target_dir_path)
         if ret != PASS:
             print "Move Failed"
             return FAIL
         else:
+            shutil.copy(tmp_bi, os.path.join(target_dir_path, buildinfo))
+            os.remove(tmp_bi)
+            append_open_buildinfo(target_dir_path)
+            bi = SpliceBuildInfos([target_dir_path])
+            bi.splice(os.path.join(target_dir_path, buildinfo))
             print "Move succeeded"
             return PASS
     except Exception, details:
