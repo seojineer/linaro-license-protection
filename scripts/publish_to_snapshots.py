@@ -39,7 +39,8 @@ open_buildinfo_files = [
     'MD5SUMS',
     '*build_cmds.sh',
     'kernel_config',
-    'HOWTO_*'
+    'HOWTO_*',
+    'lava-job-info*'
     ]
 open_buildinfo = 'Files-Pattern: %s\nLicense-Type: open\n'
 
