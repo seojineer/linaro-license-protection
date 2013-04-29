@@ -461,6 +461,7 @@ def main():
             return FAIL
         fd, tmp_bi = tempfile.mkstemp()
         os.close(fd)
+        os.chmod(tmp_bi, 0644)
         publisher.combine_buildinfo(build_dir_path, target_dir_path, tmp_bi)
         ret = publisher.move_artifacts(args, build_dir_path, target_dir_path)
         if ret != PASS:
