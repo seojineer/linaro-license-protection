@@ -108,6 +108,8 @@ class BuildInfo:
     def parseData(self, lines):
         if not isinstance(lines, list):
             raise IncorrectDataFormatException("No array provided.")
+        if not list:
+            raise IncorrectDataFormatException("Empty BUILD-INFO")
         format_line = lines.pop(0)
         values = self.parseLine(format_line)
         if not "format-version" in values:
