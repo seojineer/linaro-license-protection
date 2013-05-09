@@ -419,6 +419,8 @@ def file_server(request, path):
         if launchpad_teams:
             launchpad_teams = launchpad_teams.split(",")
             launchpad_teams = [team.strip() for team in launchpad_teams]
+            # TODO: use logging!
+            print "Checking membership in OpenID groups:", launchpad_teams
             openid_response = OpenIDAuth.process_openid_auth(
                 request, launchpad_teams)
             if openid_response:
