@@ -27,14 +27,14 @@ class TestOpenIDAuth(TestCase):
     def test_check_team_membership_no_teams(self):
         mock_request = self.make_mock_request()
         openid_teams = []
-        self.assertIsNone(
-            OpenIDAuth.process_openid_auth(mock_request, openid_teams))
+        self.assertTrue(
+            OpenIDAuth.process_group_auth(mock_request, openid_teams))
 
     def test_check_team_membership_no_authentication(self):
         mock_request = self.make_mock_request()
         mock_request.user.is_authenticated.return_value = False
         openid_teams = ["linaro"]
-        response = OpenIDAuth.process_openid_auth(mock_request, openid_teams)
+        response = OpenIDAuth.process_group_auth(mock_request, openid_teams)
         self.assertIsNotNone(response)
         self.assertTrue(isinstance(response, HttpResponse))
         self.assertEquals(302, response.status_code)
@@ -45,8 +45,8 @@ class TestOpenIDAuth(TestCase):
         mock_request.user.groups.all.return_value = [
             self.make_mock_group("linaro")]
         openid_teams = ["linaro"]
-        response = OpenIDAuth.process_openid_auth(mock_request, openid_teams)
-        self.assertIsNone(response)
+        response = OpenIDAuth.process_group_auth(mock_request, openid_teams)
+        self.assertTrue(response)
 
     def test_check_no_team_membership_authed(self):
         mock_request = self.make_mock_request()
@@ -54,12 +54,8 @@ class TestOpenIDAuth(TestCase):
         mock_request.user.groups.all.return_value = [
             self.make_mock_group("another-group")]
         openid_teams = ["linaro"]
-        response = OpenIDAuth.process_openid_auth(mock_request, openid_teams)
-        self.assertIsNotNone(response)
-        self.assertTrue(isinstance(response, HttpResponse))
-        self.assertContains(response,
-            "You need to be the member of the linaro team in Launchpad.",
-            status_code=403)
+        response = OpenIDAuth.process_group_auth(mock_request, openid_teams)
+        self.assertFalse(response)
 
     def test_check_no_team_membership_authed_multi_teams(self):
         mock_request = self.make_mock_request()
@@ -67,13 +63,8 @@ class TestOpenIDAuth(TestCase):
         mock_request.user.groups.all.return_value = [
             self.make_mock_group("another-group")]
         openid_teams = ["linaro", "batman", "catwoman", "joker"]
-        response = OpenIDAuth.process_openid_auth(mock_request, openid_teams)
-        self.assertIsNotNone(response)
-        self.assertTrue(isinstance(response, HttpResponse))
-        self.assertContains(response,
-            "You need to be the member of one of the linaro batman, catwoman "
-            "or joker teams in Launchpad.",
-            status_code=403)
+        response = OpenIDAuth.process_group_auth(mock_request, openid_teams)
+        self.assertFalse(response)
 
     @patch("django.contrib.auth.models.Group.objects.get_or_create")
     def test_auto_adding_groups(self, get_or_create_mock):
@@ -83,7 +74,7 @@ class TestOpenIDAuth(TestCase):
             self.make_mock_group("another-group")]
 
         openid_teams = ["linaro", "linaro-infrastructure"]
-        OpenIDAuth.process_openid_auth(mock_request, openid_teams)
+        OpenIDAuth.process_group_auth(mock_request, openid_teams)
 
         expected = [
             ((), {'name': 'linaro'}), ((), {'name': 'linaro-infrastructure'})]

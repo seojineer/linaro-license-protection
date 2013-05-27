@@ -2,6 +2,7 @@ __author__ = 'dooferlad'
 
 from django.conf import settings
 from django.test import Client, TestCase
+from django.http import HttpResponse
 import hashlib
 import os
 import tempfile
@@ -9,6 +10,8 @@ import unittest
 import urllib2
 import urlparse
 import json
+
+from mock import Mock
 
 from license_protected_downloads import bzr_version
 from license_protected_downloads.buildinfo import BuildInfo
@@ -19,6 +22,7 @@ from license_protected_downloads.views import _insert_license_into_db
 from license_protected_downloads.views import _process_include_tags
 from license_protected_downloads.views import _sizeof_fmt
 from license_protected_downloads.views import is_same_parent_dir
+from license_protected_downloads import views
 
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 TESTSERVER_ROOT = os.path.join(THIS_DIRECTORY, "testserver_root")
@@ -901,6 +905,20 @@ class FileViewTests(BaseServeViewTest):
                       "License-Type: open\n"))
             response = self.client.get('/MD5SUM')
             self.assertEqual(response.status_code, 200)
+
+
+class ViewHelpersTests(BaseServeViewTest):
+    def test_auth_group_error(self):
+        groups = ["linaro", "batman", "catwoman", "joker"]
+        request = Mock()
+        request.path = "mock_path"
+        response = views.group_auth_failed_response(request, groups)
+        self.assertIsNotNone(response)
+        self.assertTrue(isinstance(response, HttpResponse))
+        self.assertContains(response,
+            "You need to be the member of one of the linaro batman, catwoman "
+            "or joker teams in Launchpad.",
+            status_code=403)
 
 
 if __name__ == '__main__':

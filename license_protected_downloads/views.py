@@ -392,6 +392,30 @@ def send_file(path):
     return response
 
 
+def group_auth_failed_response(request, auth_groups):
+    """Construct a nice response detailing list of auth groups that
+    will allow access to the requested file."""
+    if len(auth_groups) > 1:
+        groups_string = "one of the " + auth_groups.pop(0) + " "
+        if len(auth_groups) > 1:
+            groups_string += ", ".join(auth_groups[0:-1])
+
+        groups_string += " or " + auth_groups[-1] + " teams"
+    else:
+        groups_string = "the " + auth_groups[0] + " team"
+
+    response = render_to_response(
+        'openid_forbidden_template.html',
+        {'login': settings.LOGIN_URL + "?next=" + request.path,
+         'authenticated': request.user.is_authenticated(),
+         'openid_teams': groups_string,
+         'revno': bzr_version.get_my_bzr_revno(),
+         })
+
+    response.status_code = 403
+    return response
+
+
 def file_server(request, path):
     """Serve up a file / directory listing or license page as required"""
     path = iri_to_uri(path)
@@ -415,16 +439,22 @@ def file_server(request, path):
             return HttpResponseForbidden(
                 "Error parsing BUILD-INFO.txt")
 
-        launchpad_teams = build_info.get("openid-launchpad-teams")
-        if launchpad_teams:
-            launchpad_teams = launchpad_teams.split(",")
-            launchpad_teams = [team.strip() for team in launchpad_teams]
+        auth_groups = build_info.get("auth-groups")
+        if not auth_groups:
+            auth_groups = build_info.get("openid-launchpad-teams")
+
+        if auth_groups:
+            auth_groups = auth_groups.split(",")
+            auth_groups = [g.strip() for g in auth_groups]
             # TODO: use logging!
-            print "Checking membership in OpenID groups:", launchpad_teams
-            openid_response = OpenIDAuth.process_openid_auth(
-                request, launchpad_teams)
-            if openid_response:
-                return openid_response
+            print "Checking membership in auth groups:", auth_groups
+            response = OpenIDAuth.process_group_auth(request, auth_groups)
+            if response == False:
+                return group_auth_failed_response(request, auth_groups)
+            elif response == True:
+                pass
+            else:
+                return response
 
     if target_type == "dir":
         # Generate a link to the parent directory (if one exists)
