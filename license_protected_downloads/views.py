@@ -23,7 +23,8 @@ import bzr_version
 from buildinfo import BuildInfo, IncorrectDataFormatException
 from render_text_files import RenderTextFiles
 from models import License
-from openid_auth import OpenIDAuth
+# Load group auth "plugin" dynamically
+group_auth = __import__(settings.GROUP_AUTH_MODULE)
 from BeautifulSoup import BeautifulSoup
 import config
 
@@ -448,7 +449,7 @@ def file_server(request, path):
             auth_groups = [g.strip() for g in auth_groups]
             # TODO: use logging!
             print "Checking membership in auth groups:", auth_groups
-            response = OpenIDAuth.process_group_auth(request, auth_groups)
+            response = group_auth.process_group_auth(request, auth_groups)
             if response == False:
                 return group_auth_failed_response(request, auth_groups)
             elif response == True:

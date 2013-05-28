@@ -3,10 +3,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.models import Group
 
 
-class OpenIDAuth:
-
-    @classmethod
-    def process_group_auth(cls, request, openid_teams):
+def process_group_auth(request, openid_teams):
         """Returns True if access granted, False if denied and Response
         object if not enough authentication information available and
         user should authenticate first (by following that Response).

@@ -124,6 +124,10 @@ AUTHENTICATION_BACKENDS = (
 LOGIN_URL = '/linaro-openid/login/'
 LOGIN_REDIRECT_URL = '/'
 
+# Name of "plugin" module to use for group authentication
+GROUP_AUTH_MODULE = 'license_protected_downloads.openid_auth'
+
+# Config for django_openid_auth.auth.OpenIDBackend
 OPENID_CREATE_USERS = True
 OPENID_SSO_SERVER_URL = 'https://login.launchpad.net/'
 OPENID_UPDATE_DETAILS_FROM_SREG = True

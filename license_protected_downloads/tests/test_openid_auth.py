@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.http import HttpResponse
 from mock import Mock, patch
 
-from license_protected_downloads.openid_auth import OpenIDAuth
+from license_protected_downloads import openid_auth
 
 
 class TestOpenIDAuth(TestCase):
@@ -28,13 +28,13 @@ class TestOpenIDAuth(TestCase):
         mock_request = self.make_mock_request()
         openid_teams = []
         self.assertTrue(
-            OpenIDAuth.process_group_auth(mock_request, openid_teams))
+            openid_auth.process_group_auth(mock_request, openid_teams))
 
     def test_check_team_membership_no_authentication(self):
         mock_request = self.make_mock_request()
         mock_request.user.is_authenticated.return_value = False
         openid_teams = ["linaro"]
-        response = OpenIDAuth.process_group_auth(mock_request, openid_teams)
+        response = openid_auth.process_group_auth(mock_request, openid_teams)
         self.assertIsNotNone(response)
         self.assertTrue(isinstance(response, HttpResponse))
         self.assertEquals(302, response.status_code)
@@ -45,7 +45,7 @@ class TestOpenIDAuth(TestCase):
         mock_request.user.groups.all.return_value = [
             self.make_mock_group("linaro")]
         openid_teams = ["linaro"]
-        response = OpenIDAuth.process_group_auth(mock_request, openid_teams)
+        response = openid_auth.process_group_auth(mock_request, openid_teams)
         self.assertTrue(response)
 
     def test_check_no_team_membership_authed(self):
@@ -54,7 +54,7 @@ class TestOpenIDAuth(TestCase):
         mock_request.user.groups.all.return_value = [
             self.make_mock_group("another-group")]
         openid_teams = ["linaro"]
-        response = OpenIDAuth.process_group_auth(mock_request, openid_teams)
+        response = openid_auth.process_group_auth(mock_request, openid_teams)
         self.assertFalse(response)
 
     def test_check_no_team_membership_authed_multi_teams(self):
@@ -63,7 +63,7 @@ class TestOpenIDAuth(TestCase):
         mock_request.user.groups.all.return_value = [
             self.make_mock_group("another-group")]
         openid_teams = ["linaro", "batman", "catwoman", "joker"]
-        response = OpenIDAuth.process_group_auth(mock_request, openid_teams)
+        response = openid_auth.process_group_auth(mock_request, openid_teams)
         self.assertFalse(response)
 
     @patch("django.contrib.auth.models.Group.objects.get_or_create")
@@ -74,7 +74,7 @@ class TestOpenIDAuth(TestCase):
             self.make_mock_group("another-group")]
 
         openid_teams = ["linaro", "linaro-infrastructure"]
-        OpenIDAuth.process_group_auth(mock_request, openid_teams)
+        openid_auth.process_group_auth(mock_request, openid_teams)
 
         expected = [
             ((), {'name': 'linaro'}), ((), {'name': 'linaro-infrastructure'})]
