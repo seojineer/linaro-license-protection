@@ -24,7 +24,8 @@ from buildinfo import BuildInfo, IncorrectDataFormatException
 from render_text_files import RenderTextFiles
 from models import License
 # Load group auth "plugin" dynamically
-group_auth = __import__(settings.GROUP_AUTH_MODULE)
+import importlib
+group_auth = importlib.import_module(settings.GROUP_AUTH_MODULE)
 from BeautifulSoup import BeautifulSoup
 import config
 
