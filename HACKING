@@ -10,6 +10,8 @@ Dependencies
  * python-mock
  * python-subunit
  * testrepository (>=0.0.6)
+ * python-django-openid-auth
+ * python-textile
 
 Code structure
 --------------
