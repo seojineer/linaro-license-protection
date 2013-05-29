@@ -57,11 +57,22 @@ class BuildInfo:
 
     def getInfoForFile(self):
         for block in self.build_info_array:
+
+            if self.fname in block:
+                # File name matches a key directly - don't need to iterate
+                # through each using fnmatch to implement globs.
+                return block[self.fname]
+
+            if self.full_file_name == self.search_path:
+                # Searching for directory match. This will only match the "*"
+                # glob.
+                if "*" in block:
+                    return block["*"]
+                else:
+                    return [{}]
+
             for key in block:
                 if key != "format-version":
-                    # Special handling of entire-directory access specifier
-                    if key == "*" and os.path.isdir(self.full_file_name):
-                        return block[key]
                     if fnmatch.fnmatch(self.full_file_name,
                                        os.path.join(self.search_path, key)):
                         return block[key]
