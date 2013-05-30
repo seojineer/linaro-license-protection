@@ -125,7 +125,7 @@ LOGIN_URL = '/linaro-openid/login/'
 LOGIN_REDIRECT_URL = '/'
 
 # Name of "plugin" module to use for group authentication
-GROUP_AUTH_MODULE = 'license_protected_downloads.openid_auth'
+GROUP_AUTH_MODULE = 'license_protected_downloads.group_auth_openid'
 
 # Config for django_openid_auth.auth.OpenIDBackend
 OPENID_CREATE_USERS = True

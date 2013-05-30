@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.http import HttpResponse
 from mock import Mock, patch
 
-from license_protected_downloads import openid_auth
+from license_protected_downloads import group_auth_openid as openid_auth
 
 
 class TestOpenIDAuth(TestCase):
