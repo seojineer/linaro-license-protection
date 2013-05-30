@@ -14,8 +14,11 @@ class BuildInfo:
         self.file_info_array = [{}]
         self.fields_defined = [
                 "format-version", "files-pattern", "build-name", "theme",
-                "license-type", "openid-launchpad-teams", "collect-user-data",
-                "license-text"]
+                "license-type", "auth-groups", "collect-user-data",
+                "license-text",
+                # Deprecated
+                "openid-launchpad-teams",
+                ]
         self.full_file_name = fn
         self.search_path = self.get_search_path(fn)
         self.fname = os.path.basename(fn)
