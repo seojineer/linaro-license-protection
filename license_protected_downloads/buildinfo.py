@@ -83,10 +83,7 @@ class BuildInfo:
         if index > self.max_index:
             return False
         block = self.file_info_array[index]
-        for key in block:
-            if field == key:
-                return block[field]
-        return False
+        return block.get(field, False)
 
     def parseLine(self, line):
         values = line.split(":", 1)
