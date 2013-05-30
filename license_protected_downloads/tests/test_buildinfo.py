@@ -27,7 +27,7 @@ class BuildInfoTests(unittest.TestCase):
         self.assertEquals(build_info.getInfoForFile(),
             [{'build-name': 'landing-protected',
               'license-type': 'protected',
-              'openid-launchpad-teams': 'linaro'}])
+              'auth-groups': 'linaro'}])
 
     def test_apply_to_nonexistent_file(self):
         with self.assertRaises(IOError):
@@ -47,8 +47,8 @@ class BuildInfoTests(unittest.TestCase):
         value = "notempty"
         build_info = BuildInfo(self.buildinfo_file_path)
         for pair in build_info.file_info_array:
-            if "openid-launchpad-teams" in pair:
-                value = pair["openid-launchpad-teams"]
+            if "auth-groups" in pair:
+                value = pair["auth-groups"]
 
         self.assertFalse(value)
 

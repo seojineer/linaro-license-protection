@@ -43,6 +43,7 @@ class BuildInfo:
                 os.path.join(cls.get_search_path(path), "BUILD-INFO.txt"))
 
     def _set(self, key, value):
+        "key: file pattern, value: list of dicts of field/val pairs"
         if key in self.build_info_array[self.index]:
             # A repeated key indicates we have found another chunk of
             # build-info
@@ -97,6 +98,9 @@ class BuildInfo:
                 raise IncorrectDataFormatException(
                         "Field '%s' not allowed." % field)
             else:
+                # Rename any deprecated field names to new names
+                field_renames = {"openid-launchpad-teams": "auth-groups"}
+                field = field_renames.get(field, field)
                 return {field: value}
 
     def isValidField(self, field_name):

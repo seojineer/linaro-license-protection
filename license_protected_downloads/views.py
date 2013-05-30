@@ -244,7 +244,7 @@ def is_protected(path):
         license_type = build_info.get("license-type")
         license_text = build_info.get("license-text")
         theme = build_info.get("theme")
-        openid_teams = build_info.get("openid-launchpad-teams")
+        auth_groups = build_info.get("auth-groups")
         max_index = build_info.max_index
     elif os.path.isfile(open_eula_path):
         return "OPEN"
@@ -258,7 +258,7 @@ def is_protected(path):
         license_type = "protected"
         license_file = os.path.join(settings.PROJECT_ROOT,
                                     'templates/licenses/' + theme + '.txt')
-        openid_teams = False
+        auth_groups = False
         with open(license_file, "r") as infile:
             license_text = infile.read()
     elif _check_special_eula(path):
@@ -266,7 +266,7 @@ def is_protected(path):
         license_type = "protected"
         license_file = os.path.join(settings.PROJECT_ROOT,
                                     'templates/licenses/' + theme + '.txt')
-        openid_teams = False
+        auth_groups = False
         with open(license_file, "r") as infile:
             license_text = infile.read()
     elif _check_special_eula(base_path + "/*"):
@@ -281,7 +281,7 @@ def is_protected(path):
             return "OPEN"
 
         # File matches a license, isn't open.
-        if openid_teams:
+        if auth_groups:
             return "OPEN"
         elif license_text:
             for i in range(max_index):
@@ -442,9 +442,6 @@ def file_server(request, path):
                 "Error parsing BUILD-INFO.txt")
 
         auth_groups = build_info.get("auth-groups")
-        if not auth_groups:
-            auth_groups = build_info.get("openid-launchpad-teams")
-
         if auth_groups:
             auth_groups = auth_groups.split(",")
             auth_groups = [g.strip() for g in auth_groups]
