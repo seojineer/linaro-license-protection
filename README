@@ -16,7 +16,9 @@ Features
  * makes use of the regular directory structure on disk
  * click through licensing with each file potentially having a different
    license/theme
- * openid restrictions (by Launchpad teams)
+ * group-based access authorization restrictions (using group information
+   from external services, currently OpenID with team extensions is
+   (as used by Launchpad.net) and Atlassian Crowd are supported).
  * post-processing of all uploads (a script that manages uploads)
  * per-IP pass-through (for automatic services like a test framework)
 
@@ -46,12 +48,12 @@ the build artifacts (see below for the description of the BUILD-INFO.txt
 syntax).
 
 BUILD-INFO.txt file will allow one to specify the access restrictions
-(such as click-through licensing and OpenID-restrictions) and influence
+(such as click-through licensing and required groups) and influence
 the display (such as license-theme) of a particular build.
 
-WARNING: if you want a build type to be protected by OpenID, you need to
-ensure that the appropriate team is added to the list of django groups
-in the database.  Only django admins can do that.
+WARNING: if you want a build to be protected by OpenID-based groups, you
+need to ensure that the appropriate team is added to the list of django
+groups in the database. Only django admins can do that.
 
 Next step is to ensure that
 
@@ -108,15 +110,15 @@ The following fields may be present in a files paragraph:
     a placeholder and will be ignored. To be added later by build services?
  * License-Type: (required)
     open - Open builds. No license page is displayed.
-    protected - EULA protected builds. If 'OpenID-Launchpad-Teams' is defined
-      then OpenID protection is used, otherwise simple Accept/Decline license
+    protected - EULA protected builds. If 'Auth-Groups' is defined
+      then group authorization is used, otherwise simple Accept/Decline license
       page is displayed before accessing protected files.
  * Theme: (required only if License-Type is 'protected')
     Acceptable values are: stericsson, samsung.
     Theme name for selecting proper theming on download and license pages.
- * OpenID-Launchpad-Teams: (optional)
-    LP team names, members of which are allowed to access protected files. No
-    OpenID protection if absent.
+ * Auth-Groups: (optional)
+    Names of groups, members of which are allowed to access protected files.
+    No group-based protection if absent.
  * Collect-User-Data: (optional)
     Acceptable values are: yes, no.
     Defaults to 'no' if not present. If the field is set to 'yes' then
@@ -131,10 +133,20 @@ variable which turns as multiline variable and is appended to it.
 - Field names are case insensitive.
 - Fields order doesn't matter, except 'Files-Pattern'
 
+History of BUILD-INFO.txt format changes
+........................................
+
+Changes from format version 0.1 to 0.5:
+
+1. Field "OpenID-Launchpad-Teams" is deprecated and renamed to
+"Auth-Groups". Old name is supported for archived builds, however
+it may lead to warnings, and at later time to errors, during
+publishing new builds, so client usage should be upgraded.
+
 BUILD-INFO.txt example:
 .......................
 
-Format-Version: 0.1
+Format-Version: 0.5
 
 Files-Pattern: *.img, *.tar.bz2
 Build-Name: landing-snowball
