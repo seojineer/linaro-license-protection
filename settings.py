@@ -136,6 +136,11 @@ OPENID_FOLLOW_RENAMES = True
 OPENID_USE_AS_ADMIN_LOGIN = True
 OPENID_USE_EMAIL_FOR_USERNAME = True
 
+ATLASSIAN_CROWD_API_URL = \
+    "https://login.linaro.org:8443/crowd/rest/usermanagement/1"
+ATLASSIAN_CROWD_API_USERNAME = None
+ATLASSIAN_CROWD_API_PASSWORD = None
+
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error.
