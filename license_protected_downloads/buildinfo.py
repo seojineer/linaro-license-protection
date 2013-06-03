@@ -43,7 +43,9 @@ class BuildInfo:
                 os.path.join(cls.get_search_path(path), "BUILD-INFO.txt"))
 
     def _set(self, key, value):
-        "key: file pattern, value: list of dicts of field/val pairs"
+        """Record set of directives applying to a file pattern
+        key: file pattern
+        value: list of dicts of field/val pairs"""
         if key in self.build_info_array[self.index]:
             # A repeated key indicates we have found another chunk of
             # build-info
