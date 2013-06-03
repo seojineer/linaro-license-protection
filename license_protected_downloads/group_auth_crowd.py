@@ -46,7 +46,6 @@ def process_group_auth(request, required_groups):
         raise GroupAuthError(r.status_code)
     data = r.json()
     user_groups = set([x["name"] for x in data["groups"]])
-    for g in required_groups:
-        if g in user_groups:
-            return True
-    return False
+
+    # If groups don't intersect, access denied
+    return not user_groups.isdisjoint(required_groups)
