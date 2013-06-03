@@ -7,6 +7,7 @@ from django.contrib.auth.models import Group
 
 log = logging.getLogger(__file__)
 
+
 def process_group_auth(request, openid_teams):
         """Returns True if access granted, False if denied and Response
         object if not enough authentication information available and
