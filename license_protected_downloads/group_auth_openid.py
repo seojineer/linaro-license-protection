@@ -1,7 +1,11 @@
+import logging
+
 from django.conf import settings
 from django.shortcuts import redirect
 from django.contrib.auth.models import Group
 
+
+log = logging.getLogger(__file__)
 
 def process_group_auth(request, openid_teams):
         """Returns True if access granted, False if denied and Response
@@ -19,6 +23,8 @@ def process_group_auth(request, openid_teams):
             # Force OpenID login
             return redirect(settings.LOGIN_URL + "?next=" + request.path)
 
+        log.warn("Authenticating using Launchpad OpenID Teams: %s",
+                 request.user.username)
         for group in request.user.groups.all():
             if group.name in openid_teams:
                 return True
