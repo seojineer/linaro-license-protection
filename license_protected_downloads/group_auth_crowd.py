@@ -8,7 +8,7 @@ import requests
 from group_auth_common import GroupAuthError
 
 
-log = logging.getLogger(__file__)
+log = logging.getLogger("llp.group_auth.crowd")
 
 
 def upgrade_requests():

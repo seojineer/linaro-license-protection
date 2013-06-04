@@ -160,13 +160,17 @@ LOGGING = {
         },
     },
     'loggers': {
+        # Root logger
+        '': {
+            'level': 'WARNING',
+            'handlers': ['console'],
+        },
         'django.request': {
             'handlers': ['mail_admins'],
             'level': 'ERROR',
             'propagate': True,
         },
-        # Root logger
-        '': {
+        'llp': {
             'level': 'DEBUG',
             'handlers': ['console'],
         },

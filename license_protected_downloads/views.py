@@ -37,7 +37,7 @@ LINARO_INCLUDE_FILE_RE = re.compile(
 LINARO_INCLUDE_FILE_RE1 = re.compile(
     r'<linaro:include file="(?P<file_name>.*)">(.*)</linaro:include>')
 
-log = logging.getLogger(__file__)
+log = logging.getLogger("llp.views")
 
 
 def _hidden_file(file_name):

@@ -5,7 +5,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.models import Group
 
 
-log = logging.getLogger(__file__)
+log = logging.getLogger("llp.group_auth.openid")
 
 
 def process_group_auth(request, openid_teams):
