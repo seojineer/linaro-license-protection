@@ -28,7 +28,7 @@ upgrade_requests()
 def strip_html(html):
     "Convert HTML into plain text."
     soup = BeautifulSoup(html, convertEntities=BeautifulSoup.HTML_ENTITIES)
-    if not soup:
+    if not soup.body:
         return html
     t = ' '.join(soup.body.findAll(text=True))
     return t
