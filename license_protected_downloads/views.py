@@ -452,7 +452,7 @@ def file_server(request, path):
             log.info("Checking membership in auth groups: %s", auth_groups)
             try:
                 response = group_auth.process_group_auth(request, auth_groups)
-            except GroupAuthError, e:
+            except GroupAuthError:
                 log.exception("GroupAuthError")
                 response = render_to_response('group_auth_failure.html')
                 response.status_code = 500
