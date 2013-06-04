@@ -2,6 +2,7 @@ import logging
 
 from django.conf import settings
 from django.shortcuts import redirect
+from BeautifulSoup import BeautifulSoup
 import requests
 
 from group_auth_common import GroupAuthError
@@ -24,6 +25,13 @@ def upgrade_requests():
 upgrade_requests()
 
 
+def strip_html(html):
+    "Convert HTML into plain text."
+    html = BeautifulSoup(html, convertEntities=BeautifulSoup.HTML_ENTITIES)
+    t = ' '.join(html.body.findAll(text=True))
+    return t
+
+
 def process_group_auth(request, required_groups):
     if not required_groups:
         return True
@@ -40,7 +48,8 @@ def process_group_auth(request, required_groups):
     r = requests.get(settings.ATLASSIAN_CROWD_API_URL
                      + "/user/group/nested.json", params=params, auth=auth)
     if r.status_code != 200:
-        raise GroupAuthError(r.status_code)
+        msg = str(r.status_code) + " " + strip_html(r.content)
+        raise GroupAuthError(msg)
     data = r.json()
     user_groups = set([x["name"] for x in data["groups"]])
 
