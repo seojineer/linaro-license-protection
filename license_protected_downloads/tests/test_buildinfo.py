@@ -50,7 +50,7 @@ class BuildInfoTests(unittest.TestCase):
     def test_getFormatVersion(self):
         build_info = BuildInfo(self.buildinfo_file_path)
 
-        self.assertEqual("0.1", build_info.getFormatVersion())
+        self.assertEqual("0.5", build_info.getFormatVersion())
 
     def test_get_emptyField(self):
         value = "notempty"
