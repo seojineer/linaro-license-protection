@@ -11,6 +11,7 @@ from license_protected_downloads.tests.test_views import (
     FileViewTests,
     HowtoViewTests,
     ViewTests,
+    ViewHelpersTests,
     )
 from license_protected_downloads.tests.test_openid_auth import TestOpenIDAuth
 from license_protected_downloads.tests.test_custom_commands \
@@ -32,4 +33,5 @@ __test__ = {
     'TestPep8': TestPep8,
     'TestPyflakes': TestPyflakes,
     'ViewTests': ViewTests,
+    'ViewHelpersTests': ViewHelpersTests,
 }

@@ -14,8 +14,11 @@ class BuildInfo:
         self.file_info_array = [{}]
         self.fields_defined = [
                 "format-version", "files-pattern", "build-name", "theme",
-                "license-type", "openid-launchpad-teams", "collect-user-data",
-                "license-text"]
+                "license-type", "auth-groups", "collect-user-data",
+                "license-text",
+                # Deprecated
+                "openid-launchpad-teams",
+                ]
         self.full_file_name = fn
         self.search_path = self.get_search_path(fn)
         self.fname = os.path.basename(fn)
@@ -40,6 +43,9 @@ class BuildInfo:
                 os.path.join(cls.get_search_path(path), "BUILD-INFO.txt"))
 
     def _set(self, key, value):
+        """Record set of directives applying to a file pattern
+        key: file pattern
+        value: list of dicts of field/val pairs"""
         if key in self.build_info_array[self.index]:
             # A repeated key indicates we have found another chunk of
             # build-info
@@ -91,10 +97,7 @@ class BuildInfo:
         if index > self.max_index:
             return False
         block = self.file_info_array[index]
-        for key in block:
-            if field == key:
-                return block[field]
-        return False
+        return block.get(field, False)
 
     def parseLine(self, line):
         values = line.split(":", 1)
@@ -108,6 +111,9 @@ class BuildInfo:
                 raise IncorrectDataFormatException(
                         "Field '%s' not allowed." % field)
             else:
+                # Rename any deprecated field names to new names
+                field_renames = {"openid-launchpad-teams": "auth-groups"}
+                field = field_renames.get(field, field)
                 return {field: value}
 
     def isValidField(self, field_name):
@@ -189,7 +195,7 @@ class BuildInfo:
     @classmethod
     def write_from_array(cls, build_info_array, file_path):
         with open(file_path, "w") as outfile:
-            outfile.write("Format-Version: 0.1\n\n")
+            outfile.write("Format-Version: 0.5\n\n")
             for key in build_info_array[0]:
                 if key != "format-version":
                     outfile.write("Files-Pattern: %s\n" % key)

@@ -1,0 +1,7 @@
+Format-Version: 0.5
+
+
+Files-Pattern: *
+Build-Name: landing-protected
+License-Type: protected
+Auth-Groups: linaro
