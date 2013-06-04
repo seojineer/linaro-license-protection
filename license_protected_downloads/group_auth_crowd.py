@@ -2,8 +2,9 @@ import logging
 
 from django.conf import settings
 from django.shortcuts import redirect
-
 import requests
+
+from group_auth_common import GroupAuthError
 
 
 log = logging.getLogger(__file__)
@@ -21,10 +22,6 @@ def upgrade_requests():
 
 # We monkey-patch requests module on first load
 upgrade_requests()
-
-
-class GroupAuthError(Exception):
-    pass
 
 
 def process_group_auth(request, required_groups):

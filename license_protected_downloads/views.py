@@ -1,3 +1,4 @@
+import logging
 import glob
 import hashlib
 import json
@@ -28,12 +29,15 @@ import importlib
 group_auth = importlib.import_module(settings.GROUP_AUTH_MODULE)
 from BeautifulSoup import BeautifulSoup
 import config
+from group_auth_common import GroupAuthError
 
 
 LINARO_INCLUDE_FILE_RE = re.compile(
     r'<linaro:include file="(?P<file_name>.*)"[ ]*/>')
 LINARO_INCLUDE_FILE_RE1 = re.compile(
     r'<linaro:include file="(?P<file_name>.*)">(.*)</linaro:include>')
+
+log = logging.getLogger(__file__)
 
 
 def _hidden_file(file_name):
@@ -445,9 +449,15 @@ def file_server(request, path):
         if auth_groups:
             auth_groups = auth_groups.split(",")
             auth_groups = [g.strip() for g in auth_groups]
-            # TODO: use logging!
-            print "Checking membership in auth groups:", auth_groups
-            response = group_auth.process_group_auth(request, auth_groups)
+            log.info("Checking membership in auth groups: %s", auth_groups)
+            try:
+                response = group_auth.process_group_auth(request, auth_groups)
+            except GroupAuthError, e:
+                log.exception("GroupAuthError", e)
+                response = render_to_response('group_auth_failure.html')
+                response.status_code = 500
+                return response
+
             if response == False:
                 return group_auth_failed_response(request, auth_groups)
             elif response == True:
