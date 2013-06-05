@@ -132,10 +132,31 @@ def dir_list(url, path, human_readable=True):
     return listing
 
 
+def safe_path_join(base_path, *paths):
+    """os.path.join with check that result is inside base_path.
+
+    Checks that the generated path doesn't end up outside the target
+    directory, so server accesses stay where we expect them.
+    """
+
+    target_path = os.path.join(base_path, *paths)
+
+    if not target_path.startswith(base_path):
+        return None
+
+    if not os.path.normpath(target_path) == target_path.rstrip("/"):
+        return None
+
+    return target_path
+
+
 def test_path(path):
 
     for basepath in settings.SERVED_PATHS:
-        fullpath = os.path.join(basepath, path)
+        fullpath = safe_path_join(basepath, path)
+        if fullpath is None:
+            return None
+
         if os.path.isfile(fullpath):
             return ("file", fullpath)
         if os.path.isdir(fullpath):
