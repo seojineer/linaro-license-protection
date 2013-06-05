@@ -30,6 +30,8 @@ DATABASES = {
     }
 }
 
+FILE_UPLOAD_PERMISSIONS = 0644
+
 TIME_ZONE = None
 
 # Language code for this installation. All choices can be found here:
@@ -156,6 +158,7 @@ LOGGING = {
 }
 
 SERVED_PATHS = [os.path.join(PROJECT_ROOT, "sampleroot")]
+UPLOAD_PATH = os.path.join(PROJECT_ROOT, "sampleroot")
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages',
@@ -197,3 +200,5 @@ SUPPORTED_REMOTE_STATIC_FILES = {
     "init.css": "http://www.linaro.org/remote/css/init.css",
     "remote.css": "http://www.linaro.org/remote/css/remote.css",
     }
+
+MASTER_API_KEY = "CHANGE_ME"

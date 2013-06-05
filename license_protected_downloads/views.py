@@ -18,6 +18,7 @@ from django.http import (
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.utils.encoding import smart_str, iri_to_uri
+from django.views.decorators.csrf import csrf_exempt
 
 import bzr_version
 from buildinfo import BuildInfo, IncorrectDataFormatException
@@ -25,7 +26,9 @@ from render_text_files import RenderTextFiles
 from models import License
 from openid_auth import OpenIDAuth
 from BeautifulSoup import BeautifulSoup
+from uploads import file_server_post
 import config
+from common import *
 
 
 LINARO_INCLUDE_FILE_RE = re.compile(
@@ -129,7 +132,11 @@ def dir_list(url, path, human_readable=True):
 def test_path(path):
 
     for basepath in settings.SERVED_PATHS:
-        fullpath = os.path.join(basepath, path)
+        fullpath = safe_path_join(basepath, path)
+
+        if fullpath is None:
+            return None
+
         if os.path.isfile(fullpath):
             return ("file", fullpath)
         if os.path.isdir(fullpath):
@@ -392,9 +399,26 @@ def send_file(path):
     return response
 
 
+@csrf_exempt
 def file_server(request, path):
     """Serve up a file / directory listing or license page as required"""
     path = iri_to_uri(path)
+
+    # Intercept post requests and send them to file_server_post.
+    if request.method == "POST":
+        return file_server_post(request, path)
+
+    # GET requests are handled by file_server_get
+    elif request.method == "GET":
+        return file_server_get(request, path)
+
+
+def file_server_get(request, path):
+    # if key is in request.GET["key"] then need to mod path and give
+    # access to a per-key directory.
+    if "key" in request.GET:
+        path = os.path.join(request.GET["key"], path)
+
     url = path
     result = test_path(path)
     if not result:
