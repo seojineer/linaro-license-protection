@@ -20,16 +20,16 @@ class SpliceBuildInfosTests(unittest.TestCase):
             'test-protected.txt':
             [{'license-type': 'protected',
               'build-name': 'landing-protected',
-              'openid-launchpad-teams': 'linaro'}],
+              'auth-groups': 'linaro'}],
             'test-protected-2.txt':
             [{'license-type': 'protected',
               'build-name': 'landing-protected',
-              'openid-launchpad-teams': 'linaro'}]}
+              'auth-groups': 'linaro'}]}
 
         result = {'test-protected.txt, test-protected-2.txt':
                   [{'license-type': 'protected',
                     'build-name': 'landing-protected',
-                    'openid-launchpad-teams': 'linaro'}]}
+                    'auth-groups': 'linaro'}]}
 
         build_info_res = SpliceBuildInfos.merge_duplicates(build_info_dict)
         self.assertEquals(build_info_res, result)

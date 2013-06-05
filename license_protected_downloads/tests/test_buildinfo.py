@@ -27,7 +27,16 @@ class BuildInfoTests(unittest.TestCase):
         self.assertEquals(build_info.getInfoForFile(),
             [{'build-name': 'landing-protected',
               'license-type': 'protected',
-              'openid-launchpad-teams': 'linaro'}])
+              'auth-groups': 'linaro'}])
+
+    def test_apply_to_dir_auth_groups_field(self):
+        dir_path = THIS_DIRECTORY + \
+            '/testserver_root/build-info/subdir2'
+        build_info = BuildInfo(dir_path)
+        self.assertEquals(build_info.getInfoForFile(),
+            [{'build-name': 'landing-protected',
+              'license-type': 'protected',
+              'auth-groups': 'linaro'}])
 
     def test_apply_to_nonexistent_file(self):
         with self.assertRaises(IOError):
@@ -41,14 +50,14 @@ class BuildInfoTests(unittest.TestCase):
     def test_getFormatVersion(self):
         build_info = BuildInfo(self.buildinfo_file_path)
 
-        self.assertEqual("0.1", build_info.getFormatVersion())
+        self.assertEqual("0.5", build_info.getFormatVersion())
 
     def test_get_emptyField(self):
         value = "notempty"
         build_info = BuildInfo(self.buildinfo_file_path)
         for pair in build_info.file_info_array:
-            if "openid-launchpad-teams" in pair:
-                value = pair["openid-launchpad-teams"]
+            if "auth-groups" in pair:
+                value = pair["auth-groups"]
 
         self.assertFalse(value)
 

@@ -1,3 +1,4 @@
+import logging
 import glob
 import hashlib
 import json
@@ -24,17 +25,22 @@ import bzr_version
 from buildinfo import BuildInfo, IncorrectDataFormatException
 from render_text_files import RenderTextFiles
 from models import License
-from openid_auth import OpenIDAuth
+# Load group auth "plugin" dynamically
+import importlib
+group_auth = importlib.import_module(settings.GROUP_AUTH_MODULE)
 from BeautifulSoup import BeautifulSoup
 from uploads import file_server_post
 import config
 from common import *
+from group_auth_common import GroupAuthError
 
 
 LINARO_INCLUDE_FILE_RE = re.compile(
     r'<linaro:include file="(?P<file_name>.*)"[ ]*/>')
 LINARO_INCLUDE_FILE_RE1 = re.compile(
     r'<linaro:include file="(?P<file_name>.*)">(.*)</linaro:include>')
+
+log = logging.getLogger("llp.views")
 
 
 def _hidden_file(file_name):
@@ -249,7 +255,7 @@ def is_protected(path):
         license_type = build_info.get("license-type")
         license_text = build_info.get("license-text")
         theme = build_info.get("theme")
-        openid_teams = build_info.get("openid-launchpad-teams")
+        auth_groups = build_info.get("auth-groups")
         max_index = build_info.max_index
     elif os.path.isfile(open_eula_path):
         return "OPEN"
@@ -263,7 +269,7 @@ def is_protected(path):
         license_type = "protected"
         license_file = os.path.join(settings.PROJECT_ROOT,
                                     'templates/licenses/' + theme + '.txt')
-        openid_teams = False
+        auth_groups = False
         with open(license_file, "r") as infile:
             license_text = infile.read()
     elif _check_special_eula(path):
@@ -271,7 +277,7 @@ def is_protected(path):
         license_type = "protected"
         license_file = os.path.join(settings.PROJECT_ROOT,
                                     'templates/licenses/' + theme + '.txt')
-        openid_teams = False
+        auth_groups = False
         with open(license_file, "r") as infile:
             license_text = infile.read()
     elif _check_special_eula(base_path + "/*"):
@@ -286,7 +292,7 @@ def is_protected(path):
             return "OPEN"
 
         # File matches a license, isn't open.
-        if openid_teams:
+        if auth_groups:
             return "OPEN"
         elif license_text:
             for i in range(max_index):
@@ -399,6 +405,30 @@ def send_file(path):
     return response
 
 
+def group_auth_failed_response(request, auth_groups):
+    """Construct a nice response detailing list of auth groups that
+    will allow access to the requested file."""
+    if len(auth_groups) > 1:
+        groups_string = "one of the " + auth_groups.pop(0) + " "
+        if len(auth_groups) > 1:
+            groups_string += ", ".join(auth_groups[0:-1])
+
+        groups_string += " or " + auth_groups[-1] + " groups"
+    else:
+        groups_string = "the " + auth_groups[0] + " group"
+
+    response = render_to_response(
+        'openid_forbidden_template.html',
+        {'login': settings.LOGIN_URL + "?next=" + request.path,
+         'authenticated': request.user.is_authenticated(),
+         'groups_string': groups_string,
+         'revno': bzr_version.get_my_bzr_revno(),
+         })
+
+    response.status_code = 403
+    return response
+
+
 @csrf_exempt
 def file_server(request, path):
     """Serve up a file / directory listing or license page as required"""
@@ -439,16 +469,25 @@ def file_server_get(request, path):
             return HttpResponseForbidden(
                 "Error parsing BUILD-INFO.txt")
 
-        launchpad_teams = build_info.get("openid-launchpad-teams")
-        if launchpad_teams:
-            launchpad_teams = launchpad_teams.split(",")
-            launchpad_teams = [team.strip() for team in launchpad_teams]
-            # TODO: use logging!
-            print "Checking membership in OpenID groups:", launchpad_teams
-            openid_response = OpenIDAuth.process_openid_auth(
-                request, launchpad_teams)
-            if openid_response:
-                return openid_response
+        auth_groups = build_info.get("auth-groups")
+        if auth_groups:
+            auth_groups = auth_groups.split(",")
+            auth_groups = [g.strip() for g in auth_groups]
+            log.info("Checking membership in auth groups: %s", auth_groups)
+            try:
+                response = group_auth.process_group_auth(request, auth_groups)
+            except GroupAuthError:
+                log.exception("GroupAuthError")
+                response = render_to_response('group_auth_failure.html')
+                response.status_code = 500
+                return response
+
+            if response == False:
+                return group_auth_failed_response(request, auth_groups)
+            elif response == True:
+                pass
+            else:
+                return response
 
     if target_type == "dir":
         # Generate a link to the parent directory (if one exists)
