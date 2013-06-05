@@ -821,6 +821,24 @@ class ViewTests(BaseServeViewTest):
             self.assertEqual(response.status_code, 200)
             self.assertContains(response, 'test CSS')
 
+    def test_path_to_root(self):
+        response = self.client.get("http://testserver//", follow=True)
+
+        # Shouldn't be able to escape served paths...
+        self.assertEqual(response.status_code, 404)
+
+    def test_path_to_dir_above(self):
+        response = self.client.get("http://testserver/../", follow=True)
+
+        # Shouldn't be able to escape served paths...
+        self.assertEqual(response.status_code, 404)
+
+    def test_path_to_dir_above2(self):
+        response = self.client.get("http://testserver/..", follow=True)
+
+        # Shouldn't be able to escape served paths...
+        self.assertEqual(response.status_code, 404)
+
 
 class HowtoViewTests(BaseServeViewTest):
     def test_no_howtos(self):
