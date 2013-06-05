@@ -406,15 +406,15 @@ def group_auth_failed_response(request, auth_groups):
         if len(auth_groups) > 1:
             groups_string += ", ".join(auth_groups[0:-1])
 
-        groups_string += " or " + auth_groups[-1] + " teams"
+        groups_string += " or " + auth_groups[-1] + " groups"
     else:
-        groups_string = "the " + auth_groups[0] + " team"
+        groups_string = "the " + auth_groups[0] + " group"
 
     response = render_to_response(
         'openid_forbidden_template.html',
         {'login': settings.LOGIN_URL + "?next=" + request.path,
          'authenticated': request.user.is_authenticated(),
-         'openid_teams': groups_string,
+         'groups_string': groups_string,
          'revno': bzr_version.get_my_bzr_revno(),
          })
 
