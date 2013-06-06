@@ -28,6 +28,7 @@ def process_group_auth(request, openid_teams):
                  request.user.username)
         for group in request.user.groups.all():
             if group.name in openid_teams:
+                log.warn("Group auth access granted via Launchpad OpenID Teams")
                 return True
 
         return False
