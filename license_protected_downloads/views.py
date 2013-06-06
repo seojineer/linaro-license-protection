@@ -26,7 +26,7 @@ from render_text_files import RenderTextFiles
 from models import License
 # Load group auth "plugin" dynamically
 import importlib
-group_auth = importlib.import_module(settings.GROUP_AUTH_MODULE)
+group_auth_modules = [importlib.import_module(m) for m in settings.GROUP_AUTH_MODULES]
 from BeautifulSoup import BeautifulSoup
 import config
 from group_auth_common import GroupAuthError
@@ -471,8 +471,12 @@ def file_server(request, path):
             auth_groups = auth_groups.split(",")
             auth_groups = [g.strip() for g in auth_groups]
             log.info("Checking membership in auth groups: %s", auth_groups)
+            response = False
             try:
-                response = group_auth.process_group_auth(request, auth_groups)
+                for m in group_auth_modules:
+                    response = m.process_group_auth(request, auth_groups)
+                    if response:
+                        break
             except GroupAuthError:
                 log.exception("GroupAuthError")
                 response = render_to_response('group_auth_failure.html')
