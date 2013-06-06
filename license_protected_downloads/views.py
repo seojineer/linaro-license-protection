@@ -31,7 +31,7 @@ group_auth = importlib.import_module(settings.GROUP_AUTH_MODULE)
 from BeautifulSoup import BeautifulSoup
 from uploads import file_server_post
 import config
-from common import *
+from common import safe_path_join
 from group_auth_common import GroupAuthError
 
 

@@ -10,7 +10,7 @@ from django.conf import settings
 import os
 import shutil
 from models import APIKeyStore
-from common import *
+from common import safe_path_join
 
 
 class UploadFileForm(forms.Form):
