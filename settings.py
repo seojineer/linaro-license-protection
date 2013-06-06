@@ -126,11 +126,13 @@ LOGIN_REDIRECT_URL = '/'
 
 # Name of "plugin" modules to use for group authentication
 # Plugins will be queried in specified order until first positive match
-GROUP_AUTH_MODULES = ['license_protected_downloads.group_auth_openid']
+GROUP_AUTH_MODULES = ['license_protected_downloads.group_auth_crowd',
+    'license_protected_downloads.group_auth_openid']
 
 # Config for django_openid_auth.auth.OpenIDBackend
 OPENID_CREATE_USERS = True
-OPENID_SSO_SERVER_URL = 'https://login.launchpad.net/'
+#OPENID_SSO_SERVER_URL = 'https://login.launchpad.net/'
+OPENID_SSO_SERVER_URL = 'https://login.linaro.org:8443/openidserver/op'
 OPENID_UPDATE_DETAILS_FROM_SREG = True
 OPENID_LAUNCHPAD_TEAMS_MAPPING_AUTO = True
 OPENID_FOLLOW_RENAMES = True
@@ -139,7 +141,7 @@ OPENID_USE_EMAIL_FOR_USERNAME = True
 
 ATLASSIAN_CROWD_API_URL = \
     "https://login.linaro.org:8443/crowd/rest/usermanagement/1"
-ATLASSIAN_CROWD_API_USERNAME = None
+ATLASSIAN_CROWD_API_USERNAME = 'linaro-license-protection'
 ATLASSIAN_CROWD_API_PASSWORD = None
 
 # A sample logging configuration. The only tangible logging
