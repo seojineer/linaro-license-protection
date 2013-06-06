@@ -223,4 +223,4 @@ SUPPORTED_REMOTE_STATIC_FILES = {
     "remote.css": "http://www.linaro.org/remote/css/remote.css",
     }
 
-MASTER_API_KEY = "CHANGE_ME"
+MASTER_API_KEY = ""

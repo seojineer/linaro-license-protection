@@ -6,8 +6,9 @@ from django.http import (
 )
 from django import forms
 import random
-import settings
+from django.conf import settings
 import os
+import shutil
 from models import APIKeyStore
 from common import *
 
@@ -23,7 +24,7 @@ def upload_target_path(path, key):
     so you can't set path to start with "/" and upload to anywhere.
     """
     base_path = os.path.join(settings.UPLOAD_PATH, key)
-    return safe_path_join(base_path)
+    return safe_path_join(base_path, path)
 
 
 @csrf_exempt
@@ -36,15 +37,15 @@ def file_server_post(request, path):
     Files are stored in a private directory that can not be accessed via the
     web interface unless you have the same key.
     """
-    if not ("key" in request.GET and
-        APIKeyStore.objects.filter(key=request.GET["key"])):
+    if not ("key" in request.POST and
+        APIKeyStore.objects.filter(key=request.POST["key"])):
         return HttpResponseServerError("Invalid key")
 
     form = UploadFileForm(request.POST, request.FILES)
     if not form.is_valid() or not path:
         return HttpResponseServerError("Invalid call")
 
-    path = upload_target_path(path, request.GET["key"])
+    path = upload_target_path(path, request.POST["key"])
 
     # Create directory if required
     dirname = os.path.dirname(path)
@@ -60,7 +61,8 @@ def file_server_post(request, path):
 
 def api_request_key(request):
     if("key" in request.GET and
-       request.GET["key"] == settings.MASTER_API_KEY):
+       request.GET["key"] == settings.MASTER_API_KEY and
+       settings.MASTER_API_KEY):
 
         # Generate a new, random key.
         key = "%030x" % random.randrange(256**15)
@@ -72,3 +74,44 @@ def api_request_key(request):
         return HttpResponse(key)
 
     return HttpResponseForbidden()
+
+def api_delete_key(request):
+    if "key" not in request.GET:
+        return HttpResponseServerError("Invalid key")
+
+    key = request.GET["key"]
+    api_key = APIKeyStore.objects.filter(key=key)
+
+    if not api_key:
+        return HttpResponseServerError("Invalid key")
+
+    # Delete key from database and all files associated with it
+    api_key.delete()
+    shutil.rmtree(os.path.join(settings.UPLOAD_PATH, key))
+
+    return HttpResponse("OK")
+
+def api_push_to_server(request):
+    # TODO: Upload files from this machine to another linaro-licence-protection
+    # node.
+    """
+    Something like:
+
+    if request.GET["target"] in settings.REMOTE_SERVERS:
+        remote_server = settings.REMOTE_SERVERS[request.GET["target"]]
+
+        remote_server should contain:
+        {
+            "key": "...",
+            "url": "...",
+        }
+
+        now just POST files from this machine to the specified URL/KEY.
+
+        Possibly add some magic to POST endpoint (file_server_post) to allow
+        (some users??) uploads to a public path:
+
+        POST snapshots.linaro.org/path/to/file?key="key"&public=true
+
+    """
+    pass
