@@ -126,8 +126,10 @@ LOGIN_REDIRECT_URL = '/'
 
 # Name of "plugin" modules to use for group authentication
 # Plugins will be queried in specified order until first positive match
-GROUP_AUTH_MODULES = ['license_protected_downloads.group_auth_crowd',
-    'license_protected_downloads.group_auth_openid']
+# Available plugins:
+#   license_protected_downloads.group_auth_crowd - uses CROWD groups
+#   license_protected_downloads.group_auth_openid - uses Launchpad OpenID teams
+GROUP_AUTH_MODULES = ['license_protected_downloads.group_auth_crowd']
 
 # Config for django_openid_auth.auth.OpenIDBackend
 OPENID_CREATE_USERS = True
