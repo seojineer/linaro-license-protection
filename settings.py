@@ -224,3 +224,5 @@ SUPPORTED_REMOTE_STATIC_FILES = {
     }
 
 MASTER_API_KEY = ""
+
+from local_settings import *

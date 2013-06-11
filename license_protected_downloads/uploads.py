@@ -50,7 +50,7 @@ def file_server_post(request, path):
     # Create directory if required
     dirname = os.path.dirname(path)
     if not os.path.isdir(dirname):
-        os.mkdir(dirname)
+        os.makedirs(dirname)
 
     with open(path, "wb") as destination:
         for chunk in request.FILES["file"].chunks():

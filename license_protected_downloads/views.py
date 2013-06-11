@@ -447,6 +447,7 @@ def file_server_get(request, path):
     # if key is in request.GET["key"] then need to mod path and give
     # access to a per-key directory.
     if "key" in request.GET:
+        #error - should also be the "push" path...
         path = os.path.join(request.GET["key"], path)
 
     url = path
@@ -521,8 +522,9 @@ def file_server_get(request, path):
     if not file_listed(path, url):
         raise Http404
 
-    if get_client_ip(request) in config.INTERNAL_HOSTS or\
-       is_whitelisted(os.path.join('/', url)):
+    if (get_client_ip(request) in config.INTERNAL_HOSTS or
+        is_whitelisted(os.path.join('/', url)) or
+        "key" in request.GET): # If user has a key, default to open
         digests = 'OPEN'
     else:
         digests = is_protected(path)
