@@ -135,9 +135,20 @@ def dir_list(url, path, human_readable=True):
     return listing
 
 
-def test_path(path):
+def test_path(path, served_paths=None):
+    """Check that path points to something we can serve up.
 
-    for basepath in settings.SERVED_PATHS:
+    served_paths can be provided to overwrite settings.SERVED_PATHS. This is
+    used for uploaded files, which may not be shared in the server root.
+    """
+
+    if served_paths is None:
+        served_paths = settings.SERVED_PATHS
+    else:
+        if not isinstance(served_paths, list):
+            served_paths = [served_paths]
+
+    for basepath in served_paths:
         fullpath = safe_path_join(basepath, path)
 
         if fullpath is None:
@@ -444,14 +455,17 @@ def file_server(request, path):
 
 
 def file_server_get(request, path):
+
+    url = path
+
     # if key is in request.GET["key"] then need to mod path and give
     # access to a per-key directory.
     if "key" in request.GET:
-        #error - should also be the "push" path...
         path = os.path.join(request.GET["key"], path)
+        result = test_path(path, settings.UPLOAD_PATH)
+    else:
+        result = test_path(path)
 
-    url = path
-    result = test_path(path)
     if not result:
         raise Http404
 
