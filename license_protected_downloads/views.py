@@ -460,7 +460,7 @@ def file_server_get(request, path):
 
     # if key is in request.GET["key"] then need to mod path and give
     # access to a per-key directory.
-    if "key" in request.GET:
+    if "key" in request.GET :
         path = os.path.join(request.GET["key"], path)
         result = test_path(path, settings.UPLOAD_PATH)
     else:

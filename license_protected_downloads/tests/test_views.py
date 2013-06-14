@@ -36,13 +36,17 @@ class BaseServeViewTest(TestCase):
         settings.SERVED_PATHS = [os.path.join(THIS_DIRECTORY,
                                              "testserver_root")]
         self.old_upload_path = settings.UPLOAD_PATH
-        settings.UPLOAD_PATH = settings.SERVED_PATHS[0]
+        settings.UPLOAD_PATH = os.path.join(THIS_DIRECTORY,
+                                            "test_upload_root")
+        if not os.path.isdir(settings.UPLOAD_PATH):
+            os.makedirs(settings.UPLOAD_PATH)
         self.old_master_api_key = settings.MASTER_API_KEY
         settings.MASTER_API_KEY = "1234abcd"
 
     def tearDown(self):
         settings.SERVED_PATHS = self.old_served_paths
         settings.MASTER_API_KEY = self.old_master_api_key
+        os.rmdir(settings.UPLOAD_PATH)
         settings.UPLOAD_PATH = self.old_upload_path
 
 
