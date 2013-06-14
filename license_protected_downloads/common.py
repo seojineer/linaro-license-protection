@@ -1,7 +1,7 @@
 import os
 
 def safe_path_join(base_path, *paths):
-    """os.path.join with with check that result is inside base_path.
+    """os.path.join with check that result is inside base_path.
 
     Checks that the generated path doesn't end up outside the target
     directory, so server accesses stay where we expect them.
