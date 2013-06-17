@@ -21,6 +21,7 @@ Features
    (as used by Launchpad.net) and Atlassian Crowd are supported).
  * post-processing of all uploads (a script that manages uploads)
  * per-IP pass-through (for automatic services like a test framework)
+ * key based file uploads into a private area.
 
 Background
 ----------
@@ -77,6 +78,32 @@ After that, if scripts/publish_to_snapshots.py is configured to push
 to the right location, your build files should show up on the host
 running the django application.  BUILD-INFO configuration will take effect,
 so it may be inaccessible to the general public.
+
+
+Publishing API
+--------------
+To upload a file using the publishing API you need a key. This can be obtained
+by the query <server>/api/request_key?<MASTER_API_KEY> where MASTER_API_KEY
+is stored in local_settings.py.
+
+Now you can use HTTP PUT requests to push up files:
+curl -F file=@<file> -F key=<key> <server>/path/to/store/file
+
+And this file can be downloaded from:
+<server>/path/to/store/file?key=<key>
+
+ * By default API key protected files have no further license protection.
+ * You can upload multiple files with the same key
+ * Directories are automatically created
+ * File listings still work (as long as you append ?key=<key> to the URL)
+
+Once you have finished with the files, you can delete all files associated
+with a temporary API key by deleting the key:
+
+curl <server>/api/delete_key?key=<key>
+
+Uploading files to a public directory is not supported. This is planned for
+the future.
 
 
 Build-Info support

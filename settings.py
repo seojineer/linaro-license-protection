@@ -30,6 +30,8 @@ DATABASES = {
     }
 }
 
+FILE_UPLOAD_PERMISSIONS = 0644
+
 TIME_ZONE = None
 
 # Language code for this installation. All choices can be found here:
@@ -79,9 +81,6 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
-
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = 'lkye^=q_i(#jies7^cz#anqq(1g0k$luy5^1jr2nk=g#inet(n'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -183,6 +182,7 @@ LOGGING = {
 }
 
 SERVED_PATHS = [os.path.join(PROJECT_ROOT, "sampleroot")]
+UPLOAD_PATH = os.path.join(PROJECT_ROOT, "sample_upload_root")
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages',
@@ -224,3 +224,34 @@ SUPPORTED_REMOTE_STATIC_FILES = {
     "init.css": "http://www.linaro.org/remote/css/init.css",
     "remote.css": "http://www.linaro.org/remote/css/remote.css",
     }
+
+MASTER_API_KEY = ""
+
+# Try to import local_settings. If it doesn't exist, generate it. It contains
+# SECRET_KEY (to keep it secret).
+try:
+    from local_settings import *
+except ImportError:
+    import random
+
+    # Create local_settings with random SECRET_KEY and MASTER_API_KEY
+    char_selection = '0123456789abcdefghijklmnopqrstuvwxyz' \
+                     'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    char_selection_with_punctuation = char_selection + '!@#$%^&*(-_=+)'
+
+    # SECRET_KEY contains anything but whitespace
+    secret_key = ''.join(random.sample(char_selection_with_punctuation, 50))
+    local_settings_content = "SECRET_KEY = '%s'\n" % secret_key
+
+    # At the moment the publishing API is still in development so it is
+    # disabled...
+    if False:
+        # MASTER_API_KEY contains characters that don't have to be % encoded
+        # in an HTTP URL.
+        master_api_key = ''.join(random.sample(char_selection, 50))
+        local_settings_content += "MASTER_API_KEY = '%s'\n" % master_api_key
+
+    with open(os.path.join(PROJECT_ROOT, "local_settings.py"), "w") as f:
+        f.write(local_settings_content)
+
+    from local_settings import *

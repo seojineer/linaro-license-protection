@@ -19,6 +19,7 @@ from django.http import (
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.utils.encoding import smart_str, iri_to_uri
+from django.views.decorators.csrf import csrf_exempt
 
 import bzr_version
 from buildinfo import BuildInfo, IncorrectDataFormatException
@@ -28,7 +29,9 @@ from models import License
 import importlib
 group_auth_modules = [importlib.import_module(m) for m in settings.GROUP_AUTH_MODULES]
 from BeautifulSoup import BeautifulSoup
+from uploads import file_server_post
 import config
+from common import safe_path_join
 from group_auth_common import GroupAuthError
 
 
@@ -132,28 +135,22 @@ def dir_list(url, path, human_readable=True):
     return listing
 
 
-def safe_path_join(base_path, *paths):
-    """os.path.join with check that result is inside base_path.
+def test_path(path, served_paths=None):
+    """Check that path points to something we can serve up.
 
-    Checks that the generated path doesn't end up outside the target
-    directory, so server accesses stay where we expect them.
+    served_paths can be provided to overwrite settings.SERVED_PATHS. This is
+    used for uploaded files, which may not be shared in the server root.
     """
 
-    target_path = os.path.join(base_path, *paths)
+    if served_paths is None:
+        served_paths = settings.SERVED_PATHS
+    else:
+        if not isinstance(served_paths, list):
+            served_paths = [served_paths]
 
-    if not target_path.startswith(base_path):
-        return None
-
-    if not os.path.normpath(target_path) == target_path.rstrip("/"):
-        return None
-
-    return target_path
-
-
-def test_path(path):
-
-    for basepath in settings.SERVED_PATHS:
+    for basepath in served_paths:
         fullpath = safe_path_join(basepath, path)
+
         if fullpath is None:
             return None
 
@@ -443,11 +440,32 @@ def group_auth_failed_response(request, auth_groups):
     return response
 
 
+@csrf_exempt
 def file_server(request, path):
     """Serve up a file / directory listing or license page as required"""
     path = iri_to_uri(path)
+
+    # Intercept post requests and send them to file_server_post.
+    if request.method == "POST":
+        return file_server_post(request, path)
+
+    # GET requests are handled by file_server_get
+    elif request.method == "GET":
+        return file_server_get(request, path)
+
+
+def file_server_get(request, path):
+
     url = path
-    result = test_path(path)
+
+    # if key is in request.GET["key"] then need to mod path and give
+    # access to a per-key directory.
+    if "key" in request.GET:
+        path = os.path.join(request.GET["key"], path)
+        result = test_path(path, settings.UPLOAD_PATH)
+    else:
+        result = test_path(path)
+
     if not result:
         raise Http404
 
@@ -522,8 +540,9 @@ def file_server(request, path):
     if not file_listed(path, url):
         raise Http404
 
-    if get_client_ip(request) in config.INTERNAL_HOSTS or\
-       is_whitelisted(os.path.join('/', url)):
+    if (get_client_ip(request) in config.INTERNAL_HOSTS or
+        is_whitelisted(os.path.join('/', url)) or
+        "key" in request.GET): # If user has a key, default to open
         digests = 'OPEN'
     else:
         digests = is_protected(path)

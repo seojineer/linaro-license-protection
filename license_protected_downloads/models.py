@@ -26,3 +26,7 @@ class License(models.Model):
 
     def __unicode__(self):
         return self.digest
+
+
+class APIKeyStore(models.Model):
+    key = models.CharField(max_length=80)
