@@ -44,7 +44,8 @@ log = logging.getLogger("llp.views")
 
 
 def _hidden_file(file_name):
-    hidden_files = ["BUILD-INFO.txt", "EULA.txt", r"^\.", "HEADER.html"]
+    hidden_files = ["BUILD-INFO.txt", "EULA.txt", r"^\.", "HEADER.html",
+                    "HOWTO_", "textile"]
     for pattern in hidden_files:
         if re.search(pattern, file_name):
             return True
