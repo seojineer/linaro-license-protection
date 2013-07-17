@@ -17,13 +17,16 @@ class UploadFileForm(forms.Form):
     file = forms.FileField()
 
 
-def upload_target_path(path, key):
+def upload_target_path(path, key, public):
     """Quick path handling function.
 
     Checks that the generated path doesn't end up outside the target directory,
     so you can't set path to start with "/" and upload to anywhere.
     """
-    base_path = os.path.join(settings.UPLOAD_PATH, key)
+    if public:
+        base_path = os.path.join(settings.SERVED_PATHS[0])
+    else:
+        base_path = os.path.join(settings.UPLOAD_PATH, key)
     return safe_path_join(base_path, path)
 
 
@@ -41,11 +44,14 @@ def file_server_post(request, path):
         APIKeyStore.objects.filter(key=request.POST["key"])):
         return HttpResponseServerError("Invalid key")
 
+    api_key = APIKeyStore.objects.filter(key=request.POST["key"])
+
     form = UploadFileForm(request.POST, request.FILES)
     if not form.is_valid() or not path:
         return HttpResponseServerError("Invalid call")
 
-    path = upload_target_path(path, request.POST["key"])
+    path = upload_target_path(
+        path, request.POST["key"], public=api_key[0].public)
 
     # Create directory if required
     dirname = os.path.dirname(path)
@@ -69,7 +75,15 @@ def api_request_key(request):
         while APIKeyStore.objects.filter(key=key):
             key = "%030x" % random.randrange(256**15)
 
-        api_key = APIKeyStore(key=key)
+        # Look for a hint of sanity in the value given to public, but don't
+        # care about it too much.
+        yes = ["", "y", "yes", "true", "1"]
+        if "public" in request.GET:
+            public = request.GET["public"].lower() in yes
+        else:
+            public = False
+
+        api_key = APIKeyStore(key=key, public=public)
         api_key.save()
         return HttpResponse(key)
 
