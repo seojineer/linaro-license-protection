@@ -24,7 +24,7 @@ from django.views.decorators.csrf import csrf_exempt
 import bzr_version
 from buildinfo import BuildInfo, IncorrectDataFormatException
 from render_text_files import RenderTextFiles
-from models import License
+from models import License, APIKeyStore
 # Load group auth "plugin" dynamically
 import importlib
 group_auth_modules = [importlib.import_module(m) for m in settings.GROUP_AUTH_MODULES]
@@ -136,12 +136,24 @@ def dir_list(url, path, human_readable=True):
     return listing
 
 
-def test_path(path, served_paths=None):
+def test_path(path, request, served_paths=None):
     """Check that path points to something we can serve up.
 
     served_paths can be provided to overwrite settings.SERVED_PATHS. This is
     used for uploaded files, which may not be shared in the server root.
     """
+
+    # if key is in request.GET["key"] then need to mod path and give
+    # access to a per-key directory.
+    if "key" in request.GET:
+        key_details = APIKeyStore.objects.filter(key=request.GET["key"])
+        if key_details:
+            path = os.path.join(request.GET["key"], path)
+
+            # Private uploads are in a separate path (or can be), so set
+            # served_paths as needed.
+            if key_details[0].public == False:
+                served_paths = settings.UPLOAD_PATH
 
     if served_paths is None:
         served_paths = settings.SERVED_PATHS
@@ -458,14 +470,7 @@ def file_server(request, path):
 def file_server_get(request, path):
 
     url = path
-
-    # if key is in request.GET["key"] then need to mod path and give
-    # access to a per-key directory.
-    if "key" in request.GET:
-        path = os.path.join(request.GET["key"], path)
-        result = test_path(path, settings.UPLOAD_PATH)
-    else:
-        result = test_path(path)
+    result = test_path(path, request)
 
     if not result:
         raise Http404
@@ -572,7 +577,7 @@ def file_server_get(request, path):
 
 def get_textile_files(request):
 
-    result = test_path(request.GET.get("path"))
+    result = test_path(request.GET.get("path"), request)
     if not result:
         raise Http404
 
@@ -600,7 +605,7 @@ def get_remote_static(request):
 def list_files_api(request, path):
     path = iri_to_uri(path)
     url = path
-    result = test_path(path)
+    result = test_path(path, request)
     if not result:
         raise Http404
 
@@ -643,7 +648,7 @@ def list_files_api(request, path):
 
 def get_license_api(request, path):
     path = iri_to_uri(path)
-    result = test_path(path)
+    result = test_path(path, request)
     if not result:
         raise Http404
 
