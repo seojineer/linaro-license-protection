@@ -30,3 +30,4 @@ class License(models.Model):
 
 class APIKeyStore(models.Model):
     key = models.CharField(max_length=80)
+    public = models.BooleanField()
