@@ -253,3 +253,5 @@ except ImportError:
 
     with open(os.path.join(PROJECT_ROOT, "local_settings.py"), "w") as f:
         f.write(local_settings_content)
+
+    from local_settings import *
