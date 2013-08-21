@@ -20,7 +20,7 @@
   {% endif %}
 
 {% for value in dirlist %}
-  <tr>
+  <tr onmouseover="this.style.background='#CBE68F'" onmouseout="this.style.background='#FFFFFF'">
     <td valign="top">
       <img src="{{ STATIC_URL }}/static/{{ value.type }}.png"
            alt="{{ value.type }}"/>
