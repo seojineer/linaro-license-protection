@@ -3,10 +3,14 @@
 {% block content %}
 {{ header_content|safe }}
 <table>
-  <tr>
-    <th></th><th>Name</th><th>Last modified</th><th>Size</th><th>License</th>
-    <tr><th colspan="5"><hr></th>
-  </tr>
+    <thead>
+        <tr>
+            <th></th><th>Name</th><th>Last modified</th><th>Size</th><th>License</th>
+        </tr>
+        <tr>
+            <th colspan="5"><hr></th>
+        </tr>
+    </thead>
   {% if up_dir != None %}
     <tr>
       <td>
