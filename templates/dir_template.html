@@ -3,24 +3,25 @@
 {% block content %}
 {{ header_content|safe }}
 <table>
-  <tr>
-    <th></th><th>Name</th><th>Last modified</th><th>Size</th><th>License</th>
-    <tr><th colspan="5"><hr></th>
-  </tr>
+    <thead>
+        <tr>
+            <th></th><th>Name</th><th>Last modified</th><th>Size</th><th>License</th>
+        </tr>
+        <tr>
+            <th colspan="5"><hr></th>
+        </tr>
+    </thead>
   {% if up_dir != None %}
     <tr>
       <td>
         <img src="{{ STATIC_URL }}/static/go-up.png" alt="Parent Directory"/>
       </td>
-      <td><a href="{{ up_dir }}">Parent Directory</a></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td colspan="0"><a href="{{ up_dir }}">Parent Directory</a></td>
     </tr>
   {% endif %}
 
 {% for value in dirlist %}
-  <tr>
+  <tr onmouseover="this.style.background='#CBE68F'" onmouseout="this.style.background='#FFFFFF'">
     <td valign="top">
       <img src="{{ STATIC_URL }}/static/{{ value.type }}.png"
            alt="{{ value.type }}"/>
@@ -37,7 +38,7 @@
     <td align="center">
       {% if value.type != 'folder' %}{{ value.size }}{% endif %}
     </td>
-    <td>
+    <td align="center">
       {% if value.license_digest_list == "OPEN" %}
         <i>open</i>
       {% else %}
