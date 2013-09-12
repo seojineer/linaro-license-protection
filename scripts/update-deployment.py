@@ -41,7 +41,7 @@ from linaroscript import LinaroScript
 
 code_base = '/srv/shared-branches'
 branch_name = 'linaro-license-protection'
-configs_branch_name = 'linaro-license-protection-config'
+configs_branch_name = 'linaro-license-protection-configs'
 snapshots_root = '/srv/snapshots.linaro.org'
 releases_root = '/srv/releases.linaro.org'
 staging_snapshots_root = '/srv/staging.snapshots.linaro.org'
