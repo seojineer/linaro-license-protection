@@ -586,7 +586,11 @@ def get_textile_files(request):
 
     path = result[1]
 
-    return HttpResponse(json.dumps(RenderTextFiles.find_and_render(path)))
+    rendered_files = RenderTextFiles.find_and_render(path)
+    if os.path.exists(os.path.join(path, settings.ANNOTATED_XML)):
+        rendered_files["Git Descriptions"] = render_descriptions(path)
+
+    return HttpResponse(json.dumps(rendered_files))
 
 
 def get_remote_static(request):
