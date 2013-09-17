@@ -33,6 +33,7 @@ from uploads import file_server_post
 import config
 from common import safe_path_join
 from group_auth_common import GroupAuthError
+import xml.dom.minidom as dom
 
 
 LINARO_INCLUDE_FILE_RE = re.compile(
@@ -528,6 +529,9 @@ def file_server_get(request, path):
         download = None
         if 'dl' in request.GET:
             download = request.GET['dl']
+        rendered_files = RenderTextFiles.find_and_render(path)
+        if os.path.exists(os.path.join(path, settings.ANNOTATED_XML)):
+            rendered_files["Git Descriptions"] = render_descriptions(path)
 
         return render_to_response('dir_template.html',
                                   {'dirlist': dir_list(url, path),
@@ -536,8 +540,7 @@ def file_server_get(request, path):
                                    'revno': bzr_version.get_my_bzr_revno(),
                                    'header_content': header_content,
                                    'request': request,
-                                   'rendered_files':
-                                   RenderTextFiles.find_and_render(path)
+                                   'rendered_files': rendered_files
                                    })
 
     # If the file listing doesn't contain the file requested for download,
@@ -669,3 +672,25 @@ def get_license_api(request, path):
         data = json.dumps({"licenses": license_list})
 
     return HttpResponse(data, mimetype='application/json')
+
+
+def render_descriptions(path):
+    """
+       Extracts project name and its description from annotated source manifest
+       and returns html string to include in tab.
+    """
+    text = '<br>'
+    line = '<strong>Project:</strong> "%s", ' \
+           '<strong>Description:</strong> "%s"<br>'
+    filename = os.path.join(path, settings.ANNOTATED_XML)
+    xmldoc = dom.parse(filename)
+    nodes = xmldoc.documentElement.childNodes
+
+    for i, n in enumerate(nodes):
+        if n.nodeType == n.COMMENT_NODE:
+            comment = nodes[i]
+            commentedNode = nodes[i + 2]
+            text += line % (commentedNode.getAttribute('name'),
+                            comment.data.strip())
+
+    return text

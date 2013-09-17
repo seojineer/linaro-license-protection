@@ -255,3 +255,5 @@ except ImportError:
         f.write(local_settings_content)
 
     from local_settings import *
+
+ANNOTATED_XML = 'source-manifest-ann.xml'
