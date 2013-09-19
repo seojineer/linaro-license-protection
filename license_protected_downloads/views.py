@@ -531,6 +531,8 @@ def file_server_get(request, path):
             download = request.GET['dl']
         rendered_files = RenderTextFiles.find_and_render(path)
         if os.path.exists(os.path.join(path, settings.ANNOTATED_XML)):
+            if rendered_files == None:
+                rendered_files = {}
             rendered_files["Git Descriptions"] = render_descriptions(path)
 
         return render_to_response('dir_template.html',
@@ -588,6 +590,8 @@ def get_textile_files(request):
 
     rendered_files = RenderTextFiles.find_and_render(path)
     if os.path.exists(os.path.join(path, settings.ANNOTATED_XML)):
+        if rendered_files == None:
+            rendered_files = {}
         rendered_files["Git Descriptions"] = render_descriptions(path)
 
     return HttpResponse(json.dumps(rendered_files))
@@ -683,9 +687,9 @@ def render_descriptions(path):
        Extracts project name and its description from annotated source manifest
        and returns html string to include in tab.
     """
-    text = '<br>'
-    line = '<strong>Project:</strong> "%s", ' \
-           '<strong>Description:</strong> "%s"<br>'
+    text = ''
+    line = '<p><strong>Project:</strong> "%s"<br>' \
+           '<strong>Description:</strong> "%s"</p>'
     filename = os.path.join(path, settings.ANNOTATED_XML)
     xmldoc = dom.parse(filename)
     nodes = xmldoc.documentElement.childNodes
