@@ -35,27 +35,28 @@ acceptable_job_types = [
     ]
 open_buildinfo_files = [
     'MANIFEST',
-    '*manifest.xml',
+    '*manifest*.xml',
     'MD5SUMS',
     '*build_cmds.sh',
     'kernel_config',
     'HOWTO_*',
     'lava-job-info*'
     ]
-open_buildinfo = 'Files-Pattern: %s\nLicense-Type: open\n'
+open_buildinfo = '\nFiles-Pattern: %s\nLicense-Type: open\n'
 
 
 def append_open_buildinfo(buildinfo_path, files=open_buildinfo_files):
     """Append BUILD-INFO.txt with open section for open_buildinfo_files"""
-    try:
-        bifile = open(os.path.join(buildinfo_path, buildinfo), "a")
+    if os.path.exists(os.path.join(buildinfo_path, buildinfo)):
         try:
-            bifile.write(open_buildinfo % ', '.join(files))
-        finally:
-            bifile.close()
-    except IOError:
-        print "Unable to write to BUILD-INFO.txt"
-        pass
+            bifile = open(os.path.join(buildinfo_path, buildinfo), "a")
+            try:
+                bifile.write(open_buildinfo % ', '.join(files))
+            finally:
+                bifile.close()
+        except IOError:
+            print "Unable to write to BUILD-INFO.txt"
+            pass
 
 
 def setup_parser():
@@ -469,7 +470,8 @@ def main():
             print "Move Failed"
             return FAIL
         else:
-            shutil.copy(tmp_bi, os.path.join(target_dir_path, buildinfo))
+            if os.path.getsize(tmp_bi) > 0:
+                shutil.copy(tmp_bi, os.path.join(target_dir_path, buildinfo))
             os.remove(tmp_bi)
             append_open_buildinfo(target_dir_path)
             bi = SpliceBuildInfos([target_dir_path])
