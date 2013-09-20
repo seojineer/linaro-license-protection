@@ -194,17 +194,18 @@ class BuildInfo:
 
     @classmethod
     def write_from_array(cls, build_info_array, file_path):
-        with open(file_path, "w") as outfile:
-            outfile.write("Format-Version: 0.5\n\n")
-            for key in build_info_array[0]:
-                if key != "format-version":
-                    outfile.write("Files-Pattern: %s\n" % key)
-                    for item in build_info_array[0][key][0]:
-                        text = build_info_array[0][key][0][item]
-                        if item == "license-text":
-                            text = text.replace("\n", "\n ")
-                        outfile.write("%s: %s\n" % (item, text))
-                    outfile.write("\n")
+        if len(build_info_array[0]):
+            with open(file_path, "w") as outfile:
+                outfile.write("Format-Version: 0.5\n\n")
+                for key in build_info_array[0]:
+                    if key != "format-version":
+                        outfile.write("Files-Pattern: %s\n" % key)
+                        for item in build_info_array[0][key][0]:
+                            text = build_info_array[0][key][0][item]
+                            if item == "license-text":
+                                text = text.replace("\n", "\n ")
+                            outfile.write("%s: %s\n" % (item, text))
+                        outfile.write("\n")
 
 
 if __name__ == "__main__":
