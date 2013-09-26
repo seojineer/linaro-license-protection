@@ -194,6 +194,7 @@ LINUX_FILES = ('README',
                'INSTALL',
                'HACKING',
                'FIRMWARE',
+               'FASTMODELS',
                'RTSM')
 
 ANDROID_FILES = ('HOWTO_releasenotes.txt',
@@ -205,18 +206,20 @@ ANDROID_FILES = ('HOWTO_releasenotes.txt',
 FILES_MAP = {'HOWTO_releasenotes.txt': 'Release Notes',
              'HOWTO_install.txt': 'Binary Image Installation',
              'HOWTO_getsourceandbuild.txt': 'Building From Source',
-             'HOWTO_flashfirmware.txt': 'Firmware Update',
+             'HOWTO_flashfirmware.txt': 'Firmware',
              'HOWTO_rtsm.txt': 'RTSM',
              'README': 'Release Notes',
              'INSTALL': 'Binary Image Installation',
              'HACKING': 'Building From Source',
-             'FIRMWARE': 'Firmware Update',
+             'FIRMWARE': 'Firmware',
+             'FASTMODELS': 'Fast Models',
              'RTSM': 'RTSM'}
 
 TAB_PRIORITY = ['Release Notes',
                 'Binary Image Installation',
                 'Building From Source',
-                'Firmware Update',
+                'Firmware',
+                'Fast Models',
                 'RTSM']
 
 SUPPORTED_REMOTE_STATIC_FILES = {
