@@ -192,7 +192,7 @@ pre > code {
     background:#f2f2f2;
 }
 
-a:link, a:hover, a:visited {
+td > a:link, td > a:hover, td > a:visited {
     color: #444 !important;
     text-decoration: none !important;
 }
