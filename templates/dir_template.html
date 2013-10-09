@@ -24,7 +24,7 @@
   <tr onmouseover="this.style.background='#CBE68F'" onmouseout="this.style.background='#FFFFFF'">
     <td valign="top">
       <img src="{{ STATIC_URL }}/static/{{ value.type }}.png"
-           alt="{{ value.type }}"/>
+           alt="{{ value.type }}">
     </td>
     <td>
       <a href="{{ value.url }}"
@@ -51,8 +51,7 @@
 {% endfor %}
 </table>
 
-
-<br/><br/>
+<br><br>
 {% if rendered_files != None %}
 <div id="tabs">
   <ul id="tabs-titles">
