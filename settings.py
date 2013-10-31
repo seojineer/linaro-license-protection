@@ -190,12 +190,13 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 # Render TEXTILE files settings.
-LINUX_FILES = ('README',
-               'INSTALL',
-               'HACKING',
-               'FIRMWARE',
-               'FASTMODELS',
-               'RTSM')
+LINUX_FILES = ('README.textile',
+               'INSTALL.textile',
+               'HACKING.textile',
+               'FIRMWARE.textile',
+               'FASTMODELS.textile',
+               'RTSM.textile',
+               'OPENJDK.textile')
 
 ANDROID_FILES = ('HOWTO_releasenotes.txt',
                  'HOWTO_install.txt',
@@ -208,19 +209,21 @@ FILES_MAP = {'HOWTO_releasenotes.txt': 'Release Notes',
              'HOWTO_getsourceandbuild.txt': 'Building From Source',
              'HOWTO_flashfirmware.txt': 'Firmware',
              'HOWTO_rtsm.txt': 'RTSM',
-             'README': 'Release Notes',
-             'INSTALL': 'Binary Image Installation',
-             'HACKING': 'Building From Source',
-             'FIRMWARE': 'Firmware',
-             'FASTMODELS': 'Fast Models',
-             'RTSM': 'RTSM'}
+             'README.textile': 'Release Notes',
+             'INSTALL.textile': 'Binary Image Installation',
+             'HACKING.textile': 'Building From Source',
+             'FIRMWARE.textile': 'Firmware',
+             'FASTMODELS.textile': 'Fast Models',
+             'RTSM.textile': 'RTSM',
+             'OPENJDK.textile': 'OpenJDK'}
 
 TAB_PRIORITY = ['Release Notes',
                 'Binary Image Installation',
                 'Building From Source',
                 'Firmware',
                 'Fast Models',
-                'RTSM']
+                'RTSM',
+                'OpenJDK']
 
 SUPPORTED_REMOTE_STATIC_FILES = {
     "linarofamily.js": "http://www.linaro.org/remote/js/linarofamily.js",
