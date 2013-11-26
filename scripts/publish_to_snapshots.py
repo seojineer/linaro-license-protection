@@ -35,10 +35,7 @@ acceptable_job_types = [
     ]
 open_buildinfo_files = [
     'MANIFEST',
-    '*manifest*.xml',
     'MD5SUMS',
-    '*build_cmds.sh',
-    'kernel_config',
     'HOWTO_*',
     'lava-job-info*'
     ]
