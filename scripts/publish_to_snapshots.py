@@ -21,7 +21,7 @@ staging_target_path = '/srv/staging.snapshots.linaro.org/www/'
 product_dir_path = 'target/product'
 PASS = 0
 FAIL = 1
-buildinfo = 'BUILD-INFO.txt'
+BUILDINFO = 'BUILD-INFO.txt'
 acceptable_job_types = [
     'android',
     'prebuilt',
@@ -44,9 +44,9 @@ open_buildinfo = '\nFiles-Pattern: %s\nLicense-Type: open\n'
 
 def append_open_buildinfo(buildinfo_path, files=open_buildinfo_files):
     """Append BUILD-INFO.txt with open section for open_buildinfo_files"""
-    if os.path.exists(os.path.join(buildinfo_path, buildinfo)):
+    if os.path.exists(os.path.join(buildinfo_path, BUILDINFO)):
         try:
-            bifile = open(os.path.join(buildinfo_path, buildinfo), "a")
+            bifile = open(os.path.join(buildinfo_path, BUILDINFO), "a")
             try:
                 bifile.write(open_buildinfo % ', '.join(files))
             finally:
@@ -246,7 +246,7 @@ class SnapshotsPublisher(object):
 
         return build_dir_path, target_dir_path
 
-    def create_symlink(self, args, build_dir_path, target_dir_path):
+    def create_latest_symlink(self, args, build_dir_path, target_dir_path):
         if args.job_type == "prebuilt":
             for root, dirs, files in os.walk(build_dir_path):
                 for dir in dirs:
@@ -379,7 +379,7 @@ class SnapshotsPublisher(object):
                 args.job_type == "ubuntu-images" or
                 args.job_type == "ubuntu-restricted" or
                 args.job_type == "ubuntu-sysroots"):
-                ret = self.create_symlink(
+                ret = self.create_latest_symlink(
                     args, build_dir_path, target_dir_path)
                 if ret != PASS:
                     return ret
@@ -409,11 +409,11 @@ class SnapshotsPublisher(object):
         bi_dirs = []
         for path, subdirs, files in os.walk(build_dir_path):
             for filename in files:
-                if buildinfo in filename:
+                if BUILDINFO in filename:
                     bi_dirs.append(path)
         for path, subdirs, files in os.walk(target_dir_path):
             for filename in files:
-                if buildinfo in filename:
+                if BUILDINFO in filename:
                     bi_dirs.append(path)
 
         if not bi_dirs:
@@ -421,11 +421,11 @@ class SnapshotsPublisher(object):
                     "BUILD-INFO.txt is not present for build being published.")
 
     def combine_buildinfo(self, build_dir_path, target_dir_path, tmp_bi):
-        bi_path = os.path.join(target_dir_path, buildinfo)
+        bi_path = os.path.join(target_dir_path, BUILDINFO)
         bi_dirs = []
         for path, subdirs, files in os.walk(build_dir_path):
             for filename in files:
-                if buildinfo in filename:
+                if BUILDINFO in filename:
                     bi_dirs.append(path)
         if os.path.exists(bi_path):
             bi_dirs.append(target_dir_path)
@@ -439,20 +439,24 @@ def main():
     global target_path
     argument_parser = setup_parser()
     publisher = SnapshotsPublisher(argument_parser)
+
     args = argument_parser.parse_args()
     try:
         publisher.validate_args(args)
     except PublisherArgumentException as exception:
         argument_parser.error(exception.message)
+
     if args.staging:
         uploads_path = staging_uploads_path
         target_path = staging_target_path
+
     try:
         build_dir_path, target_dir_path = publisher.validate_paths(
             args, uploads_path, target_path)
         if build_dir_path is None or target_dir_path is None:
             print "Problem with build/target path, move failed"
             return FAIL
+
         try:
             publisher.check_buildinfo(build_dir_path, target_dir_path)
         except BuildInfoException as e:
@@ -468,11 +472,11 @@ def main():
             return FAIL
         else:
             if os.path.getsize(tmp_bi) > 0:
-                shutil.copy(tmp_bi, os.path.join(target_dir_path, buildinfo))
+                shutil.copy(tmp_bi, os.path.join(target_dir_path, BUILDINFO))
             os.remove(tmp_bi)
             append_open_buildinfo(target_dir_path)
             bi = SpliceBuildInfos([target_dir_path])
-            bi.splice(os.path.join(target_dir_path, buildinfo))
+            bi.splice(os.path.join(target_dir_path, BUILDINFO))
             print "Move succeeded"
             return PASS
     except Exception, details:
