@@ -18,7 +18,7 @@ uploads_path = '/srv/snapshots.linaro.org/uploads/'
 target_path = '/srv/snapshots.linaro.org/www/'
 staging_uploads_path = '/srv/staging.snapshots.linaro.org/uploads/'
 staging_target_path = '/srv/staging.snapshots.linaro.org/www/'
-product_dir_path = 'target/product'
+PRODUCT_DIR = 'target/product'
 PASS = 0
 FAIL = 1
 BUILDINFO = 'BUILD-INFO.txt'
@@ -102,7 +102,7 @@ class BuildInfoException(Exception):
 class SnapshotsPublisher(object):
 
     # Files that need no sanitization even when publishing to staging.
-    STAGING_ACCEPTED_FILES = [
+    STAGING_ACCEPTABLE_FILES = [
         'BUILD-INFO.txt',
         'EULA.txt',
         'OPEN-EULA.txt',
@@ -119,10 +119,10 @@ class SnapshotsPublisher(object):
         self.argument_parser = argument_parser
 
     @classmethod
-    def is_accepted_for_staging(cls, filename):
-        """Is filename is in a list of globs in STAGING_ACCEPTED_FILES?"""
+    def is_ok_for_staging(cls, filename):
+        """Can filename be published on staging as is, or requires obfuscation?"""
         filename = os.path.basename(filename)
-        for accepted_names in cls.STAGING_ACCEPTED_FILES:
+        for accepted_names in cls.STAGING_ACCEPTABLE_FILES:
             if fnmatch.fnmatch(filename, accepted_names):
                 return True
         return False
@@ -130,7 +130,7 @@ class SnapshotsPublisher(object):
     @classmethod
     def sanitize_file(cls, file_path):
         """This truncates the file and fills it with its own filename."""
-        assert not cls.is_accepted_for_staging(file_path)
+        assert not cls.is_ok_for_staging(file_path)
         if not os.path.isdir(file_path):
             base_file_name = os.path.basename(file_path)
             protected_file = open(file_path, "w")
@@ -308,7 +308,7 @@ class SnapshotsPublisher(object):
 
     def reshuffle_android_artifacts(self, src_dir):
         dst_dir = src_dir
-        full_product_path = os.path.join(src_dir, product_dir_path)
+        full_product_path = os.path.join(src_dir, PRODUCT_DIR)
         if os.path.isdir(full_product_path):
             filelist = os.listdir(full_product_path)
             try:
@@ -346,7 +346,7 @@ class SnapshotsPublisher(object):
                         continue
                     else:
                         os.remove(dest)
-                if sanitize and not self.is_accepted_for_staging(src):
+                if sanitize and not self.is_ok_for_staging(src):
                     # Perform the sanitization before moving the file
                     # into place.
                     print "Sanitizing contents of '%s'." % src
