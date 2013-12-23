@@ -434,6 +434,31 @@ class SnapshotsPublisher(object):
             common_bi.splice(tmp_bi)
 
 
+def rewrite_build_info(build_dir_path, target_dir_path, tmp_bi, job_type):
+
+    if job_type == 'prebuilt':
+        for _, subdirs, _ in os.walk(build_dir_path):
+            for element in subdirs:
+                target_dir_path = os.path.join(target_dir_path, element)
+
+    bi_path = os.path.join(target_dir_path, BUILDINFO)
+    if os.path.getsize(tmp_bi) > 0:
+        shutil.copy(tmp_bi, bi_path)
+
+    append_open_buildinfo(target_dir_path)
+    bi = SpliceBuildInfos([target_dir_path])
+    bi.splice(bi_path)
+
+
+def combine_build_info(publisher, build_dir_path, target_dir_path, tmp_bi,
+                       job_type):
+    if job_type == 'prebuilt':
+        for _, subdirs, _ in os.walk(build_dir_path):
+            for element in subdirs:
+                target_dir_path = os.path.join(target_dir_path, element)
+    publisher.combine_buildinfo(build_dir_path, target_dir_path, tmp_bi)
+
+
 def main():
     global uploads_path
     global target_path
@@ -462,23 +487,27 @@ def main():
         except BuildInfoException as e:
             print e.value
             return FAIL
+
         fd, tmp_bi = tempfile.mkstemp()
         os.close(fd)
         os.chmod(tmp_bi, 0644)
-        publisher.combine_buildinfo(build_dir_path, target_dir_path, tmp_bi)
-        ret = publisher.move_artifacts(args, build_dir_path, target_dir_path)
-        if ret != PASS:
-            print "Move Failed"
-            return FAIL
-        else:
-            if os.path.getsize(tmp_bi) > 0:
-                shutil.copy(tmp_bi, os.path.join(target_dir_path, BUILDINFO))
+
+        try:
+            combine_build_info(
+                publisher, build_dir_path, target_dir_path, tmp_bi,
+                args.job_type)
+            ret = publisher.move_artifacts(
+                args, build_dir_path, target_dir_path)
+            if ret != PASS:
+                print "Move Failed"
+                return FAIL
+            else:
+                rewrite_build_info(
+                    build_dir_path, target_dir_path, tmp_bi, args.job_type)
+                print "Move succeeded"
+                return PASS
+        finally:
             os.remove(tmp_bi)
-            append_open_buildinfo(target_dir_path)
-            bi = SpliceBuildInfos([target_dir_path])
-            bi.splice(os.path.join(target_dir_path, BUILDINFO))
-            print "Move succeeded"
-            return PASS
     except Exception, details:
         print "In main() Exception details:", details
         return FAIL
