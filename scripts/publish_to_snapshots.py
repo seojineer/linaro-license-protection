@@ -434,13 +434,7 @@ class SnapshotsPublisher(object):
             common_bi.splice(tmp_bi)
 
 
-def rewrite_build_info(build_dir_path, target_dir_path, tmp_bi, job_type):
-
-    if job_type == 'prebuilt':
-        for _, subdirs, _ in os.walk(build_dir_path):
-            for element in subdirs:
-                target_dir_path = os.path.join(target_dir_path, element)
-
+def rewrite_build_info(build_dir_path, target_dir_path, tmp_bi):
     bi_path = os.path.join(target_dir_path, BUILDINFO)
     if os.path.getsize(tmp_bi) > 0:
         shutil.copy(tmp_bi, bi_path)
@@ -448,15 +442,6 @@ def rewrite_build_info(build_dir_path, target_dir_path, tmp_bi, job_type):
     append_open_buildinfo(target_dir_path)
     bi = SpliceBuildInfos([target_dir_path])
     bi.splice(bi_path)
-
-
-def combine_build_info(publisher, build_dir_path, target_dir_path, tmp_bi,
-                       job_type):
-    if job_type == 'prebuilt':
-        for _, subdirs, _ in os.walk(build_dir_path):
-            for element in subdirs:
-                target_dir_path = os.path.join(target_dir_path, element)
-    publisher.combine_buildinfo(build_dir_path, target_dir_path, tmp_bi)
 
 
 def main():
@@ -493,17 +478,20 @@ def main():
         os.chmod(tmp_bi, 0644)
 
         try:
-            combine_build_info(
-                publisher, build_dir_path, target_dir_path, tmp_bi,
-                args.job_type)
+            if args.job_type == 'android':
+                publisher.combine_buildinfo(
+                    build_dir_path, target_dir_path, tmp_bi)
+
             ret = publisher.move_artifacts(
                 args, build_dir_path, target_dir_path)
+
             if ret != PASS:
                 print "Move Failed"
                 return FAIL
             else:
-                rewrite_build_info(
-                    build_dir_path, target_dir_path, tmp_bi, args.job_type)
+                if args.job_type == 'android':
+                    rewrite_build_info(
+                        build_dir_path, target_dir_path, tmp_bi)
                 print "Move succeeded"
                 return PASS
         finally:
