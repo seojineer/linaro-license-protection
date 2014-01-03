@@ -367,8 +367,9 @@ class SnapshotsPublisher(object):
                 if not os.path.isdir(target_dir_path):
                     raise OSError
 
-            if (args.job_type == "android"):
-                self.reshuffle_android_artifacts(build_dir_path)
+# Disabled per LAVA-933. See below.
+#            if (args.job_type == "android"):
+#                self.reshuffle_android_artifacts(build_dir_path)
 
             self.move_dir_content(build_dir_path, target_dir_path,
                                   sanitize=args.staging)
@@ -478,9 +479,10 @@ def main():
         os.chmod(tmp_bi, 0644)
 
         try:
-            if args.job_type == 'android':
-                publisher.combine_buildinfo(
-                    build_dir_path, target_dir_path, tmp_bi)
+# See below
+#            if args.job_type == 'android':
+#                publisher.combine_buildinfo(
+#                    build_dir_path, target_dir_path, tmp_bi)
 
             ret = publisher.move_artifacts(
                 args, build_dir_path, target_dir_path)
@@ -489,9 +491,12 @@ def main():
                 print "Move Failed"
                 return FAIL
 
-            if args.job_type == 'android':
-                rewrite_build_info(
-                    build_dir_path, target_dir_path, tmp_bi)
+# Disabled per LAVA-933. Once rest of migration happens on builds' side
+# (proper BUILD-INFO.txt's prepared, etc.), this block and rewrite_build_info()
+# can be removed.
+#            if args.job_type == 'android':
+#                rewrite_build_info(
+#                    build_dir_path, target_dir_path, tmp_bi)
             print "Move succeeded"
             return PASS
         finally:
