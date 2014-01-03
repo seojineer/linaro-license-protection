@@ -488,12 +488,12 @@ def main():
             if ret != PASS:
                 print "Move Failed"
                 return FAIL
-            else:
-                if args.job_type == 'android':
-                    rewrite_build_info(
-                        build_dir_path, target_dir_path, tmp_bi)
-                print "Move succeeded"
-                return PASS
+
+            if args.job_type == 'android':
+                rewrite_build_info(
+                    build_dir_path, target_dir_path, tmp_bi)
+            print "Move succeeded"
+            return PASS
         finally:
             os.remove(tmp_bi)
     except Exception, details:
