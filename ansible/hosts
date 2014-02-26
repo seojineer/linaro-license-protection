@@ -1,0 +1,7 @@
+[production]
+snapshots.linaro.org
+releases.linaro.org
+
+[staging]
+staging.snapshots.linaro.org
+staging.releases.linaro.org

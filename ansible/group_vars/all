@@ -1,0 +1,6 @@
+install_base: /srv
+apache_user: www-data
+git_repo: http://git.linaro.org/git-ro/infrastructure/linaro-license-protection.git
+git_repo_config: http://git.linaro.org/git-ro/infrastructure/linaro-license-protection-configs.git
+git_tag: HEAD
+app_name: linaro-license-protection

@@ -1,0 +1,21 @@
+---
+# Install OS dependencies
+
+- name: install-deps-packages
+  apt:  name={{ item }}
+        update_cache=yes
+        state=latest
+  with_items:
+    - apache2
+    - git
+    - libapache2-mod-python
+    - libapache2-mod-wsgi
+    - libapache2-mod-xsendfile
+    - python-django
+    - python-django-openid
+    - python-django-openid-auth
+    - python-requests
+    - python-textile
+  tags:
+    - install
+    - update

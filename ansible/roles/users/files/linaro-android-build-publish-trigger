@@ -1,0 +1,1 @@
+command="/home/linaro-android-build-publish-trigger/scripts/trigger-linaro-android-build-publish.sh ${SSH_ORIGINAL_COMMAND#* }",no-pty,no-port-forwarding,no-X11-forwarding,no-agent-forwarding,from="10.194.98.139" SSH_KEY

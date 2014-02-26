@@ -1,0 +1,76 @@
+---
+# Perform installation of linaro-license-protection.
+
+# Create initial directory and set correct group/owner.
+- name: install-llp-create-base-dir
+  file: path={{ install_base }}/{{ hostname }}
+        owner={{ apache_user }}
+        group={{ apache_user }}
+        mode=0755
+        state=directory
+  tags:
+    - install
+    - update
+
+- name: install-llp-checkout-code
+  git:  repo={{ git_repo }}
+        dest={{ install_base }}/{{ hostname }}/{{ app_name }}
+        version={{ git_tag }}
+        update=yes
+  tags:
+    - install
+    - update
+
+- name: install-llp-checkout-configs
+  git:  repo={{ git_repo_config }}
+        dest={{ install_base }}/{{ hostname }}/configs
+        version={{ git_tag }}
+        update=yes
+  tags:
+    - install
+    - update
+
+- name: install-llp-django-syncdb
+  django_manage:  app_path={{ install_base }}/{{ hostname }}/{{ app_name }}
+                  command=syncdb
+  tags:
+    - install
+    - update
+
+- name: install-llp-django-collectstatic
+  django_manage:  app_path={{ install_base }}/{{ hostname }}/{{ app_name }}
+                  command=collectstatic
+  tags:
+    - install
+    - update
+
+- name: install-llp-create-db-dir
+  file: path={{ install_base }}/{{ hostname }}/db
+        state=directory
+        owner={{ apache_user }}
+        group={{ apache_user }}
+        mode=755
+        recurse=yes
+  tags:
+    - install
+    - update
+
+- name: install-llp-fix-repo-perm
+  file: path={{ install_base }}/{{ hostname }}/{{ app_name }}
+        owner={{ apache_user }}
+        group={{ apache_user }}
+        state=directory
+        recurse=yes
+  tags:
+    - install
+    - update
+
+- name: install-llp-fix-configs-perm
+  file: path={{ install_base }}/{{ hostname }}/configs
+        owner={{ apache_user }}
+        group={{ apache_user }}
+        recurse=yes
+        state=directory
+  tags:
+    - install
+    - update

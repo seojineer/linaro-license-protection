@@ -1,0 +1,24 @@
+---
+# Create the necessary directory for app operation, set correct user/group.
+
+- name: dirs-upload
+  file: path={{ install_base }}/{{ hostname }}/uploads
+        owner=linaro-ci-publish
+        group=bot-publishers
+        mode=2775
+        recurse=yes
+        state=directory
+  tags:
+    - install
+    - update
+
+- name: dirs-wwww
+  file: path={{ install_base }}/{{ hostname }}/www
+        owner=linaro-ci-publish
+        group=bot-publisher
+        mode=2775
+        recurse=yes
+        state=directory
+  tags:
+    - install
+    - update
