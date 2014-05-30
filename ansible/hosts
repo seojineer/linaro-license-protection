@@ -5,3 +5,8 @@ releases.linaro.org
 [staging]
 staging.snapshots.linaro.org
 staging.releases.linaro.org
+
+# Hosts which support publishing interface
+[publishers]
+snapshots.linaro.org
+staging.snapshots.linaro.org

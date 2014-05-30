@@ -1,0 +1,6 @@
+- name: Set up sudoers files for move trigger users
+  copy: src=sudoers/{{item}} dest=/etc/sudoers.d/{{item}} mode=0440 backup=yes
+  with_items:
+    - linaro-android-build-publish-trigger
+    - linaro-ci-publish-trigger
+  sudo: yes

@@ -1,0 +1,5 @@
+# Set up SSH publishing infrastructure on "snapshots" hosts.
+- hosts: publishers
+  gather_facts: no
+  roles:
+  - publish-ssh
