@@ -1,7 +1,5 @@
 ---
-# Install OS dependencies
-
-- name: install-deps-packages
+- name: Install OS dependencies
   apt:  name={{ item }}
         update_cache=yes
         state=latest
@@ -11,8 +9,8 @@
     - libapache2-mod-python
     - libapache2-mod-wsgi
     - libapache2-mod-xsendfile
+    - python-beautifulsoup
     - python-django
-    - python-django-openid
     - python-django-openid-auth
     - python-requests
     - python-textile

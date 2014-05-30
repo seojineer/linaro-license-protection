@@ -1,11 +1,10 @@
 ---
 - hosts: all
-  gather_facts: yes
+  gather_facts: no
   sudo: yes
   roles:
     - common
     - install-deps
-    # - users
     - install-llp
     - dirs
     - apache-conf
