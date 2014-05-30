@@ -2,6 +2,8 @@
 
 import os
 
+from version import *
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 

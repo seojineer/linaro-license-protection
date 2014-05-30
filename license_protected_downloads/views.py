@@ -21,7 +21,6 @@ from django.template import RequestContext
 from django.utils.encoding import smart_str, iri_to_uri
 from django.views.decorators.csrf import csrf_exempt
 
-import bzr_version
 from buildinfo import BuildInfo, IncorrectDataFormatException
 from render_text_files import RenderTextFiles
 from models import License, APIKeyStore
@@ -379,7 +378,7 @@ def show_license(request):
     return render_to_response('licenses/' + lic.theme + '.html',
                               {'license': lic,
                                'url': request.GET['url'],
-                               'revno': bzr_version.get_my_bzr_revno(),
+                               'revno': settings.VERSION,
                                },
                               context_instance=RequestContext(request))
 
@@ -447,7 +446,7 @@ def group_auth_failed_response(request, auth_groups):
         {'login': settings.LOGIN_URL + "?next=" + request.path,
          'authenticated': request.user.is_authenticated(),
          'groups_string': groups_string,
-         'revno': bzr_version.get_my_bzr_revno(),
+         'revno': settings.VERSION,
          })
 
     response.status_code = 403
@@ -539,7 +538,7 @@ def file_server_get(request, path):
                                   {'dirlist': dir_list(url, path),
                                    'up_dir': up_dir,
                                    'dl': download,
-                                   'revno': bzr_version.get_my_bzr_revno(),
+                                   'revno': settings.VERSION,
                                    'header_content': header_content,
                                    'request': request,
                                    'rendered_files': rendered_files
