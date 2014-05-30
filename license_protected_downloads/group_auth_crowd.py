@@ -55,5 +55,7 @@ def process_group_auth(request, required_groups):
     data = r.json()
     user_groups = set([x["name"] for x in data["groups"]])
 
+    log.info("User groups are: %s", user_groups)
+
     # If groups don't intersect, access denied
     return not user_groups.isdisjoint(required_groups)
