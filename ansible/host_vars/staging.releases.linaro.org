@@ -1,1 +1,2 @@
 hostname: staging.releases.linaro.org
+django_settings: settings_staging_releases

@@ -1,8 +1,5 @@
 ---
-# Perform installation of linaro-license-protection.
-
-# Create initial directory and set correct group/owner.
-- name: install-llp-create-base-dir
+- name: Create base directory for installation
   file: path={{ install_base }}/{{ hostname }}
         owner={{ apache_user }}
         group={{ apache_user }}
@@ -12,7 +9,7 @@
     - install
     - update
 
-- name: install-llp-checkout-code
+- name: Checkout linaro-license-protection code
   git:  repo={{ git_repo }}
         dest={{ install_base }}/{{ hostname }}/{{ app_name }}
         version={{ git_tag }}
@@ -21,7 +18,7 @@
     - install
     - update
 
-- name: install-llp-checkout-configs
+- name: Checkout linaro-license-protection-configs
   git:  repo={{ git_repo_config }}
         dest={{ install_base }}/{{ hostname }}/configs
         version={{ git_tag }}
@@ -30,21 +27,7 @@
     - install
     - update
 
-- name: install-llp-django-syncdb
-  django_manage:  app_path={{ install_base }}/{{ hostname }}/{{ app_name }}
-                  command=syncdb
-  tags:
-    - install
-    - update
-
-- name: install-llp-django-collectstatic
-  django_manage:  app_path={{ install_base }}/{{ hostname }}/{{ app_name }}
-                  command=collectstatic
-  tags:
-    - install
-    - update
-
-- name: install-llp-create-db-dir
+- name: Create db/ directory
   file: path={{ install_base }}/{{ hostname }}/db
         state=directory
         owner={{ apache_user }}
@@ -55,7 +38,25 @@
     - install
     - update
 
-- name: install-llp-fix-repo-perm
+- name: Run syncdb command
+  django_manage:  app_path={{ install_base }}/{{ hostname }}/{{ app_name }}
+                  pythonpath="{{ install_base }}/{{ hostname }}:{{ install_base }}/{{ hostname }}/{{ app_name }}:/{{ install_base }}/{{ hostname }}/configs/django"
+                  settings={{ django_settings }}
+                  command=syncdb
+  tags:
+    - install
+    - update
+
+- name: Run collectstatic command
+  django_manage:  app_path={{ install_base }}/{{ hostname }}/{{ app_name }}
+                  pythonpath="{{ install_base }}/{{ hostname }}:{{ install_base }}/{{ hostname }}/{{ app_name }}:/{{ install_base }}/{{ hostname }}/configs/django"
+                  settings={{ django_settings }}
+                  command=collectstatic
+  tags:
+    - install
+    - update
+
+- name: Fix directory permissions
   file: path={{ install_base }}/{{ hostname }}/{{ app_name }}
         owner={{ apache_user }}
         group={{ apache_user }}
@@ -65,7 +66,7 @@
     - install
     - update
 
-- name: install-llp-fix-configs-perm
+- name: Fix configs directory permissions
   file: path={{ install_base }}/{{ hostname }}/configs
         owner={{ apache_user }}
         group={{ apache_user }}

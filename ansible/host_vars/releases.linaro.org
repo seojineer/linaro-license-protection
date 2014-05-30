@@ -1,1 +1,2 @@
 hostname: releases.linaro.org
+django_settings: settings_releases
