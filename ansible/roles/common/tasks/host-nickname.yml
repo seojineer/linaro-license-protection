@@ -7,20 +7,25 @@
 # This will only work for new users, already existing users will have to tweak
 # their bashrc file accordingly.
 #
-# This role requires the variable 'hostname' to be set.
-#
+# This role requires the variable 'nickname' to be set.
 
-- name: host-nickname-var-file
+- name: Test if we can install nickname file
+  shell: test -f /etc/profile.d/host-nickname.sh
+  register: host_nickname
+  ignore_errors: True
+
+- name: Install host nickname shell definition
   template: src=host-nickname.sh
             dest=/etc/profile.d/host-nickname.sh
             owner=root
             group=root
             mode=0444
+  when: host_nickname.rc|int == 1
 
-# Install a default bashrc for new users.
-- name: host-nickname-bashrc-addition
+- name: Install a default bashrc for new users
   template: src=base-bashrc
             dest=/etc/skel/.bashrc
             owner=root
             group=root
             mode=0644
+  when: host_nickname.rc|int == 1

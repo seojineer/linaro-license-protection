@@ -15,6 +15,11 @@ To include it:
 
 Then commit normally.
 
+To pull in new changes:
+
+    git fetch ansible_common
+    git pull -s subtree ansible_common master
+
 Alternatively, you can use it as an external source for a role. In this case
 you need to tell Ansible where to look for roles. Please refer to Ansible
 documentation.
