@@ -315,23 +315,19 @@ def is_protected(path):
         if license_type == "open":
             return "OPEN"
 
-        # File matches a license, isn't open.
-        if auth_groups:
+        if auth_groups and not license_text:
             return "OPEN"
         elif license_text:
             for i in range(max_index):
-                if build_info is not None:
+                if build_info:
                     license_text = build_info.get("license-text", i)
                     theme = build_info.get("theme", i)
                 digest = hashlib.md5(license_text).hexdigest()
                 digests.append(digest)
                 _insert_license_into_db(digest, license_text, theme)
         else:
-            # No license text - file as inaccessible.
-            return []
-    else:
-        # No license found - file is inaccessible.
-        return []
+            log.info("No license text or auth groups found: check the "
+                     "BUILD-INFO file.")
 
     return digests
 
