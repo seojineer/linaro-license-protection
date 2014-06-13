@@ -39,7 +39,7 @@
     - update
 
 - name: Run syncdb command
-  django_manage:  app_path={{ install_base }}/{{ hostname }}/{{ app_name }}
+  django_manage:  app_path="{{ install_base }}/{{ hostname }}/{{ app_name }}"
                   pythonpath="{{ install_base }}/{{ hostname }}:{{ install_base }}/{{ hostname }}/{{ app_name }}:/{{ install_base }}/{{ hostname }}/configs/django"
                   settings="{{ django_settings }}"
                   command=syncdb
@@ -52,9 +52,9 @@
     - django
 
 - name: Run collectstatic command
-  django_manage:  app_path={{ install_base }}/{{ hostname }}/{{ app_name }}
+  django_manage:  app_path="{{ install_base }}/{{ hostname }}/{{ app_name }}"
                   pythonpath="{{ install_base }}/{{ hostname }}:{{ install_base }}/{{ hostname }}/{{ app_name }}:/{{ install_base }}/{{ hostname }}/configs/django"
-                  settings={{ django_settings }}
+                  settings="{{ django_settings }}"
                   command=collectstatic
   environment:
     PYTHONPATH: "{{ install_base }}/{{ hostname }}:{{ install_base }}/{{ hostname }}/{{ app_name }}:/{{ install_base }}/{{ hostname }}/configs/django"
