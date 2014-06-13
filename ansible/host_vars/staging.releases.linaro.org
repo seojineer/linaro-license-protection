@@ -1,2 +1,3 @@
 hostname: staging.releases.linaro.org
+nickname: staging-releases
 django_settings: settings_staging_releases

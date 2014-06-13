@@ -1,2 +1,3 @@
 hostname: snapshots.linaro.org
+nickname: snapshots.linaro.org
 django_settings: settings_snapshots

@@ -1,2 +1,3 @@
 hostname: releases.linaro.org
+nickname: releases.linaro.org
 django_settings: settings_releases

@@ -41,20 +41,28 @@
 - name: Run syncdb command
   django_manage:  app_path={{ install_base }}/{{ hostname }}/{{ app_name }}
                   pythonpath="{{ install_base }}/{{ hostname }}:{{ install_base }}/{{ hostname }}/{{ app_name }}:/{{ install_base }}/{{ hostname }}/configs/django"
-                  settings={{ django_settings }}
+                  settings="{{ django_settings }}"
                   command=syncdb
+  environment:
+    PYTHONPATH: "{{ install_base }}/{{ hostname }}:{{ install_base }}/{{ hostname }}/{{ app_name }}:/{{ install_base }}/{{ hostname }}/configs/django"
+    DJANGO_SETTINGS_MODULE: "{{ django_settings }}"
   tags:
     - install
     - update
+    - django
 
 - name: Run collectstatic command
   django_manage:  app_path={{ install_base }}/{{ hostname }}/{{ app_name }}
                   pythonpath="{{ install_base }}/{{ hostname }}:{{ install_base }}/{{ hostname }}/{{ app_name }}:/{{ install_base }}/{{ hostname }}/configs/django"
                   settings={{ django_settings }}
                   command=collectstatic
+  environment:
+    PYTHONPATH: "{{ install_base }}/{{ hostname }}:{{ install_base }}/{{ hostname }}/{{ app_name }}:/{{ install_base }}/{{ hostname }}/configs/django"
+    DJANGO_SETTINGS_MODULE: "{{ django_settings }}"
   tags:
     - install
     - update
+    - django
 
 - name: Fix directory permissions
   file: path={{ install_base }}/{{ hostname }}/{{ app_name }}
