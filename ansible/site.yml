@@ -6,5 +6,4 @@
     - common
     - install-deps
     - install-llp
-    - dirs
     - apache-conf
