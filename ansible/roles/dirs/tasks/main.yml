@@ -4,18 +4,7 @@
 - name: Create and fix upload directory
   file: path={{ install_base }}/{{ hostname }}/uploads
         owner={{ apache_user }}
-        group={{ apache_user }}
-        mode=2775
-        recurse=yes
-        state=directory
-  tags:
-    - install
-    - update
-
-- name: Create and fix www directory
-  file: path={{ install_base }}/{{ hostname }}/www
-        owner={{ apache_user }}
-        group={{ apache_user }}
+        group=bot-publishers
         mode=2775
         recurse=yes
         state=directory
