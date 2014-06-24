@@ -198,13 +198,17 @@ LINUX_FILES = ('README.textile',
                'FIRMWARE.textile',
                'FASTMODELS.textile',
                'RTSM.textile',
-               'OPENJDK.textile')
+               'OPENJDK.textile',
+               'GETTINGSTARTED.textile',
+               'EULA.txt')
 
 ANDROID_FILES = ('HOWTO_releasenotes.txt',
                  'HOWTO_install.txt',
                  'HOWTO_getsourceandbuild.txt',
                  'HOWTO_flashfirmware.txt',
-                 'HOWTO_rtsm.txt')
+                 'HOWTO_rtsm.txt',
+                 'HOWTO_eula.txt',
+                 'HOWTO_gettingstarted.txt')
 
 FILES_MAP = {'HOWTO_releasenotes.txt': 'Release Notes',
              'HOWTO_install.txt': 'Binary Image Installation',
@@ -217,13 +221,19 @@ FILES_MAP = {'HOWTO_releasenotes.txt': 'Release Notes',
              'FIRMWARE.textile': 'Firmware',
              'FASTMODELS.textile': 'Fast Models',
              'RTSM.textile': 'RTSM',
-             'OPENJDK.textile': 'OpenJDK'}
+             'OPENJDK.textile': 'OpenJDK',
+             'GETTINGSTARTED.textile': 'Getting Started',
+             'HOWTO_gettingstarted.txt': 'Getting Started',
+             'HOWTO_eula.txt': 'EULA',
+             'EULA.txt': 'EULA'}
 
 TAB_PRIORITY = ['Release Notes',
                 'Binary Image Installation',
                 'Building From Source',
+                'Getting Started'
                 'Firmware',
                 'Fast Models',
+                'EULA',
                 'RTSM',
                 'OpenJDK']
 
