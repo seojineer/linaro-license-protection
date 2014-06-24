@@ -1,1 +1,1 @@
-linaro-android-build-publish-trigger ALL=(linaro-android-build-publish) NOPASSWD: /srv/shared-branches/linaro-license-protection/scripts/publish_to_snapshots.py
+linaro-android-build-publish-trigger ALL=(linaro-android-build-publish) NOPASSWD: /srv/snapshots.linaro.org/linaro-license-protection/scripts/publish_to_snapshots.py

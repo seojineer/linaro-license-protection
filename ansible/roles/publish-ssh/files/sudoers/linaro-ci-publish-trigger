@@ -1,1 +1,1 @@
-linaro-ci-publish-trigger ALL=(linaro-ci-publish) NOPASSWD: /srv/shared-branches/linaro-license-protection/scripts/publish_to_snapshots.py
+linaro-ci-publish-trigger ALL=(linaro-ci-publish) NOPASSWD: /srv/snapshots.linaro.org/linaro-license-protection/scripts/publish_to_snapshots.py
