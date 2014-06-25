@@ -230,7 +230,7 @@ FILES_MAP = {'HOWTO_releasenotes.txt': 'Release Notes',
 TAB_PRIORITY = ['Release Notes',
                 'Binary Image Installation',
                 'Building From Source',
-                'Getting Started'
+                'Getting Started',
                 'Firmware',
                 'Fast Models',
                 'EULA',
