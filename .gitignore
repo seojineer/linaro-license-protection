@@ -3,3 +3,4 @@ licenses.sqlite3
 licenses.db
 static
 *.pyc
+*.swp
