@@ -14,7 +14,6 @@ import random
 import shutil
 from mock import Mock
 
-from license_protected_downloads import bzr_version
 from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.config import INTERNAL_HOSTS
 from license_protected_downloads.tests.helpers import temporary_directory
@@ -34,7 +33,7 @@ class BaseServeViewTest(TestCase):
         self.client = Client()
         self.old_served_paths = settings.SERVED_PATHS
         settings.SERVED_PATHS = [os.path.join(THIS_DIRECTORY,
-                                             "testserver_root")]
+                                              "testserver_root")]
         self.old_upload_path = settings.UPLOAD_PATH
         settings.UPLOAD_PATH = os.path.join(THIS_DIRECTORY,
                                             "test_upload_root")
@@ -268,8 +267,9 @@ class ViewTests(BaseServeViewTest):
         digest_2 = self.set_up_license(target_file, 1)
 
         url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True,
-                        HTTP_LICENSE_ACCEPTED=" ".join([digest_1, digest_2]))
+        response = self.client.get(
+            url, follow=True,
+            HTTP_LICENSE_ACCEPTED=" ".join([digest_1, digest_2]))
         self.assertEqual(response.status_code, 200)
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)
@@ -414,7 +414,8 @@ class ViewTests(BaseServeViewTest):
         response = self.client.get(url, follow=True)
 
         # If we have access to the file, we will get an X-Sendfile response
-        self.assertContains(response,
+        self.assertContains(
+            response,
             r"<th></th><th>Name</th><th>Last modified</th>"
             "<th>Size</th><th>License</th>")
 
@@ -450,8 +451,8 @@ class ViewTests(BaseServeViewTest):
         self.assertEqual(response.status_code, 302)
         url = urlparse.urljoin("http://testserver/", target_file)
         listing_url = os.path.dirname(url)
-        self.assertEqual(response['Location'],
-            listing_url + "?dl=/" + target_file)
+        self.assertEqual(
+            response['Location'], listing_url + "?dl=/" + target_file)
 
         client = Client()
         client.cookies[accept_cookie_name] = accept_cookie_name
@@ -470,8 +471,8 @@ class ViewTests(BaseServeViewTest):
         self.assertEqual(response.status_code, 302)
         url = urlparse.urljoin("http://testserver/", target_file)
         listing_url = os.path.dirname(url)
-        self.assertEqual(response['Location'],
-            listing_url + "?dl=/" + target_file)
+        self.assertEqual(
+            response['Location'], listing_url + "?dl=/" + target_file)
 
         client = Client()
         client.cookies[accept_cookie_name] = accept_cookie_name
@@ -488,15 +489,15 @@ class ViewTests(BaseServeViewTest):
         url = urlparse.urljoin("http://testserver/", target_file)
         response = self.client.get(url, follow=True)
 
-        self.assertContains(response,
-            r"Welcome to the Linaro releases server")
+        self.assertContains(
+            response, r"Welcome to the Linaro releases server")
 
     def test_exception_internal_host_for_lic(self):
         internal_host = INTERNAL_HOSTS[0]
         target_file = 'build-info/origen-blob.txt'
         url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True,
-            REMOTE_ADDR=internal_host)
+        response = self.client.get(
+            url, follow=True, REMOTE_ADDR=internal_host)
 
         # If we have access to the file, we will get an X-Sendfile response
         self.assertEqual(response.status_code, 200)
@@ -507,8 +508,8 @@ class ViewTests(BaseServeViewTest):
         internal_host = INTERNAL_HOSTS[0]
         target_file = 'build-info/openid.txt'
         url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True,
-            REMOTE_ADDR=internal_host)
+        response = self.client.get(
+            url, follow=True, REMOTE_ADDR=internal_host)
 
         # If we have access to the file, we will get an X-Sendfile response
         self.assertEqual(response.status_code, 200)
@@ -519,8 +520,8 @@ class ViewTests(BaseServeViewTest):
         internal_host = INTERNAL_HOSTS[0]
         target_file = 'build-info/origen-blob-openid.txt'
         url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True,
-            REMOTE_ADDR=internal_host)
+        response = self.client.get(
+            url, follow=True, REMOTE_ADDR=internal_host)
 
         # If we have access to the file, we will get an X-Sendfile response
         self.assertEqual(response.status_code, 200)
@@ -535,8 +536,8 @@ class ViewTests(BaseServeViewTest):
 
         # Try to fetch file from server - we should be redirected
         url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True,
-            REMOTE_ADDR=internal_host)
+        response = self.client.get(
+            url, follow=True, REMOTE_ADDR=internal_host)
         digest = hashlib.md5(build_info.get("license-text")).hexdigest()
         self.assertRedirects(response, '/license?lic=%s&url=%s' %
                                        (digest, target_file))
@@ -665,7 +666,7 @@ class ViewTests(BaseServeViewTest):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         os.chdir(file_path)
         ret = _process_include_tags(
-                    'Test <linaro:include file="README" /> html')
+            'Test <linaro:include file="README" /> html')
         self.assertEqual(ret, r"Test Included from README html")
         os.chdir(old_cwd)
 
@@ -675,7 +676,7 @@ class ViewTests(BaseServeViewTest):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         os.chdir(file_path)
         ret = _process_include_tags(
-                    'Test <linaro:include file="README"/> html')
+            'Test <linaro:include file="README"/> html')
         self.assertEqual(ret, r"Test Included from README html")
         os.chdir(old_cwd)
 
@@ -685,8 +686,8 @@ class ViewTests(BaseServeViewTest):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         os.chdir(file_path)
         ret = _process_include_tags(
-                    'Test <linaro:include file="README">README is missing'
-                    '</linaro:include> html')
+            'Test <linaro:include file="README">README is missing'
+            '</linaro:include> html')
         self.assertEqual(ret, r"Test Included from README html")
         os.chdir(old_cwd)
 
@@ -696,7 +697,7 @@ class ViewTests(BaseServeViewTest):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         os.chdir(file_path)
         ret = _process_include_tags(
-                    'Test <linaro:include file="NON_EXISTENT_FILE" /> html')
+            'Test <linaro:include file="NON_EXISTENT_FILE" /> html')
         self.assertEqual(ret, r"Test  html")
         os.chdir(old_cwd)
 
@@ -706,7 +707,7 @@ class ViewTests(BaseServeViewTest):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         os.chdir(file_path)
         ret = _process_include_tags(
-                    'Test <linaro:include file="" /> html')
+            'Test <linaro:include file="" /> html')
         self.assertEqual(ret, r"Test  html")
         os.chdir(old_cwd)
 
@@ -716,7 +717,7 @@ class ViewTests(BaseServeViewTest):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         os.chdir(file_path)
         ret = _process_include_tags(
-                    'Test <linaro:include file="../README" /> html')
+            'Test <linaro:include file="../README" /> html')
         self.assertEqual(ret, r"Test  html")
         os.chdir(old_cwd)
 
@@ -726,7 +727,7 @@ class ViewTests(BaseServeViewTest):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         os.chdir(file_path)
         ret = _process_include_tags(
-                    'Test <linaro:include file="subdir/README" /> html')
+            'Test <linaro:include file="subdir/README" /> html')
         self.assertEqual(ret, r"Test  html")
         os.chdir(old_cwd)
 
@@ -736,7 +737,7 @@ class ViewTests(BaseServeViewTest):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         os.chdir(file_path)
         ret = _process_include_tags(
-                    'Test <linaro:include file="subdir/../README" /> html')
+            'Test <linaro:include file="subdir/../README" /> html')
         self.assertEqual(ret, r"Test Included from README html")
         os.chdir(old_cwd)
 
@@ -747,7 +748,7 @@ class ViewTests(BaseServeViewTest):
         os.chdir(file_path)
         tmp = self.make_temporary_file("Included from /tmp", root="/tmp")
         ret = _process_include_tags(
-                    'Test <linaro:include file="/tmp/%s" /> html' % tmp)
+            'Test <linaro:include file="/tmp/%s" /> html' % tmp)
         self.assertEqual(ret, r"Test  html")
         os.chdir(old_cwd)
 
@@ -757,7 +758,7 @@ class ViewTests(BaseServeViewTest):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         os.chdir(file_path)
         ret = _process_include_tags(
-                    'Test <linaro:include file="./README" /> html')
+            'Test <linaro:include file="./README" /> html')
         self.assertEqual(ret, r"Test Included from README html")
         os.chdir(old_cwd)
 
@@ -767,7 +768,7 @@ class ViewTests(BaseServeViewTest):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         os.chdir(file_path)
         ret = _process_include_tags(
-                    'Test <linaro:include file="./../README" /> html')
+            'Test <linaro:include file="./../README" /> html')
         self.assertEqual(ret, r"Test  html")
         os.chdir(old_cwd)
 
@@ -777,7 +778,7 @@ class ViewTests(BaseServeViewTest):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         os.chdir(file_path)
         ret = _process_include_tags(
-                    'Test <linaro:include file="READMELINK" /> html')
+            'Test <linaro:include file="READMELINK" /> html')
         self.assertEqual(ret, r"Test  html")
         os.chdir(old_cwd)
 
@@ -876,15 +877,15 @@ class ViewTests(BaseServeViewTest):
         try:
             # Send the file
             with open(tmp_file_name) as f:
-                response = self.client.post("http://testserver/file_name",
-                                 data={"key": key, "file": f})
+                response = self.client.post(
+                    "http://testserver/file_name",
+                    data={"key": key, "file": f})
                 self.assertEqual(response.status_code, 200)
 
             # Check the upload worked by reading the file back from its
             # uploaded location
-            uploaded_file_path = os.path.join(settings.UPLOAD_PATH,
-                                                        key,
-                                                        "file_name")
+            uploaded_file_path = os.path.join(
+                settings.UPLOAD_PATH, key, "file_name")
             with open(uploaded_file_path) as f:
                 self.assertEqual(f.read(), file_content)
 
@@ -929,8 +930,9 @@ class ViewTests(BaseServeViewTest):
         try:
             # Send the files
             with open(tmp_file_name) as f:
-                response = self.client.post("http://testserver/pub/file_name",
-                                 data={"key": key, "file": f})
+                response = self.client.post(
+                    "http://testserver/pub/file_name",
+                    data={"key": key, "file": f})
                 self.assertEqual(response.status_code, 200)
 
             with open(tmp_build_info) as f:
@@ -964,16 +966,16 @@ class ViewTests(BaseServeViewTest):
 
         # Try to upload a file without a key.
         with open(tmp_file_name) as f:
-            response = self.client.post("http://testserver/file_name",
-                             data={"file": f})
+            response = self.client.post(
+                "http://testserver/file_name", data={"file": f})
             self.assertEqual(response.status_code, 500)
 
         # Make sure the file didn't get created.
-        self.assertFalse(os.path.isfile(os.path.join(settings.UPLOAD_PATH,
-                                                    "file_name")))
+        self.assertFalse(os.path.isfile(
+            os.path.join(settings.UPLOAD_PATH, "file_name")))
 
     def test_post_file_random_key(self):
-        key = "%030x" % random.randrange(256**15)
+        key = "%030x" % random.randrange(256 ** 15)
         file_content = "test_post_file_random_key"
         file_root = "/tmp"
 
@@ -983,14 +985,13 @@ class ViewTests(BaseServeViewTest):
 
         # Try to upload a file with a randomly generated key.
         with open(tmp_file_name) as f:
-            response = self.client.post("http://testserver/file_name",
-                             data={"key": key, "file": f})
+            response = self.client.post(
+                "http://testserver/file_name", data={"key": key, "file": f})
             self.assertEqual(response.status_code, 500)
 
         # Make sure the file didn't get created.
-        self.assertFalse(os.path.isfile(os.path.join(settings.UPLOAD_PATH,
-                                                    key,
-                                                    "file_name")))
+        self.assertFalse(os.path.isfile(
+            os.path.join(settings.UPLOAD_PATH, key, "file_name")))
 
     def test_api_delete_key(self):
         response = self.client.get("http://testserver/api/request_key",
@@ -1008,8 +1009,8 @@ class ViewTests(BaseServeViewTest):
             self.make_temporary_file(file_content))
 
         with open(tmp_file_name) as f:
-            response = self.client.post("http://testserver/file_name",
-                             data={"key": key, "file": f})
+            response = self.client.post(
+                "http://testserver/file_name", data={"key": key, "file": f})
             self.assertEqual(response.status_code, 200)
 
         self.assertTrue(os.path.isfile(os.path.join(settings.UPLOAD_PATH,
@@ -1020,9 +1021,8 @@ class ViewTests(BaseServeViewTest):
         response = self.client.get("http://testserver/api/delete_key",
                                    data={"key": key})
         self.assertEqual(response.status_code, 200)
-        self.assertFalse(os.path.isfile(os.path.join(settings.UPLOAD_PATH,
-                                                    key,
-                                                    "file_name")))
+        self.assertFalse(os.path.isfile(
+            os.path.join(settings.UPLOAD_PATH, key, "file_name")))
 
         # Key shouldn't work after released
         response = self.client.get("http://testserver/file_name",
@@ -1123,7 +1123,8 @@ class ViewHelpersTests(BaseServeViewTest):
         response = views.group_auth_failed_response(request, groups)
         self.assertIsNotNone(response)
         self.assertTrue(isinstance(response, HttpResponse))
-        self.assertContains(response,
+        self.assertContains(
+            response,
             "You need to be the member of one of the linaro batman, catwoman "
             "or joker groups",
             status_code=403)
