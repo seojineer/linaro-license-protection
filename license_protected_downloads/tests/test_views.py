@@ -630,6 +630,20 @@ class ViewTests(BaseServeViewTest):
         self.assertEqual(_sizeof_fmt(1234567899), '1.1G')
         self.assertEqual(_sizeof_fmt(1234567899999), '1.1T')
 
+    def test_listdir(self):
+        patterns = [
+            (['b', 'a', 'latest', 'c'], ['latest', 'a', 'b', 'c']),
+            (['10', '1', '100', 'latest'], ['latest', '1', '10', '100']),
+            (['10', 'foo', '100', 'latest'], ['latest', '10', '100', 'foo']),
+        ]
+        for files, expected in patterns:
+            path = tempfile.mkdtemp()
+            self.addCleanup(shutil.rmtree, path)
+            for file in files:
+                with open(os.path.join(path, file), 'w') as f:
+                    f.write(file)
+            self.assertEqual(expected, views._listdir(path))
+
     def test_whitelisted_dirs(self):
         target_file = "precise/restricted/whitelisted.txt"
         url = urlparse.urljoin("http://testserver/", target_file)
