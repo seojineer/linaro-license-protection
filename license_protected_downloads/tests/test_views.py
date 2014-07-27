@@ -573,15 +573,6 @@ class ViewTests(BaseServeViewTest):
         # download it.
         self.assertEqual(response.status_code, 404)
 
-    def test_dot_files_are_hidden(self):
-        target_file = 'open'
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-
-        # the directory open contains .hidden.txt - we shouldn't be able to
-        # see it in the listing.
-        self.assertNotContains(response, ".hidden.txt")
-
     def test_partial_build_info_file_open(self):
         target_file = ("partial-license-settings/"
                        "partially-complete-build-info/"
@@ -658,6 +649,7 @@ class ViewTests(BaseServeViewTest):
         tmp_file = os.fdopen(tmp_file_handle, "w")
         tmp_file.write(data)
         tmp_file.close()
+        self.addCleanup(os.unlink, tmp_filename)
         return os.path.basename(tmp_filename)
 
     def test_replace_self_closing_tag(self):
@@ -943,8 +935,8 @@ class ViewTests(BaseServeViewTest):
 
             # Check the upload worked by reading the file back from its
             # uploaded location
-            uploaded_file_path = os.path.join(settings.SERVED_PATHS[0],
-                                              "file_name")
+            uploaded_file_path = os.path.join(
+                settings.SERVED_PATHS[0], 'pub/file_name')
 
             with open(uploaded_file_path) as f:
                 self.assertEqual(f.read(), file_content)
