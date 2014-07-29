@@ -480,6 +480,7 @@ def file_server_get(request, path):
 
     url = path
     result = test_path(path, request)
+    internal = get_client_ip(request) in config.INTERNAL_HOSTS
 
     if not result:
         raise Http404
@@ -487,11 +488,7 @@ def file_server_get(request, path):
     target_type = result[0]
     path = result[1]
 
-    if get_client_ip(request) in config.INTERNAL_HOSTS:
-        # For internal trusted hosts, short-circuit any further checks
-        return send_file(path)
-
-    if BuildInfo.build_info_exists(path):
+    if not internal and BuildInfo.build_info_exists(path):
         try:
             build_info = BuildInfo(path)
         except IncorrectDataFormatException:
@@ -559,9 +556,9 @@ def file_server_get(request, path):
     if not file_listed(path, url):
         raise Http404
 
-    if (get_client_ip(request) in config.INTERNAL_HOSTS or
+    if (internal or
         is_whitelisted(os.path.join('/', url)) or
-        "key" in request.GET): # If user has a key, default to open
+        "key" in request.GET):  # If user has a key, default to open
         digests = 'OPEN'
     else:
         digests = is_protected(path)

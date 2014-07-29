@@ -1,8 +1,5 @@
 __author__ = 'dooferlad'
 
-from django.conf import settings
-from django.test import Client, TestCase
-from django.http import HttpResponse
 import hashlib
 import os
 import tempfile
@@ -12,7 +9,12 @@ import urlparse
 import json
 import random
 import shutil
-from mock import Mock
+
+import mock
+
+from django.conf import settings
+from django.test import Client, TestCase
+from django.http import HttpResponse
 
 from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.config import INTERNAL_HOSTS
@@ -372,8 +374,22 @@ class ViewTests(BaseServeViewTest):
         # Test that we use the "samsung" theme. This contains exynos.png
         self.assertContains(response, "exynos.png")
 
-    # test_internal_host_* are integration, not unit tests and will be
-    # located in another file...
+    @mock.patch('license_protected_downloads.views.config')
+    def test_protected_internal_file(self, config):
+        '''ensure a protected file can be downloaded by an internal host'''
+        config.INTERNAL_HOSTS = ('127.0.0.1',)
+        target_file = "~linaro-android/staging-origen/test.txt"
+        url = urlparse.urljoin("http://testserver/", target_file)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('X-Sendfile', response)
+
+    @mock.patch('license_protected_downloads.views.config')
+    def test_protected_internal_listing(self, config):
+        '''ensure directory listings are browseable for internal hosts'''
+        config.INTERNAL_HOSTS = ('127.0.0.1',)
+        response = self.client.get('http://testserver/')
+        self.assertIn('linaro-license-protection.git/commit', response.content)
 
     def test_per_file_license_samsung(self):
         # Get BuildInfo for target file
@@ -1124,7 +1140,7 @@ class FileViewTests(BaseServeViewTest):
 class ViewHelpersTests(BaseServeViewTest):
     def test_auth_group_error(self):
         groups = ["linaro", "batman", "catwoman", "joker"]
-        request = Mock()
+        request = mock.Mock()
         request.path = "mock_path"
         response = views.group_auth_failed_response(request, groups)
         self.assertIsNotNone(response)
