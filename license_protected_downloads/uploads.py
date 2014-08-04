@@ -1,6 +1,9 @@
+import io
+import fcntl
 import os
 import random
 import shutil
+import time
 
 from django.views.decorators.csrf import csrf_exempt
 from django.http import (
@@ -13,6 +16,30 @@ from django.conf import settings
 
 from models import APIKeyStore
 from common import safe_path_join
+
+
+def _client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0]
+    return request.META.get('REMOTE_ADDR')
+
+
+def _log_metric(request, name, fields=None):
+    """Store information on a given API call.
+
+    This allows us to get some understanding of how this API is being used.
+    """
+    with open('/tmp/llp-stats.txt', 'a') as f:
+        try:
+            fcntl.flock(f, fcntl.LOCK_EX)
+            f.seek(0, io.SEEK_END)
+            f.write('%s: %s: %s: ' % (time.time(), _client_ip(request), name))
+            if fields is not None:
+                f.write(','.join(fields))
+            f.write('\n')
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
 
 
 class UploadFileForm(forms.Form):
@@ -44,13 +71,18 @@ def file_server_post(request, path):
     """
     if not ("key" in request.POST and
             APIKeyStore.objects.filter(key=request.POST["key"])):
+        _log_metric(request, 'INVALID_KEY')
         return HttpResponseServerError("Invalid key")
 
     api_key = APIKeyStore.objects.filter(key=request.POST["key"])
 
     form = UploadFileForm(request.POST, request.FILES)
     if not form.is_valid() or not path:
+        _log_metric(request, 'INVALID_API_FORM')
         return HttpResponseServerError("Invalid call")
+
+    _log_metric(request, 'FILE_UPLOAD',
+                [path, str(api_key[0].public), request.POST['key']])
 
     path = upload_target_path(
         path, request.POST["key"], public=api_key[0].public)
@@ -68,6 +100,7 @@ def file_server_post(request, path):
 
 
 def api_request_key(request):
+    _log_metric(request, 'REQUEST_KEY')
     if("key" in request.GET and
        request.GET["key"] == settings.MASTER_API_KEY and
        settings.MASTER_API_KEY):
@@ -93,6 +126,7 @@ def api_request_key(request):
 
 
 def api_delete_key(request):
+    _log_metric(request, 'DELETE_KEY')
     if "key" not in request.GET:
         return HttpResponseServerError("Invalid key")
 
