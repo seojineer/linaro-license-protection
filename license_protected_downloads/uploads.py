@@ -1,3 +1,7 @@
+import os
+import random
+import shutil
+
 from django.views.decorators.csrf import csrf_exempt
 from django.http import (
     HttpResponse,
@@ -5,10 +9,8 @@ from django.http import (
     HttpResponseServerError
 )
 from django import forms
-import random
 from django.conf import settings
-import os
-import shutil
+
 from models import APIKeyStore
 from common import safe_path_join
 
@@ -71,9 +73,9 @@ def api_request_key(request):
        settings.MASTER_API_KEY):
 
         # Generate a new, random key.
-        key = "%030x" % random.randrange(256**15)
+        key = "%030x" % random.randrange(256 ** 15)
         while APIKeyStore.objects.filter(key=key):
-            key = "%030x" % random.randrange(256**15)
+            key = "%030x" % random.randrange(256 ** 15)
 
         # Look for a hint of sanity in the value given to public, but don't
         # care about it too much.
