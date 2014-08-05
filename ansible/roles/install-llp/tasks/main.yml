@@ -14,6 +14,7 @@
         dest={{ install_base }}/{{ hostname }}/{{ app_name }}
         version={{ git_tag }}
         update=yes
+  notify: restart-apache
   tags:
     - install
     - update
