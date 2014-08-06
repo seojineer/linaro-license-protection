@@ -5,8 +5,10 @@ import shutil
 import tempfile
 import unittest
 
-from license_protected_downloads.buildinfo import BuildInfo
-from license_protected_downloads.buildinfo import IncorrectDataFormatException
+from license_protected_downloads.buildinfo import (
+    BuildInfo,
+    IncorrectDataFormatException,
+)
 from license_protected_downloads.tests.helpers import temporary_directory
 
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -27,19 +29,21 @@ class BuildInfoTests(unittest.TestCase):
         dir_path = THIS_DIRECTORY + \
             '/testserver_root/build-info/subdir'
         build_info = BuildInfo(dir_path)
-        self.assertEquals(build_info.getInfoForFile(),
-            [{'build-name': 'landing-protected',
-              'license-type': 'protected',
-              'auth-groups': 'linaro'}])
+        expected = [
+            {'build-name': 'landing-protected', 'license-type': 'protected',
+             'auth-groups': 'linaro'}
+        ]
+        self.assertEquals(expected, build_info.getInfoForFile())
 
     def test_apply_to_dir_auth_groups_field(self):
         dir_path = THIS_DIRECTORY + \
             '/testserver_root/build-info/subdir2'
         build_info = BuildInfo(dir_path)
-        self.assertEquals(build_info.getInfoForFile(),
-            [{'build-name': 'landing-protected',
-              'license-type': 'protected',
-              'auth-groups': 'linaro'}])
+        expected = [
+            {'build-name': 'landing-protected', 'license-type': 'protected',
+             'auth-groups': 'linaro'}
+        ]
+        self.assertEquals(expected, build_info.getInfoForFile())
 
     def test_apply_to_nonexistent_file(self):
         with self.assertRaises(IOError):
@@ -117,10 +121,12 @@ class BuildInfoTests(unittest.TestCase):
                 "Build-Name: woohoo"]
         build_info.parseData(data)
 
-        self.assertEquals(build_info.build_info_array,
-                [{"format-version": "2.0",
-                 '*.txt': [{'build-name': 'weehee'}],
-                 '*.tgz': [{'build-name': 'woohoo'}]}])
+        expected = [{
+            'format-version': '2.0',
+            '*.txt': [{'build-name': 'weehee'}],
+            '*.tgz': [{'build-name': 'woohoo'}]
+        }]
+        self.assertEquals(expected, build_info.build_info_array)
 
     def test_parseData_block_multiple_patterns(self):
         build_info = BuildInfo(self.buildinfo_file_path)
@@ -130,10 +136,12 @@ class BuildInfoTests(unittest.TestCase):
                 "Build-Name: weehee"]
         build_info.parseData(data)
 
-        self.assertEquals(build_info.build_info_array,
-                [{"format-version": "2.0",
-                 '*.txt': [{'build-name': 'weehee'}],
-                 '*.tgz': [{'build-name': 'weehee'}]}])
+        expected = [{
+            'format-version': '2.0',
+            '*.txt': [{'build-name': 'weehee'}],
+            '*.tgz': [{'build-name': 'weehee'}]
+        }]
+        self.assertEquals(expected, build_info.build_info_array)
 
     def test_parseContinuation_no_continuation(self):
         build_info = BuildInfo(self.buildinfo_file_path)
@@ -162,8 +170,9 @@ class BuildInfoTests(unittest.TestCase):
         data = ["Format-Version: 2.0", "License-Text: line1", " line2"]
         values = build_info.parseBlock(data)
 
-        self.assertEqual(values, [{"format-version": "2.0",
-            "license-text": "line1\nline2"}])
+        self.assertEqual(
+            values,
+            [{"format-version": "2.0", "license-text": "line1\nline2"}])
 
     def test_parseData_extra_fields(self):
         build_info = BuildInfo(self.buildinfo_file_path)
@@ -173,9 +182,9 @@ class BuildInfoTests(unittest.TestCase):
                 "Build-Name: woohoo"]
         build_info.parseData(data)
 
-        self.assertEqual(build_info.build_info_array,
-                [{"format-version": "2.0",
-                  '*.txt': [{'build-name': 'woohoo'}]}])
+        self.assertEqual(
+            build_info.build_info_array,
+            [{"format-version": "2.0", '*.txt': [{'build-name': 'woohoo'}]}])
 
     def test_parseData_format_version(self):
         build_info = BuildInfo(self.buildinfo_file_path)
@@ -183,8 +192,8 @@ class BuildInfoTests(unittest.TestCase):
         data = ["Format-Version: 2.0"]
         build_info.parseData(data)
 
-        self.assertEqual(build_info.build_info_array,
-                [{"format-version": "2.0"}])
+        self.assertEqual(
+            build_info.build_info_array, [{"format-version": "2.0"}])
 
     def test_parseData_array_expected(self):
         build_info = BuildInfo(self.buildinfo_file_path)
@@ -226,8 +235,8 @@ class BuildInfoTests(unittest.TestCase):
         build_info.file_info_array = build_info.getInfoForFile()
         build_info.remove_false_positives()
 
-        self.assertEquals(build_info.file_info_array,
-            [{'license-type': 'protected'}])
+        self.assertEquals(
+            build_info.file_info_array, [{'license-type': 'protected'}])
 
     def test_remove_false_positives_none(self):
         build_info = BuildInfo(self.buildinfo_file_path)
@@ -242,7 +251,8 @@ class BuildInfoTests(unittest.TestCase):
         build_info.file_info_array = build_info.getInfoForFile()
         build_info.remove_false_positives()
 
-        self.assertEquals(build_info.file_info_array,
+        self.assertEquals(
+            build_info.file_info_array,
             [{'license-type': 'protected'}, {'license-type': 'protected'}])
 
     def test_get_search_path(self):
@@ -319,7 +329,7 @@ class FileNameMatchingTests(unittest.TestCase):
                     "Format-Version: 2.0\n\n"
                     "Files-Pattern: MD5SUM\n"
                     "License-Type: open\n"
-                    ))
+                ))
             build_info = BuildInfo(sample_file)
             file_info = build_info.getInfoForFile()
             self.assertEqual('open', file_info[0]['license-type'])
