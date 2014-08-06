@@ -47,10 +47,10 @@ urlpatterns = patterns('',
         name='get_textile_files'),
 
     url(r'^api/ls/(?P<path>.*)$',
-        'license_protected_downloads.views.list_files_api'),
+        'license_protected_downloads.api.v1.list_files_api'),
 
     url(r'^api/license/(?P<path>.*)$',
-        'license_protected_downloads.views.get_license_api'),
+        'license_protected_downloads.api.v1.get_license_api'),
 
     url(r'^api/request_key$',
         'license_protected_downloads.api.v1.api_request_key'),

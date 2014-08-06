@@ -7,6 +7,10 @@ from license_protected_downloads.tests.test_splicebuildinfos \
 from license_protected_downloads.tests.test_models import LicenseTestCase
 from license_protected_downloads.tests.test_pep8 import TestPep8
 from license_protected_downloads.tests.test_pyflakes import TestPyflakes
+from license_protected_downloads.tests.test_pyflakes import TestPyflakes
+from license_protected_downloads.tests.test_common import (
+    CommonTests,
+)
 from license_protected_downloads.tests.test_views import (
     FileViewTests,
     HowtoViewTests,
@@ -24,6 +28,7 @@ from license_protected_downloads.tests.test_render_text_files \
 
 #starts the test suite
 __test__ = {
+    'CommonTests': CommonTests,
     'APITests': APITests,
     'BuildInfoTests': BuildInfoTests,
     'SpliceBuildInfosTests': SpliceBuildInfosTests,
