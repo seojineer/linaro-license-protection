@@ -1,7 +1,10 @@
 __author__ = 'dooferlad'
 
 import os
+import shutil
+import tempfile
 import unittest
+
 from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.buildinfo import IncorrectDataFormatException
 from license_protected_downloads.tests.helpers import temporary_directory
@@ -297,8 +300,9 @@ class BuildInfoTests(unittest.TestCase):
 
     def test_write_from_array(self):
         build_info = BuildInfo(self.buildinfo_file_path)
-        file_path = THIS_DIRECTORY + \
-            '/testserver_root/build-info/write-test/BUILD-INFO.txt'
+        file_path = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, file_path)
+        file_path = os.path.join(file_path, 'BUILD-INFO.txt')
         BuildInfo.write_from_array(build_info.build_info_array, file_path)
         build_info_test = BuildInfo(file_path)
         self.assertEquals(build_info_test.build_info_array,
