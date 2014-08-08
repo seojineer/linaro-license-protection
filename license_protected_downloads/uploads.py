@@ -78,7 +78,8 @@ def file_server_post(request, path):
 
     form = UploadFileForm(request.POST, request.FILES)
     if not form.is_valid() or not path:
-        _log_metric(request, 'INVALID_API_FORM')
+        _log_metric(request, 'INVALID_API_FORM',
+                    [request.POST['key'], str(form.errors)])
         return HttpResponseServerError("Invalid call")
 
     _log_metric(request, 'FILE_UPLOAD',
