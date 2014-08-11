@@ -11,7 +11,6 @@ from django.http import (
     HttpResponseForbidden,
     HttpResponseServerError
 )
-from django import forms
 from django.conf import settings
 
 from models import APIKeyStore
@@ -42,10 +41,6 @@ def _log_metric(request, name, fields=None):
             fcntl.flock(f, fcntl.LOCK_UN)
 
 
-class UploadFileForm(forms.Form):
-    file = forms.FileField()
-
-
 def upload_target_path(path, key, public):
     """Quick path handling function.
 
@@ -71,15 +66,14 @@ def file_server_post(request, path):
     """
     if not ("key" in request.POST and
             APIKeyStore.objects.filter(key=request.POST["key"])):
-        _log_metric(request, 'INVALID_KEY')
+        _log_metric(request, 'INVALID_KEY', [path])
         return HttpResponseServerError("Invalid key")
 
     api_key = APIKeyStore.objects.filter(key=request.POST["key"])
 
-    form = UploadFileForm(request.POST, request.FILES)
-    if not form.is_valid() or not path:
-        _log_metric(request, 'INVALID_API_FORM',
-                    [request.POST['key'], str(form.errors)])
+    if 'file' not in request.FILES or not path:
+        _log_metric(request, 'INVALID_ARGUMENTS',
+                    [str(request.FILES.keys()), path, request.POST['key']])
         return HttpResponseServerError("Invalid call")
 
     _log_metric(request, 'FILE_UPLOAD',
