@@ -31,3 +31,19 @@ class License(models.Model):
 class APIKeyStore(models.Model):
     key = models.CharField(max_length=80)
     public = models.BooleanField()
+
+
+class APILog(models.Model):
+    timestamp = models.DateTimeField(auto_now_add=True)
+    # we are on an old version of django missing an ipv6 friendly field
+    # so just use a charfield to keep it simple
+    ip = models.CharField(max_length=40)
+    key = models.ForeignKey(APIKeyStore, blank=True, null=True)
+    label = models.CharField(max_length=32)
+    path = models.CharField(max_length=256)
+
+    @staticmethod
+    def mark(request, label, key=None):
+        ip = request.META.get('REMOTE_ADDR')
+        ip = request.META.get('HTTP_X_FORWARDED_FOR', ip).split(',')[0]
+        APILog.objects.create(label=label, ip=ip, path=request.path, key=key)
