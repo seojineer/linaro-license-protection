@@ -12,6 +12,7 @@
     - python-beautifulsoup
     - python-django
     - python-django-openid-auth
+    - python-django-south
     - python-requests
     - python-textile
   tags:

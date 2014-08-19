@@ -52,6 +52,32 @@
     - update
     - django
 
+# the app was originally deployed without support for south migrations
+# this checks if we need to set up a fake migration to get things going
+- name: Run fake migration if needed
+  shell: ./manage.py migrate license_protected_downloads 0001 --fake --settings={{ django_settings }} && touch "{{ install_base }}/{{ hostname }}/db/.south-setup"
+  args:
+    chdir: "{{ install_base }}/{{ hostname }}/{{ app_name }}"
+    creates: "{{ install_base }}/{{ hostname }}/db/.south-setup"
+  environment:
+    PYTHONPATH: "{{ install_base }}/{{ hostname }}:{{ install_base }}/{{ hostname }}/{{ app_name }}:{{ install_base }}/{{ hostname }}/configs/django"
+  tags:
+    - update
+    - django
+
+- name: Run south DB migration command
+  django_manage:  app_path="{{ install_base }}/{{ hostname }}/{{ app_name }}"
+                  pythonpath="{{ install_base }}/{{ hostname }}:{{ install_base }}/{{ hostname }}/{{ app_name }}:/{{ install_base }}/{{ hostname }}/configs/django"
+                  settings="{{ django_settings }}"
+                  command=migrate
+  environment:
+    PYTHONPATH: "{{ install_base }}/{{ hostname }}:{{ install_base }}/{{ hostname }}/{{ app_name }}:/{{ install_base }}/{{ hostname }}/configs/django"
+    DJANGO_SETTINGS_MODULE: "{{ django_settings }}"
+  tags:
+    - install
+    - update
+    - django
+
 - name: Run collectstatic command
   django_manage:  app_path="{{ install_base }}/{{ hostname }}/{{ app_name }}"
                   pythonpath="{{ install_base }}/{{ hostname }}:{{ install_base }}/{{ hostname }}/{{ app_name }}:/{{ install_base }}/{{ hostname }}/configs/django"

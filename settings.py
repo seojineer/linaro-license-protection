@@ -2,7 +2,7 @@
 
 import os
 
-from version import *
+from version import VERSION
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -103,7 +103,7 @@ ROOT_URLCONF = ROOT_DIR + '.urls'
 
 TEMPLATE_DIRS = (
     os.path.join(PROJECT_ROOT, "templates"),
-    )
+)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -114,6 +114,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django_openid_auth',
+    'south',
     ROOT_DIR + '.license_protected_downloads',
 )
 
@@ -241,7 +242,7 @@ SUPPORTED_REMOTE_STATIC_FILES = {
     "linarofamily.js": "http://www.linaro.org/remote/js/linarofamily.js",
     "init.css": "http://www.linaro.org/remote/css/init.css",
     "remote.css": "http://www.linaro.org/remote/css/remote.css",
-    }
+}
 
 MASTER_API_KEY = ""
 
