@@ -53,10 +53,10 @@ urlpatterns = patterns('',
         'license_protected_downloads.views.get_license_api'),
 
     url(r'^api/request_key$',
-        'license_protected_downloads.uploads.api_request_key'),
+        'license_protected_downloads.api.v1.api_request_key'),
 
     url(r'^api/delete_key$',
-        'license_protected_downloads.uploads.api_delete_key'),
+        'license_protected_downloads.api.v1.api_delete_key'),
 
     # Catch-all. We always return a file (or try to) if it exists.
     # This handler does that.
