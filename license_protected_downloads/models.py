@@ -32,6 +32,12 @@ class APIKeyStore(models.Model):
     key = models.CharField(max_length=80)
     public = models.BooleanField()
 
+    description = models.CharField(max_length=40, default='')
+    last_used = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def __unicode__(self):
+        return '%s: %s' % (self.description, self.public)
+
 
 class APILog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -47,3 +53,5 @@ class APILog(models.Model):
         ip = request.META.get('REMOTE_ADDR')
         ip = request.META.get('HTTP_X_FORWARDED_FOR', ip).split(',')[0]
         APILog.objects.create(label=label, ip=ip, path=request.path, key=key)
+        if key:
+            key.save()  # bump the last_used timestamp
