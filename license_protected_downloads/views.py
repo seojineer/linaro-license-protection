@@ -1,13 +1,9 @@
 import logging
-import glob
-import hashlib
 import json
 import mimetypes
 import os
 import re
 import urllib2
-from mimetypes import guess_type
-from datetime import datetime
 
 from django.conf import settings
 from django.http import (
@@ -23,16 +19,20 @@ from django.views.decorators.csrf import csrf_exempt
 
 from buildinfo import BuildInfo, IncorrectDataFormatException
 from render_text_files import RenderTextFiles
-from models import License, APIKeyStore
+from models import License
 # Load group auth "plugin" dynamically
 import importlib
 group_auth_modules = [importlib.import_module(m) for m in settings.GROUP_AUTH_MODULES]
 from BeautifulSoup import BeautifulSoup
 import config
-from common import safe_path_join
 from group_auth_common import GroupAuthError
 import xml.dom.minidom as dom
 
+from license_protected_downloads.common import (
+    dir_list,
+    is_protected,
+    test_path
+)
 from license_protected_downloads.api.v1 import file_server_post
 
 
@@ -42,168 +42,6 @@ LINARO_INCLUDE_FILE_RE1 = re.compile(
     r'<linaro:include file="(?P<file_name>.*)">(.*)</linaro:include>')
 
 log = logging.getLogger("llp.views")
-
-
-def _hidden_file(file_name):
-    hidden_files = ["BUILD-INFO.txt", "EULA.txt", "HEADER.html",
-                    "HOWTO_", "textile", ".htaccess", "licenses"]
-    for pattern in hidden_files:
-        if re.search(pattern, file_name):
-            return True
-    return False
-
-
-def _sizeof_fmt(num):
-    ''' Returns in human readable format for num.
-    '''
-    if num < 1024 and num > -1024:
-        return str(num)
-    num /= 1024.0
-    for x in ['K', 'M', 'G']:
-        if num < 1024.0 and num > -1024.0:
-            return "%3.1f%s" % (num, x)
-        num /= 1024.0
-    return "%3.1f%s" % (num, 'T')
-
-
-def _listdir(path):
-    '''Lists the contents of a directory sorted to our requirements.
-
-    If the directory is all numbers it sorts them numerically. The "latest"
-    entry will always be the first entry. Else use standard sorting.
-    '''
-    def _sort(a, b):
-        try:
-            return cmp(int(a), int(b))
-        except:
-            pass
-        if a == 'latest':
-            return -1
-        elif b == 'latest':
-            return 1
-
-        return cmp(a, b)
-    files = os.listdir(path)
-    files.sort(_sort)
-    return files
-
-
-def dir_list(url, path, human_readable=True):
-    files = _listdir(path)
-    listing = []
-
-    for file_name in files:
-        if _hidden_file(file_name):
-            continue
-
-        name = file_name
-        file_name = os.path.join(path, file_name)
-
-        if os.path.exists(file_name):
-            mtime = os.path.getmtime(file_name)
-        else:
-            # If the file we are looking at doesn't exist (broken symlink for
-            # example), it doesn't have a mtime.
-            mtime = 0
-
-        if os.path.isdir(file_name):
-            target_type = "folder"
-        else:
-            target_type = guess_type(name)[0]
-
-        if os.path.exists(file_name):
-            size = os.path.getsize(file_name)
-        else:
-            # If the file we are looking at doesn't exist (broken symlink for
-            # example), it doesn't have a size
-            size = 0
-
-        if not re.search(r'^/', url) and url != '':
-            url = '/' + url
-
-        # Since the code below assume no trailing slash, make sure that
-        # there isn't one.
-        url = re.sub(r'/$', '', url)
-
-        if human_readable:
-            if mtime:
-                mtime = datetime.fromtimestamp(mtime).strftime(
-                                                        '%d-%b-%Y %H:%M')
-            if target_type:
-                if target_type.split('/')[0] == "text":
-                    target_type = "text"
-            else:
-                target_type = "other"
-
-            size = _sizeof_fmt(size)
-
-        pathname = os.path.join(path, name)
-        license_digest_list = is_protected(pathname)
-        license_list = License.objects.all_with_hashes(license_digest_list)
-        listing.append({'name': name,
-                        'size': size,
-                        'type': target_type,
-                        'mtime': mtime,
-                        'license_digest_list': license_digest_list,
-                        'license_list': license_list,
-                        'url': url + '/' + name})
-    return listing
-
-
-def test_path(path, request, served_paths=None):
-    """Check that path points to something we can serve up.
-
-    served_paths can be provided to overwrite settings.SERVED_PATHS. This is
-    used for uploaded files, which may not be shared in the server root.
-    """
-
-    # if key is in request.GET["key"] then need to mod path and give
-    # access to a per-key directory.
-    if "key" in request.GET:
-        key_details = APIKeyStore.objects.filter(key=request.GET["key"])
-        if key_details:
-            path = os.path.join(request.GET["key"], path)
-
-            # Private uploads are in a separate path (or can be), so set
-            # served_paths as needed.
-            if key_details[0].public == False:
-                served_paths = settings.UPLOAD_PATH
-
-    if served_paths is None:
-        served_paths = settings.SERVED_PATHS
-    else:
-        if not isinstance(served_paths, list):
-            served_paths = [served_paths]
-
-    for basepath in served_paths:
-        fullpath = safe_path_join(basepath, path)
-
-        if fullpath is None:
-            return None
-
-        if os.path.isfile(fullpath):
-            return ("file", fullpath)
-        if os.path.isdir(fullpath):
-            return ("dir", fullpath)
-
-    return None
-
-
-def _insert_license_into_db(digest, text, theme):
-    if not License.objects.filter(digest=digest):
-        l = License(digest=digest, text=text, theme=theme)
-        l.save()
-
-
-def _check_special_eula(path):
-    if glob.glob(path + ".EULA.txt.*"):
-        return True
-
-
-def _get_theme(path):
-    eula = glob.glob(path + ".EULA.txt.*")
-    vendor = os.path.splitext(eula[0])[1]
-    return vendor[1:]
 
 
 def _get_header_html_content(path):
@@ -269,81 +107,6 @@ def _process_include_tags(content):
                      read_file_with_include_data,
                      content)
     return content
-
-
-def is_protected(path):
-    build_info = None
-    max_index = 1
-    base_path = path
-    if not os.path.isdir(base_path):
-        base_path = os.path.dirname(base_path)
-
-    buildinfo_path = os.path.join(base_path, "BUILD-INFO.txt")
-    open_eula_path = os.path.join(base_path, "OPEN-EULA.txt")
-    eula_path = os.path.join(base_path, "EULA.txt")
-
-    if os.path.isfile(buildinfo_path):
-        try:
-            build_info = BuildInfo(path)
-        except IncorrectDataFormatException:
-            # If we can't parse the BuildInfo, return [], which indicates no
-            # license in dir_list and will trigger a 403 error in file_server.
-            return []
-
-        license_type = build_info.get("license-type")
-        license_text = build_info.get("license-text")
-        theme = build_info.get("theme")
-        auth_groups = build_info.get("auth-groups")
-        max_index = build_info.max_index
-    elif os.path.isfile(open_eula_path):
-        return "OPEN"
-    elif os.path.isfile(eula_path):
-        if re.search("snowball", path):
-            theme = "stericsson"
-        elif re.search("origen", path):
-            theme = "samsung"
-        else:
-            theme = "linaro"
-        license_type = "protected"
-        license_file = os.path.join(settings.PROJECT_ROOT,
-                                    'templates/licenses/' + theme + '.txt')
-        auth_groups = False
-        with open(license_file, "r") as infile:
-            license_text = infile.read()
-    elif _check_special_eula(path):
-        theme = _get_theme(path)
-        license_type = "protected"
-        license_file = os.path.join(settings.PROJECT_ROOT,
-                                    'templates/licenses/' + theme + '.txt')
-        auth_groups = False
-        with open(license_file, "r") as infile:
-            license_text = infile.read()
-    elif _check_special_eula(base_path + "/*"):
-        return "OPEN"
-    else:
-        return []
-
-    digests = []
-
-    if license_type:
-        if license_type == "open":
-            return "OPEN"
-
-        if auth_groups and not license_text:
-            return "OPEN"
-        elif license_text:
-            for i in range(max_index):
-                if build_info:
-                    license_text = build_info.get("license-text", i)
-                    theme = build_info.get("theme", i)
-                digest = hashlib.md5(license_text).hexdigest()
-                digests.append(digest)
-                _insert_license_into_db(digest, license_text, theme)
-        else:
-            log.info("No license text or auth groups found: check the "
-                     "BUILD-INFO file.")
-
-    return digests
 
 
 def get_client_ip(request):
@@ -617,75 +380,6 @@ def get_remote_static(request):
         raise
 
     return HttpResponse(data)
-
-
-def list_files_api(request, path):
-    path = iri_to_uri(path)
-    url = path
-    result = test_path(path, request)
-    if not result:
-        raise Http404
-
-    target_type = result[0]
-    path = result[1]
-
-    if target_type:
-        if target_type == "file":
-            file_url = url
-            if file_url[0] != "/":
-                file_url = "/" + file_url
-            path = os.path.dirname(path)
-            url = os.path.dirname(url)
-
-        listing = dir_list(url, path, human_readable=False)
-
-        clean_listing = []
-        for entry in listing:
-            if target_type == "file" and file_url != entry["url"]:
-                # If we are getting a listing for a single file, skip the rest
-                continue
-
-            if len(entry["license_list"]) == 0:
-                entry["license_list"] = ["Open"]
-
-            clean_listing.append({
-                "name": entry["name"],
-                "size": entry["size"],
-                "type": entry["type"],
-                "mtime": entry["mtime"],
-                "url": entry["url"],
-            })
-
-        data = json.dumps({"files": clean_listing})
-    else:
-        data = json.dumps({"files": ["File not found."]})
-
-    return HttpResponse(data, mimetype='application/json')
-
-
-def get_license_api(request, path):
-    path = iri_to_uri(path)
-    result = test_path(path, request)
-    if not result:
-        raise Http404
-
-    target_type = result[0]
-    path = result[1]
-
-    if target_type == "dir":
-        data = json.dumps({"licenses":
-                           ["ERROR: License only shown for a single file."]})
-    else:
-        license_digest_list = is_protected(path)
-        license_list = License.objects.all_with_hashes(license_digest_list)
-        if len(license_list) == 0:
-            license_list = ["Open"]
-        else:
-            license_list = [{"text": l.text, "digest": l.digest}
-                            for l in license_list]
-        data = json.dumps({"licenses": license_list})
-
-    return HttpResponse(data, mimetype='application/json')
 
 
 def render_descriptions(path):

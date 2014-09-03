@@ -6,7 +6,6 @@ import tempfile
 import unittest
 import urllib2
 import urlparse
-import shutil
 
 import mock
 
@@ -15,12 +14,11 @@ from django.test import Client, TestCase
 from django.http import HttpResponse
 
 from license_protected_downloads.buildinfo import BuildInfo
+from license_protected_downloads.common import _insert_license_into_db
 from license_protected_downloads.config import INTERNAL_HOSTS
 from license_protected_downloads.tests.helpers import temporary_directory
 from license_protected_downloads.tests.helpers import TestHttpServer
-from license_protected_downloads.views import _insert_license_into_db
 from license_protected_downloads.views import _process_include_tags
-from license_protected_downloads.views import _sizeof_fmt
 from license_protected_downloads.views import is_same_parent_dir
 from license_protected_downloads import views
 
@@ -512,27 +510,6 @@ class ViewTests(BaseServeViewTest):
 
         # this test should not cause an exception. Anything else is a pass.
         self.assertEqual(response.status_code, 200)
-
-    def test_sizeof_fmt(self):
-        self.assertEqual(_sizeof_fmt(1), '1')
-        self.assertEqual(_sizeof_fmt(1234), '1.2K')
-        self.assertEqual(_sizeof_fmt(1234567), '1.2M')
-        self.assertEqual(_sizeof_fmt(1234567899), '1.1G')
-        self.assertEqual(_sizeof_fmt(1234567899999), '1.1T')
-
-    def test_listdir(self):
-        patterns = [
-            (['b', 'a', 'latest', 'c'], ['latest', 'a', 'b', 'c']),
-            (['10', '1', '100', 'latest'], ['latest', '1', '10', '100']),
-            (['10', 'foo', '100', 'latest'], ['latest', '10', '100', 'foo']),
-        ]
-        for files, expected in patterns:
-            path = tempfile.mkdtemp()
-            self.addCleanup(shutil.rmtree, path)
-            for file in files:
-                with open(os.path.join(path, file), 'w') as f:
-                    f.write(file)
-            self.assertEqual(expected, views._listdir(path))
 
     def test_whitelisted_dirs(self):
         target_file = "precise/restricted/whitelisted.txt"
