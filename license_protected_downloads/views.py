@@ -28,11 +28,12 @@ from models import License, APIKeyStore
 import importlib
 group_auth_modules = [importlib.import_module(m) for m in settings.GROUP_AUTH_MODULES]
 from BeautifulSoup import BeautifulSoup
-from uploads import file_server_post
 import config
 from common import safe_path_join
 from group_auth_common import GroupAuthError
 import xml.dom.minidom as dom
+
+from license_protected_downloads.api.v1 import file_server_post
 
 
 LINARO_INCLUDE_FILE_RE = re.compile(
