@@ -35,10 +35,10 @@ class APITests(TestCase):
         self.addCleanup(m.stop)
         m.start()
 
-        m = mock.patch('django.conf.settings.MASTER_API_KEY',
-                       new_callable=lambda: '1234abcd')
-        self.addCleanup(m.stop)
-        m.start()
+        self.pub_key = APIKeyStore.objects.create(
+            key='pubkey', public=True).key
+        self.priv_key = APIKeyStore.objects.create(
+            key='prikey', public=False).key
 
         self.tmpdir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.tmpdir)
@@ -168,21 +168,6 @@ class APITests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
-    def test_get_key(self):
-        response = self.client.get("http://testserver/api/request_key",
-                                   data={"key": settings.MASTER_API_KEY})
-
-        self.assertEqual(response.status_code, 200)
-        # Don't care what the key is, as long as it isn't blank
-        self.assertRegexpMatches(response.content, "\S+")
-
-    def test_get_key_api_disabled(self):
-        settings.MASTER_API_KEY = ""
-        response = self.client.get("http://testserver/api/request_key",
-                                   data={"key": settings.MASTER_API_KEY})
-
-        self.assertEqual(response.status_code, 403)
-
     def _send_file(self, url, apikey, content, resp_code=200):
         f = StringIO.StringIO(content)
         f.name = 'name'   # to fool django's client.post
@@ -190,13 +175,7 @@ class APITests(TestCase):
         self.assertEqual(response.status_code, resp_code)
 
     def test_get_key_post_and_get_file(self):
-        response = self.client.get("http://testserver/api/request_key",
-                                   data={"key": settings.MASTER_API_KEY})
-
-        self.assertEqual(response.status_code, 200)
-        # Don't care what the key is, as long as it isn't blank
-        self.assertRegexpMatches(response.content, "\S+")
-        key = response.content
+        key = self.priv_key
         last_used = APIKeyStore.objects.get(key=key).last_used
 
         file_content = "test_get_key_post_and_get_file"
@@ -223,14 +202,7 @@ class APITests(TestCase):
             APIKeyStore.objects.get(key=key).last_used, last_used)
 
     def test_get_public_key_post_and_get_file(self):
-        response = self.client.get("http://testserver/api/request_key",
-                                   data={"key": settings.MASTER_API_KEY,
-                                         "public": ""})
-
-        self.assertEqual(response.status_code, 200)
-        # Don't care what the key is, as long as it isn't blank
-        self.assertRegexpMatches(response.content, "\S+")
-        key = response.content
+        key = self.pub_key
 
         # Now write a file so we can upload it
         file_content = "test_get_key_post_and_get_file"
@@ -258,13 +230,7 @@ class APITests(TestCase):
 
     def test_post_empty_file(self):
         '''Ensure we accept zero byte files'''
-        response = self.client.get("http://testserver/api/request_key",
-                                   data={"key": settings.MASTER_API_KEY})
-
-        self.assertEqual(response.status_code, 200)
-        # Don't care what the key is, as long as it isn't blank
-        self.assertRegexpMatches(response.content, "\S+")
-        key = response.content
+        key = self.priv_key
 
         file_content = ""
         self._send_file('http://testserver/file_name', key, file_content)
@@ -280,16 +246,8 @@ class APITests(TestCase):
         self.assertNotEqual(response.status_code, 200)
 
     def test_post_no_file(self):
-        response = self.client.get("http://testserver/api/request_key",
-                                   data={"key": settings.MASTER_API_KEY})
-
-        self.assertEqual(response.status_code, 200)
-        # Don't care what the key is, as long as it isn't blank
-        self.assertRegexpMatches(response.content, "\S+")
-        key = response.content
-
         response = self.client.post(
-            "http://testserver/file_name", data={"key": key})
+            "http://testserver/file_name", data={"key": self.priv_key})
         self.assertEqual(response.status_code, 500)
 
     def test_post_file_no_key(self):
@@ -302,27 +260,3 @@ class APITests(TestCase):
         key = "%030x" % random.randrange(256 ** 15)
         file_content = "test_post_file_random_key"
         self._send_file("http://testserver/file_name", key, file_content, 500)
-
-    def test_api_delete_key(self):
-        response = self.client.get("http://testserver/api/request_key",
-                                   data={"key": settings.MASTER_API_KEY})
-
-        self.assertEqual(response.status_code, 200)
-        # Don't care what the key is, as long as it isn't blank
-        self.assertRegexpMatches(response.content, "\S+")
-        key = response.content
-
-        file_content = "test_api_delete_key"
-        self._send_file("http://testserver/file_name", key, file_content)
-
-        # Release the key, the files should be deleted
-        response = self.client.get("http://testserver/api/delete_key",
-                                   data={"key": key})
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(os.path.isfile(
-            os.path.join(settings.UPLOAD_PATH, key, "file_name")))
-
-        # Key shouldn't work after released
-        response = self.client.get("http://testserver/file_name",
-                                   data={"key": key})
-        self.assertNotEqual(response.status_code, 200)

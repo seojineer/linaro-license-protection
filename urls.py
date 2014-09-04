@@ -6,7 +6,8 @@ from django.contrib import admin
 admin.autodiscover()
 
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     url(r'^admin/', include(admin.site.urls)),
 
     # Use "linaro-openid" to allow peaceful coexistence of both
@@ -51,12 +52,6 @@ urlpatterns = patterns('',
 
     url(r'^api/license/(?P<path>.*)$',
         'license_protected_downloads.api.v1.get_license_api'),
-
-    url(r'^api/request_key$',
-        'license_protected_downloads.api.v1.api_request_key'),
-
-    url(r'^api/delete_key$',
-        'license_protected_downloads.api.v1.api_delete_key'),
 
     # Catch-all. We always return a file (or try to) if it exists.
     # This handler does that.
