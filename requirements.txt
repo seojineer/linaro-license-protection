@@ -6,6 +6,7 @@ pep8
 pyflakes
 python-openid
 requests
+South==0.7.3
 textile
 
 mock
