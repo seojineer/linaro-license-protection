@@ -4,7 +4,10 @@ from license_protected_downloads.tests.test_buildinfo import (
     )
 from license_protected_downloads.tests.test_splicebuildinfos \
   import SpliceBuildInfosTests
-from license_protected_downloads.tests.test_models import LicenseTestCase
+from license_protected_downloads.tests.test_models import (
+    LicenseTestCase,
+    APITokenTests,
+)
 from license_protected_downloads.tests.test_pep8 import TestPep8
 from license_protected_downloads.tests.test_pyflakes import TestPyflakes
 from license_protected_downloads.tests.test_pyflakes import TestPyflakes
@@ -30,6 +33,7 @@ from license_protected_downloads.tests.test_render_text_files \
 __test__ = {
     'CommonTests': CommonTests,
     'APITests': APITests,
+    'APITokenTests': APITokenTests,
     'BuildInfoTests': BuildInfoTests,
     'SpliceBuildInfosTests': SpliceBuildInfosTests,
     'FileNameMatchingTests': FileNameMatchingTests,

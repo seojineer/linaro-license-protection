@@ -10,5 +10,6 @@ class APIKeyStoreAdmin(admin.ModelAdmin):
 
 
 admin.site.register(models.APIKeyStore, APIKeyStoreAdmin)
+admin.site.register(models.APIToken)
 admin.site.register(models.APILog)
 admin.site.register(models.License)

@@ -1,3 +1,6 @@
+import datetime
+import uuid
+
 from django.db import models
 
 
@@ -37,6 +40,25 @@ class APIKeyStore(models.Model):
 
     def __unicode__(self):
         return '%s: %s' % (self.description, self.public)
+
+
+class APIToken(models.Model):
+    '''Represents an API token that will be valid under certain restrictions'''
+    token = models.CharField(primary_key=True, max_length=40)
+    key = models.ForeignKey(APIKeyStore)
+    expires = models.DateTimeField(
+        blank=True, null=True, help_text='Limit the duration of this token')
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = str(uuid.uuid4())
+        return super(APIToken, self).save(*args, **kwargs)
+
+    def valid_request(self, request):
+        if self.expires and self.expires < datetime.datetime.now():
+                return False
+
+        return True
 
 
 class APILog(models.Model):
