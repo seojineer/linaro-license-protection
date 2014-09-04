@@ -36,6 +36,21 @@ def upload_target_path(path, key, public):
     return safe_path_join(base_path, path)
 
 
+def do_upload(infd, path, api_key):
+    path = upload_target_path(
+        path, api_key.key, public=api_key.public)
+
+    # Create directory if required
+    dirname = os.path.dirname(path)
+    if not os.path.isdir(dirname):
+        os.makedirs(dirname)
+
+    with open(path, "wb") as destination:
+        for chunk in infd.chunks():
+            destination.write(chunk)
+
+
+
 @csrf_exempt
 def file_server_post(request, path):
     """ Handle post requests.
@@ -58,19 +73,7 @@ def file_server_post(request, path):
         return HttpResponseServerError("Invalid call")
 
     APILog.mark(request, 'FILE_UPLOAD', api_key)
-
-    path = upload_target_path(
-        path, request.POST["key"], public=api_key.public)
-
-    # Create directory if required
-    dirname = os.path.dirname(path)
-    if not os.path.isdir(dirname):
-        os.makedirs(dirname)
-
-    with open(path, "wb") as destination:
-        for chunk in request.FILES["file"].chunks():
-            destination.write(chunk)
-
+    do_upload(request.FILES['file'], path, api_key)
     return HttpResponse("OK")
 
 

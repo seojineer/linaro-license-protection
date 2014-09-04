@@ -5,6 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
+from license_protected_downloads.api.v1 import do_upload
 from license_protected_downloads.models import (
     APIKeyStore,
     APILog,
@@ -97,3 +98,39 @@ class TokenResource(RestResource):
 @csrf_exempt
 def token(request, token):
     return TokenResource(request, token).handle()
+
+
+class PublishResource(RestResource):
+    def __init__(self, request, path):
+        super(PublishResource, self).__init__(request)
+        self.path = path
+
+    def authenticate(self):
+        if 'HTTP_AUTHTOKEN' not in self.request.META:
+            APILog.mark(self.request, 'INVALID_KEY_MISSING')
+            raise RestException('Missing api token', 401)
+        try:
+            token = APIToken.objects.get(
+                token=self.request.META['HTTP_AUTHTOKEN'])
+            if not token.valid_request(self.request):
+                raise RestException('Token no longer valid', 401)
+            self.api_key = token.key
+        except APIToken.DoesNotExist:
+            APILog.mark(self.request, 'INVALID_KEY')
+            raise RestException('Invalid api token', 401)
+
+    def POST(self):
+        if 'file' not in self.request.FILES or not self.path:
+            APILog.mark(self.request, 'INVALID_ARGUMENTS', self.api_key)
+            raise RestException('Invalid Arguments', 401)
+
+        APILog.mark(self.request, 'FILE_UPLOAD', self.api_key)
+        do_upload(self.request.FILES['file'], self.path, self.api_key)
+        resp = HttpResponse(status=201)
+        resp['Location'] = self.path
+        return resp
+
+
+@csrf_exempt
+def publish(request, path):
+    return PublishResource(request, path).handle()
