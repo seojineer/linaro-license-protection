@@ -17,7 +17,7 @@ def token_as_dict(token):
     expires = token.expires
     if expires:
         expires = expires.isoformat()
-    return {'id': token.token, 'expires': expires}
+    return {'id': token.token, 'expires': expires, 'ip': token.ip}
 
 
 class RestException(Exception):
@@ -88,8 +88,9 @@ class TokenResource(RestResource):
         return expires
 
     def POST(self):
+        ip = self.request.POST.get('ip', None)
         token = APIToken.objects.create(
-            key=self.api_key, expires=self._parse_expires())
+            key=self.api_key, expires=self._parse_expires(), ip=ip)
         response = HttpResponse(status=201)
         response['Location'] = self.request.path + token.token
         return response

@@ -66,6 +66,18 @@ class APIv2Tests(TestCase):
         self.assertEqual(
             expires.isoformat(), json.loads(resp.content)['expires'])
 
+    def test_token_create_ip(self):
+        data = {'ip': 'foo'}
+        resp = self.client.post(
+            '/api/v2/token/', data=data, HTTP_AUTHTOKEN=self.api_key.key)
+        self.assertEqual(201, resp.status_code)
+
+        # get it to verify
+        resp = self.client.get(
+            resp['Location'], HTTP_AUTHTOKEN=self.api_key.key)
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(data['ip'], json.loads(resp.content)['ip'])
+
     def test_token_create_int_expire(self):
         data = {'expires': 60}
         resp = self.client.post(
@@ -90,6 +102,15 @@ class APIv2Tests(TestCase):
         token = APIToken.objects.create(key=self.api_key, expires=expires)
         resp = self.client.post(
             '/api/v2/publish/a', HTTP_AUTHTOKEN=token.token)
+        self.assertEqual(401, resp.status_code)
+
+    def test_publish_ip_token(self):
+        token = APIToken.objects.create(key=self.api_key, ip='127.0.0.1').token
+        self._send_file('/api/v2/publish/foo', token, 'content')
+
+    def test_publish_bad_ip_token(self):
+        token = APIToken.objects.create(key=self.api_key, ip='foo').token
+        resp = self.client.post('/api/v2/publish/a', HTTP_AUTHTOKEN=token)
         self.assertEqual(401, resp.status_code)
 
     def _send_file(self, url, token, content, resp_code=201):
