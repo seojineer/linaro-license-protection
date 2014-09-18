@@ -61,6 +61,9 @@ class APIToken(models.Model):
     key = models.ForeignKey(APIKeyStore)
     expires = models.DateTimeField(
         blank=True, null=True, help_text='Limit the duration of this token')
+    not_valid_til = models.DateTimeField(
+        blank=True, null=True,
+        help_text='Prevent this token from being immediately available')
     ip = ip_field(required=False)
 
     def save(self, *args, **kwargs):
@@ -70,6 +73,8 @@ class APIToken(models.Model):
 
     def valid_request(self, request):
         if self.expires and self.expires < datetime.datetime.now():
+            return False
+        if self.not_valid_til and self.not_valid_til > datetime.datetime.now():
             return False
         if self.ip and get_ip(request) != self.ip:
             return False

@@ -17,7 +17,15 @@ def token_as_dict(token):
     expires = token.expires
     if expires:
         expires = expires.isoformat()
-    return {'id': token.token, 'expires': expires, 'ip': token.ip}
+    not_valid_til = token.not_valid_til
+    if not_valid_til:
+        not_valid_til = not_valid_til.isoformat()
+    return {
+        'id': token.token,
+        'not_valid_til': not_valid_til,
+        'expires': expires,
+        'ip': token.ip
+    }
 
 
 class RestException(Exception):
@@ -73,24 +81,25 @@ class TokenResource(RestResource):
                 data.append(token_as_dict(token))
         return HttpResponse(json.dumps(data), content_type='application/json')
 
-    def _parse_expires(self):
-        expires = None
-        if 'expires' in self.request.POST:
-            expires = self.request.POST['expires']
-            if expires.isdigit():
+    def _parse_time(self, field):
+        ts = None
+        if field in self.request.POST:
+            ts = self.request.POST[field]
+            if ts.isdigit():
                 # accept a time in seconds for expiration
-                expires = datetime.datetime.now() + datetime.timedelta(
-                    seconds=int(expires))
+                ts = datetime.datetime.now() + datetime.timedelta(
+                    seconds=int(ts))
             else:
                 # accept ISO8601 formatted datetime
-                expires = datetime.datetime.strptime(
-                    expires, '%Y-%m-%dT%H:%M:%S.%f')
-        return expires
+                ts = datetime.datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S.%f')
+        return ts
 
     def POST(self):
         ip = self.request.POST.get('ip', None)
         token = APIToken.objects.create(
-            key=self.api_key, expires=self._parse_expires(), ip=ip)
+            key=self.api_key, ip=ip,
+            expires=self._parse_time('expires'),
+            not_valid_til=self._parse_time('not_valid_til'))
         response = HttpResponse(status=201)
         response['Location'] = self.request.path + token.token
         return response

@@ -66,6 +66,20 @@ class APIv2Tests(TestCase):
         self.assertEqual(
             expires.isoformat(), json.loads(resp.content)['expires'])
 
+    def test_token_create_not_valid_til(self):
+        ts = datetime.datetime.now() + datetime.timedelta(minutes=1)
+        data = {'not_valid_til': ts.isoformat()}
+        resp = self.client.post(
+            '/api/v2/token/', data=data, HTTP_AUTHTOKEN=self.api_key.key)
+        self.assertEqual(201, resp.status_code)
+
+        # get it to verify
+        resp = self.client.get(
+            resp['Location'], HTTP_AUTHTOKEN=self.api_key.key)
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(
+            ts.isoformat(), json.loads(resp.content)['not_valid_til'])
+
     def test_token_create_ip(self):
         data = {'ip': 'foo'}
         resp = self.client.post(
@@ -100,6 +114,13 @@ class APIv2Tests(TestCase):
     def test_publish_expired_token(self):
         expires = datetime.datetime.now() - datetime.timedelta(minutes=1)
         token = APIToken.objects.create(key=self.api_key, expires=expires)
+        resp = self.client.post(
+            '/api/v2/publish/a', HTTP_AUTHTOKEN=token.token)
+        self.assertEqual(401, resp.status_code)
+
+    def test_publish_not_valid_til_token(self):
+        ts = datetime.datetime.now() + datetime.timedelta(minutes=1)
+        token = APIToken.objects.create(key=self.api_key, not_valid_til=ts)
         resp = self.client.post(
             '/api/v2/publish/a', HTTP_AUTHTOKEN=token.token)
         self.assertEqual(401, resp.status_code)
