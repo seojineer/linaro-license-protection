@@ -1,7 +1,0 @@
-# Set up SSH publishing infrastructure on "snapshots" hosts.
-- hosts: publishers
-  gather_facts: no
-  vars:
-  - www_dir: /srv/staging.snapshots.linaro.org/www/
-  roles:
-  - publish-ssh

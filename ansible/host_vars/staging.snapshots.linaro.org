@@ -1,3 +1,0 @@
-hostname: staging.snapshots.linaro.org
-nickname: staging-snapshots
-django_settings: settings_staging_snapshots
