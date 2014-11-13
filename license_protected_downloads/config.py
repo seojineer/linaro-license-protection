@@ -2,8 +2,8 @@
 
 # Let internal hosts through always.
 INTERNAL_HOSTS = (
-    '50.17.250.69',  # android-build.linaro.org
-    '88.98.47.97',  # validation.linaro.org
+    '54.225.81.132'   # android-build.linaro.org
+    '81.128.185.50',  # validation.linaro.org
 )
 
 WHITELIST = (
