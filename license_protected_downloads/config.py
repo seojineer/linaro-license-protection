@@ -2,7 +2,7 @@
 
 # Let internal hosts through always.
 INTERNAL_HOSTS = (
-    '54.225.81.132'   # android-build.linaro.org
+    '54.225.81.132',  # android-build.linaro.org
     '81.128.185.50',  # lab.validation.linaro.org
 )
 
