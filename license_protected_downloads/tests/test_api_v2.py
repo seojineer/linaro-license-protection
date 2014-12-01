@@ -172,3 +172,17 @@ class APIv2Tests(TestCase):
         resp = self.client.get('/a/b')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(content, open(resp['X-Sendfile']).read())
+
+    def test_publish_no_overwrite(self):
+        content = 'foo bar'
+        token = APIToken.objects.create(key=self.api_key).token
+        self._send_file('/api/v2/publish/a', token, content)
+        self._send_file('/api/v2/publish/a', token, 'bad content', 403)
+
+        # add a build-info and see if the file works
+        info = 'Format-Version: 0.5\n\nFiles-Pattern: *\nLicense-Type: open\n'
+        self._send_file('/api/v2/publish/BUILD-INFO.txt', token, info)
+
+        resp = self.client.get('/a')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(content, open(resp['X-Sendfile']).read())

@@ -14,17 +14,18 @@ from django.test import Client, TestCase
 from license_protected_downloads.models import APIKeyStore
 from license_protected_downloads.tests.test_views import ViewTests
 
-THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-TESTSERVER_ROOT = os.path.join(THIS_DIRECTORY, "testserver_root")
-
 
 class APITests(TestCase):
     def setUp(self):
         self.client = Client()
 
-        path = os.path.join(os.path.dirname(__file__), 'testserver_root')
+        src = os.path.join(os.path.dirname(__file__), 'testserver_root')
+        self.pub_path = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.pub_path)
+        self.pub_path = os.path.join(self.pub_path, 'testserver_root')
+        shutil.copytree(src, self.pub_path, True)
         m = mock.patch('django.conf.settings.SERVED_PATHS',
-                       new_callable=lambda: [path])
+                       new_callable=lambda: [self.pub_path])
         self.addCleanup(m.stop)
         m.start()
 
@@ -95,7 +96,7 @@ class APITests(TestCase):
         response = self.client.get(url, follow=True,
                                    HTTP_LICENSE_ACCEPTED=digest)
         self.assertEqual(response.status_code, 200)
-        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        file_path = os.path.join(self.pub_path, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)
 
     def test_api_download_file_multi_license(self):
@@ -108,7 +109,7 @@ class APITests(TestCase):
             url, follow=True,
             HTTP_LICENSE_ACCEPTED=" ".join([digest_1, digest_2]))
         self.assertEqual(response.status_code, 200)
-        file_path = os.path.join(TESTSERVER_ROOT, target_file)
+        file_path = os.path.join(self.pub_path, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)
 
     def test_api_download_file_404(self):
@@ -129,7 +130,7 @@ class APITests(TestCase):
 
         # For each file listed, check some key attributes
         for file_info in data:
-            file_path = os.path.join(TESTSERVER_ROOT,
+            file_path = os.path.join(self.pub_path,
                                      file_info["url"].lstrip("/"))
             if file_info["type"] == "folder":
                 self.assertTrue(os.path.isdir(file_path))
@@ -152,7 +153,7 @@ class APITests(TestCase):
 
         # For each file listed, check some key attributes
         for file_info in data:
-            file_path = os.path.join(TESTSERVER_ROOT,
+            file_path = os.path.join(self.pub_path,
                                      file_info["url"].lstrip("/"))
             if file_info["type"] == "folder":
                 self.assertTrue(os.path.isdir(file_path))
@@ -227,6 +228,29 @@ class APITests(TestCase):
         # Test we can fetch the newly uploaded file
         response = self.client.get("http://testserver/pub/file_name")
         self.assertEqual(response.status_code, 200)
+
+    def test_post_build_info(self):
+        '''don't allow overwriting this file'''
+        key = self.pub_key
+
+        content = "\n".join([
+            "Format-Version: 0.1",
+            "Files-Pattern: *",
+            "Build-Name: test",
+            "License-Type: open"])
+
+        self._send_file('http://testserver/pub/BUILD-INFO.txt', key, content)
+        self._send_file(
+            'http://testserver/pub/BUILD-INFO.txt', key, content, 403)
+
+    @mock.patch('license_protected_downloads.models.APILog.mark')
+    def test_overwrite(self, api_log_mark):
+        '''make sure we can overwrite a file, but log something'''
+        key = self.pub_key
+        self._send_file('http://testserver/pub/foo', key, 'foo')
+        self._send_file('http://testserver/pub/foo', key, 'foo')
+        self.assertEqual(
+            'FILE_OVERWRITE_ALLOWED', api_log_mark.call_args_list[-2][0][1])
 
     def test_post_empty_file(self):
         '''Ensure we accept zero byte files'''

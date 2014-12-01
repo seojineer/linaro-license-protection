@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from license_protected_downloads.api.v1 import do_upload
+from license_protected_downloads.api.v1 import do_upload, HttpResponseError
 from license_protected_downloads.models import (
     APIKeyStore,
     APILog,
@@ -28,12 +28,6 @@ def token_as_dict(token):
     }
 
 
-class RestException(Exception):
-    def __init__(self, msg, status):
-        super(RestException, self).__init__(msg)
-        self.http_response = HttpResponse(msg, status=status)
-
-
 class RestResource(object):
     def __init__(self, request):
         self.request = request
@@ -49,7 +43,7 @@ class RestResource(object):
         try:
             self.authenticate()
             return method()
-        except RestException as e:
+        except HttpResponseError as e:
             return e.http_response
         except ObjectDoesNotExist:
             return HttpResponse(status=404)
@@ -63,13 +57,13 @@ class TokenResource(RestResource):
     def authenticate(self):
         if 'HTTP_AUTHTOKEN' not in self.request.META:
             APILog.mark(self.request, 'INVALID_KEY_MISSING')
-            raise RestException('Missing authentication key', 401)
+            raise HttpResponseError('Missing authentication key', 401)
         try:
             self.api_key = APIKeyStore.objects.get(
                 key=self.request.META['HTTP_AUTHTOKEN'])
         except APIKeyStore.DoesNotExist:
             APILog.mark(self.request, 'INVALID_KEY')
-            raise RestException('Invalid Key', 401)
+            raise HttpResponseError('Invalid Key', 401)
 
     def GET(self):
         APILog.mark(self.request, 'TOKEN_GET', self.api_key)
@@ -118,24 +112,25 @@ class PublishResource(RestResource):
     def authenticate(self):
         if 'HTTP_AUTHTOKEN' not in self.request.META:
             APILog.mark(self.request, 'INVALID_KEY_MISSING')
-            raise RestException('Missing api token', 401)
+            raise HttpResponseError('Missing api token', 401)
         try:
             token = APIToken.objects.get(
                 token=self.request.META['HTTP_AUTHTOKEN'])
             if not token.valid_request(self.request):
-                raise RestException('Token no longer valid', 401)
+                raise HttpResponseError('Token no longer valid', 401)
             self.api_key = token.key
         except APIToken.DoesNotExist:
             APILog.mark(self.request, 'INVALID_KEY')
-            raise RestException('Invalid api token', 401)
+            raise HttpResponseError('Invalid api token', 401)
 
     def POST(self):
         if 'file' not in self.request.FILES or not self.path:
             APILog.mark(self.request, 'INVALID_ARGUMENTS', self.api_key)
-            raise RestException('Invalid Arguments', 401)
+            raise HttpResponseError('Invalid Arguments', 401)
 
         APILog.mark(self.request, 'FILE_UPLOAD', self.api_key)
-        do_upload(self.request.FILES['file'], self.path, self.api_key)
+        do_upload(self.request, self.request.FILES['file'],
+                  self.path, self.api_key)
         resp = HttpResponse(status=201)
         resp['Location'] = self.path
         return resp
