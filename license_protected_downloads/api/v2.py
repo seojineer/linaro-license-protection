@@ -1,11 +1,16 @@
 import datetime
 import json
+import os
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from license_protected_downloads.api.v1 import do_upload, HttpResponseError
+from license_protected_downloads.api.v1 import (
+    HttpResponseError,
+    do_upload,
+    upload_target_path,
+)
 from license_protected_downloads.models import (
     APIKeyStore,
     APILog,
@@ -139,3 +144,40 @@ class PublishResource(RestResource):
 @csrf_exempt
 def publish(request, path):
     return PublishResource(request, path).handle()
+
+
+class LatestLinkResource(PublishResource):
+    def POST(self):
+        if not self.path:
+            APILog.mark(self.request, 'INVALID_ARGUMENTS', self.api_key)
+            raise HttpResponseError('Invalid Arguments', 401)
+
+        src = upload_target_path(
+            self.path, self.api_key.key, self.api_key.public)
+        if not os.path.isdir(src):
+            APILog.mark(self.request, 'INVALID_ARGUMENTS', self.api_key)
+            raise HttpResponseError('Target does not exist: ' + self.path, 404)
+
+        link_name = self.request.POST.get('linkname', 'latest')
+        if link_name not in ('latest', 'lastSuccessful'):
+            APILog.mark(self.request, 'INVALID_ARGUMENTS', self.api_key)
+            raise HttpResponseError('Invalid link name', 401)
+
+        dst = os.path.join(os.path.dirname(src), link_name)
+        if os.path.exists(dst):
+            if os.path.islink(dst):
+                os.unlink(dst)
+            else:
+                APILog.mark(self.request, 'INVALID_ARGUMENTS', self.api_key)
+                raise HttpResponseError('Invalid destination', 404)
+
+        os.symlink(src, dst)
+
+        resp = HttpResponse(status=201)
+        resp['Location'] = dst
+        return resp
+
+
+@csrf_exempt
+def link_latest(request, path):
+    return LatestLinkResource(request, path).handle()

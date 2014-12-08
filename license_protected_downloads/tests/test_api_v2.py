@@ -1,11 +1,13 @@
 import datetime
 import json
+import os
 import shutil
 import tempfile
 import StringIO
 
 import mock
 
+import django.conf
 from django.test import Client, TestCase
 
 from license_protected_downloads.models import (
@@ -186,3 +188,52 @@ class APIv2Tests(TestCase):
         resp = self.client.get('/a')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(content, open(resp['X-Sendfile']).read())
+
+    def test_link_latest_simple(self):
+        token = APIToken.objects.create(key=self.api_key).token
+        self._send_file('/api/v2/publish/buildX/a', token, 'content')
+
+        resp = self.client.post(
+            '/api/v2/link_latest/buildX', HTTP_AUTHTOKEN=token)
+        self.assertEqual(201, resp.status_code)
+
+    def test_link_latest_bad(self):
+        token = APIToken.objects.create(key=self.api_key).token
+        resp = self.client.post(
+            '/api/v2/link_latest/buildY', HTTP_AUTHTOKEN=token)
+        self.assertEqual(404, resp.status_code)
+
+    def test_link_latest_exists(self):
+        path = django.conf.settings.SERVED_PATHS[0]
+        build = os.path.join(path, 'buildX')
+        latest = os.path.join(path, 'latest')
+
+        os.mkdir(build)
+        os.symlink(build, latest)
+        token = APIToken.objects.create(key=self.api_key).token
+        resp = self.client.post(
+            '/api/v2/link_latest/buildX', HTTP_AUTHTOKEN=token)
+        self.assertEqual(201, resp.status_code)
+
+        # make sure we can't link if a real directory exists by that name
+        os.unlink(latest)
+        os.mkdir(latest)
+        resp = self.client.post(
+            '/api/v2/link_latest/buildX', HTTP_AUTHTOKEN=token)
+        self.assertEqual(404, resp.status_code)
+
+    def test_link_latest_alt(self):
+        token = APIToken.objects.create(key=self.api_key).token
+        self._send_file('/api/v2/publish/buildX/a', token, 'content')
+
+        # ensure bad link name is caught
+        resp = self.client.post(
+            '/api/v2/link_latest/buildX', data={'linkname': 'foo'},
+            HTTP_AUTHTOKEN=token)
+        self.assertEqual(401, resp.status_code)
+
+        resp = self.client.post(
+            '/api/v2/link_latest/buildX',
+            data={'linkname': 'lastSuccessful'},
+            HTTP_AUTHTOKEN=token)
+        self.assertEqual(201, resp.status_code)
