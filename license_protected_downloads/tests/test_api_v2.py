@@ -197,6 +197,20 @@ class APIv2Tests(TestCase):
             '/api/v2/link_latest/buildX', HTTP_AUTHTOKEN=token)
         self.assertEqual(201, resp.status_code)
 
+    def test_link_latest_trailing_slash(self):
+        token = APIToken.objects.create(key=self.api_key).token
+        self._send_file('/api/v2/publish/build/X/a', token, 'content')
+
+        info = 'Format-Version: 0.5\n\nFiles-Pattern: *\nLicense-Type: open\n'
+        self._send_file('/api/v2/publish/build/X/BUILD-INFO.txt', token, info)
+
+        resp = self.client.post(
+            '/api/v2/link_latest/build/X/', HTTP_AUTHTOKEN=token)
+        self.assertEqual(201, resp.status_code)
+        resp = self.client.get('/build/latest/a')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual('content', open(resp['X-Sendfile']).read())
+
     def test_link_latest_bad(self):
         token = APIToken.objects.create(key=self.api_key).token
         resp = self.client.post(

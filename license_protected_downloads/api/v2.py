@@ -154,6 +154,8 @@ class LatestLinkResource(PublishResource):
 
         src = upload_target_path(
             self.path, self.api_key.key, self.api_key.public)
+        if src[-1] == '/':   # os.path.dirname means a different thing with /
+            src = src[:-1]
         if not os.path.isdir(src):
             APILog.mark(self.request, 'INVALID_ARGUMENTS', self.api_key)
             raise HttpResponseError('Target does not exist: ' + self.path, 404)
@@ -172,6 +174,7 @@ class LatestLinkResource(PublishResource):
                 raise HttpResponseError('Invalid destination', 404)
 
         os.symlink(src, dst)
+        APILog.mark(self.request, 'LINK_LATEST', self.api_key)
 
         resp = HttpResponse(status=201)
         resp['Location'] = dst
