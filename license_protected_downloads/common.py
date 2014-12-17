@@ -1,3 +1,4 @@
+import fnmatch
 import glob
 import hashlib
 import logging
@@ -8,6 +9,7 @@ import re
 from datetime import datetime
 
 from django.conf import settings
+from django.http import Http404
 
 from license_protected_downloads import(
     buildinfo,
@@ -128,6 +130,24 @@ def is_protected(path):
     return digests
 
 
+def _handle_wildcard(request, fullpath):
+    path, name = os.path.split(fullpath)
+
+    if not os.path.isdir(path):
+        return None
+
+    match = None
+    for f in os.listdir(path):
+        if fnmatch.fnmatch(f, name):
+            if match:
+                # change request.path so that the 404.html page can show
+                # a descriptive error
+                request.path = 'Multiple files match this expression'
+                raise Http404
+            match = os.path.join(path, f)
+    return match
+
+
 def test_path(path, request):
     """Check that path points to something we can serve up.
     """
@@ -152,6 +172,10 @@ def test_path(path, request):
             return ("file", fullpath)
         if os.path.isdir(fullpath):
             return ("dir", fullpath)
+
+        fullpath = _handle_wildcard(request, fullpath)
+        if fullpath:
+            return ('file', fullpath)
 
 
 def _hidden_file(file_name):

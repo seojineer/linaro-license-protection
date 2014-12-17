@@ -313,6 +313,27 @@ class ViewTests(BaseServeViewTest):
         response = self.client.get(url, follow=True)
         self.assertContains(response, "not found", status_code=404)
 
+    def test_wildcard_found(self):
+        url = 'http://testserver/~linaro-android/staging-panda/te*.txt'
+        resp = self.client.get(url, follow=True)
+        self.assertEquals(200, resp.status_code)
+
+        # test the single character match "?" which is urlencoded as %3f
+        url = 'http://testserver/~linaro-android/staging-panda/te%3ft.txt'
+        resp = self.client.get(url, follow=True)
+        self.assertEquals(200, resp.status_code)
+
+    def test_wildcard_multiple(self):
+        url = 'http://testserver/~linaro-android/staging-panda/*.txt'
+        resp = self.client.get(url, follow=True)
+        self.assertEquals(404, resp.status_code)
+
+    def test_wildcard_protected(self):
+        url = 'https://testserver/~linaro-android/staging-origen/te*.txt'
+        resp = self.client.get(url)
+        self.assertEquals(302, resp.status_code)
+        self.assertIn('license?lic=', resp['Location'])
+
     def test_unprotected_BUILD_INFO(self):
         target_file = 'build-info/panda-open.txt'
         url = urlparse.urljoin("http://testserver/", target_file)
