@@ -248,9 +248,9 @@ class APITests(TestCase):
         '''make sure we can overwrite a file, but log something'''
         key = self.pub_key
         self._send_file('http://testserver/pub/foo', key, 'foo')
-        self._send_file('http://testserver/pub/foo', key, 'foo')
+        self._send_file('http://testserver/pub/foo', key, 'foo', 403)
         self.assertEqual(
-            'FILE_OVERWRITE_ALLOWED', api_log_mark.call_args_list[-2][0][1])
+            'FILE_OVERWRITE_DENIED', api_log_mark.call_args_list[-2][0][1])
 
     def test_post_empty_file(self):
         '''Ensure we accept zero byte files'''

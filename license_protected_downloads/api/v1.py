@@ -42,16 +42,13 @@ def upload_target_path(path, key, public):
     return safe_path_join(base_path, path)
 
 
-def do_upload(request, infd, path, api_key, allow_overwrite=False):
+def do_upload(request, infd, path, api_key):
     path = upload_target_path(
         path, api_key.key, public=api_key.public)
 
     if os.path.exists(path):
-        if allow_overwrite:
-            APILog.mark(request, 'FILE_OVERWRITE_ALLOWED')
-        else:
-            APILog.mark(request, 'FILE_OVERWRITE_DENIED')
-            raise HttpResponseError('File already exists', 403)
+        APILog.mark(request, 'FILE_OVERWRITE_DENIED')
+        raise HttpResponseError('File already exists', 403)
 
     # Create directory if required
     dirname = os.path.dirname(path)
@@ -85,10 +82,7 @@ def file_server_post(request, path):
         return HttpResponseServerError("Invalid call")
 
     try:
-        overwrite = True
-        if os.path.basename(path) == 'BUILD-INFO.txt':
-            overwrite = False
-        do_upload(request, request.FILES['file'], path, api_key, overwrite)
+        do_upload(request, request.FILES['file'], path, api_key)
         APILog.mark(request, 'FILE_UPLOAD', api_key)
     except HttpResponseError as e:
         APILog.mark(request, 'FILE_UPLOAD_FAIL', api_key)
