@@ -115,7 +115,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django_openid_auth',
     'south',
-    ROOT_DIR + '.license_protected_downloads',
+    'license_protected_downloads',
 )
 
 AUTHENTICATION_BACKENDS = (
