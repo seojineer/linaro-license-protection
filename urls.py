@@ -1,5 +1,9 @@
 from django.conf import settings
-from django.conf.urls.defaults import patterns, include, url
+try:
+    from django.conf.urls.defaults import patterns, include, url
+except:
+    # django >= 1.6
+    from django.conf.urls import patterns, include, url
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin

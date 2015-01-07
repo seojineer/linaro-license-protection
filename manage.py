@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-from django.core.management import execute_manager
 import imp
+import sys
+
+import django.core.management
+
 try:
     imp.find_module('settings')
 except ImportError:
-    import sys
     sys.stderr.write(
         "Error: Can't find the file 'settings.py' in the directory "
         "containing %r. It appears you've customized things.\n"
@@ -15,4 +17,9 @@ except ImportError:
 import settings
 
 if __name__ == "__main__":
-    execute_manager(settings)
+    if getattr(django.core.management, 'execute_manager', None):
+        # django < 1.4
+        django.core.management.execute_manager(settings)
+    else:
+        # django >= 1.4
+        django.core.management.execute_from_command_line(sys.argv)
