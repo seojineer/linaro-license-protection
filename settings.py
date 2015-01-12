@@ -99,7 +99,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = ROOT_DIR + '.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
     os.path.join(PROJECT_ROOT, "templates"),
@@ -142,6 +142,7 @@ OPENID_LAUNCHPAD_TEAMS_MAPPING_AUTO = True
 OPENID_FOLLOW_RENAMES = True
 OPENID_USE_AS_ADMIN_LOGIN = True
 OPENID_USE_EMAIL_FOR_USERNAME = True
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 ATLASSIAN_CROWD_API_URL = \
     "https://login.linaro.org:8443/crowd/rest/usermanagement/1"

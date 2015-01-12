@@ -1,4 +1,6 @@
 from django.conf import settings
+from django.views.generic import RedirectView
+
 try:
     from django.conf.urls.defaults import patterns, include, url
 except:
@@ -19,7 +21,7 @@ urlpatterns = patterns(
     # same server.  When we get rid of apache openid protection,
     # we can go back to using just "openid" here.
     url(r'^linaro-openid/', include('django_openid_auth.urls')),
-    url(r'^login/?$', 'django.views.generic.simple.redirect_to', {'url': 'linaro-openid/login/'}),
+    url(r'^login/?$', RedirectView.as_view(url='/linaro-openid/login/')),
     url(r'^logout/?$', 'django.contrib.auth.views.logout'),
 
     # Handle JS libs and CSS.
