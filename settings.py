@@ -239,12 +239,6 @@ TAB_PRIORITY = ['Release Notes',
                 'RTSM',
                 'OpenJDK']
 
-SUPPORTED_REMOTE_STATIC_FILES = {
-    "linarofamily.js": "http://www.linaro.org/remote/js/linarofamily.js",
-    "init.css": "http://www.linaro.org/remote/css/init.css",
-    "remote.css": "http://www.linaro.org/remote/css/remote.css",
-}
-
 MASTER_API_KEY = ""
 
 # Try to import local_settings. If it doesn't exist, generate it. It contains
