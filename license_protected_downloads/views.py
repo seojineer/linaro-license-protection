@@ -151,6 +151,7 @@ def show_license(request):
                               {'license': lic,
                                'url': request.GET['url'],
                                'revno': settings.VERSION,
+                               'base_page': settings.BASE_PAGE,
                                },
                               context_instance=RequestContext(request))
 
@@ -219,6 +220,7 @@ def group_auth_failed_response(request, auth_groups):
          'authenticated': request.user.is_authenticated(),
          'groups_string': groups_string,
          'revno': settings.VERSION,
+         'base_page': settings.BASE_PAGE,
          })
 
     response.status_code = 403
@@ -308,6 +310,7 @@ def file_server_get(request, path):
                                    'up_dir': up_dir,
                                    'dl': download,
                                    'revno': settings.VERSION,
+                                   'base_page': settings.BASE_PAGE,
                                    'header_content': header_content,
                                    'request': request,
                                    'rendered_files': rendered_files

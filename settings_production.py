@@ -23,3 +23,8 @@ FILE_UPLOAD_TEMP_DIR = '/mnt/django-uploads'
 for p in SERVED_PATHS + [UPLOAD_PATH]:
     if not os.path.exists(p):
         os.mkdir(p)
+
+# allow local override of default page styling
+if os.path.exists(os.path.join(DEPLOYMENT_DIR, 'header_override.html')):
+    BASE_PAGE = 'header_override.html'
+    TEMPLATE_DIRS += (DEPLOYMENT_DIR,)

@@ -239,6 +239,8 @@ TAB_PRIORITY = ['Release Notes',
                 'RTSM',
                 'OpenJDK']
 
+BASE_PAGE = 'header.html'
+
 MASTER_API_KEY = ""
 
 # Try to import local_settings. If it doesn't exist, generate it. It contains
