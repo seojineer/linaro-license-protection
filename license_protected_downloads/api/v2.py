@@ -166,12 +166,11 @@ class LatestLinkResource(PublishResource):
             raise HttpResponseError('Invalid link name', 401)
 
         dst = os.path.join(os.path.dirname(src), link_name)
+        if os.path.islink(dst):
+            os.unlink(dst)
         if os.path.exists(dst):
-            if os.path.islink(dst):
-                os.unlink(dst)
-            else:
-                APILog.mark(self.request, 'INVALID_ARGUMENTS', self.api_key)
-                raise HttpResponseError('Invalid destination', 404)
+            APILog.mark(self.request, 'INVALID_ARGUMENTS', self.api_key)
+            raise HttpResponseError('Invalid destination', 404)
 
         os.symlink(src, dst)
         APILog.mark(self.request, 'LINK_LATEST', self.api_key)
