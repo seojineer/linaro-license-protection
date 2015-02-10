@@ -41,6 +41,8 @@
     <td align="center">
       {% if value.license_digest_list == "OPEN" %}
         <i>open</i>
+      {% elif value.license_digest_list == "INVALID" %}
+        <i>invalid</i>
       {% else %}
       {% for license in value.license_list %}
       {{ license.theme }}

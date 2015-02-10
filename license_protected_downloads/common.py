@@ -5,6 +5,7 @@ import logging
 import mimetypes
 import os
 import re
+import traceback
 
 from datetime import datetime
 
@@ -272,7 +273,12 @@ def dir_list(url, path, human_readable=True):
             size = _sizeof_fmt(size)
 
         pathname = os.path.join(path, name)
-        license_digest_list = is_protected(pathname)
+        try:
+            license_digest_list = is_protected(pathname)
+        except Exception as e:
+            print("Invalid BUILD-INFO.txt for %s: %s" % (pathname, repr(e)))
+            traceback.print_exc()
+            license_digest_list = "INVALID"
         license_list = models.License.objects.all_with_hashes(
             license_digest_list)
         listing.append({'name': name,
