@@ -191,6 +191,7 @@ UPLOAD_PATH = os.path.join(PROJECT_ROOT, "sample_upload_root")
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages',
     'django.contrib.auth.context_processors.auth',
+    'license_protected_downloads.context_processors.llp_common',
 )
 
 # Render TEXTILE files settings.

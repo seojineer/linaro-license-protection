@@ -11,7 +11,7 @@ from django.http import (
     HttpResponseForbidden,
     HttpResponseRedirect,
 )
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render, redirect
 from django.template import RequestContext
 from django.utils.encoding import smart_str, iri_to_uri
 from django.views.decorators.csrf import csrf_exempt
@@ -136,7 +136,7 @@ def accept_license(request):
                             max_age=60 * 60 * 24,
                             path="/" + os.path.dirname(file_url))
     else:
-        response = render_to_response('licenses/nolicense.html')
+        response = render(request, 'licenses/nolicense.html')
 
     return response
 
@@ -147,13 +147,8 @@ def show_license(request):
 
     lic = License.objects.filter(digest=request.GET['lic']).get()
 
-    return render_to_response('licenses/' + lic.theme + '.html',
-                              {'license': lic,
-                               'url': request.GET['url'],
-                               'revno': settings.VERSION,
-                               'base_page': settings.BASE_PAGE,
-                               },
-                              context_instance=RequestContext(request))
+    return render(request, 'licenses/' + lic.theme + '.html',
+                  {'license': lic, 'url': request.GET['url']})
 
 
 def redirect_to_root(request):
@@ -214,14 +209,11 @@ def group_auth_failed_response(request, auth_groups):
     else:
         groups_string = "the " + auth_groups[0] + " group"
 
-    response = render_to_response(
-        'openid_forbidden_template.html',
-        {'login': settings.LOGIN_URL + "?next=" + request.path,
-         'authenticated': request.user.is_authenticated(),
-         'groups_string': groups_string,
-         'revno': settings.VERSION,
-         'base_page': settings.BASE_PAGE,
-         })
+    response = render(request, 'openid_forbidden_template.html',
+                      {'login': settings.LOGIN_URL + "?next=" + request.path,
+                       'authenticated': request.user.is_authenticated(),
+                       'groups_string': groups_string,
+                       })
 
     response.status_code = 403
     return response
@@ -274,7 +266,7 @@ def file_server_get(request, path):
                         break
             except GroupAuthError:
                 log.exception("GroupAuthError")
-                response = render_to_response('group_auth_failure.html')
+                response = render(request, 'group_auth_failure.html')
                 response.status_code = 500
                 return response
 
@@ -305,16 +297,14 @@ def file_server_get(request, path):
                 rendered_files = {}
             rendered_files["Git Descriptions"] = render_descriptions(path)
 
-        return render_to_response('dir_template.html',
-                                  {'dirlist': dir_list(url, path),
-                                   'up_dir': up_dir,
-                                   'dl': download,
-                                   'revno': settings.VERSION,
-                                   'base_page': settings.BASE_PAGE,
-                                   'header_content': header_content,
-                                   'request': request,
-                                   'rendered_files': rendered_files
-                                   })
+        return render(request, 'dir_template.html',
+                      {'dirlist': dir_list(url, path),
+                       'up_dir': up_dir,
+                       'dl': download,
+                       'header_content': header_content,
+                       'request': request,
+                       'rendered_files': rendered_files
+                       })
 
     # If the file listing doesn't contain the file requested for download,
     # return a 404. This prevents the download of BUILD-INFO.txt and other
