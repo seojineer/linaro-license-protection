@@ -185,6 +185,31 @@ LOGGING = {
     }
 }
 
+import django
+if django.VERSION < (1, 6):
+    # old django needs a hack to not send emails for ALLOWED_HOSTS violations
+    from django.core.exceptions import SuspiciousOperation
+
+    class SuspiciousFilter(object):
+        def filter(self, record):
+            if record.exc_info:
+                exc_type, exc_value = record.exc_info[:2]
+                if isinstance(exc_value, SuspiciousOperation):
+                    return False
+            return True
+
+    LOGGING['handlers']['mail_admins']['filters'] = ['skip_suspicious']
+    LOGGING['filters'] = {
+        'skip_suspicious': {'()': SuspiciousFilter}
+    }
+else:
+    # don't send email for ALLOWED_HOSTS violations
+    LOGGING['loggers']['django.security.DisallowedHost'] = {
+        'handlers': ['mail_admins'],
+        'level': 'CRITICAL',
+        'propagate': False,
+    }
+
 SERVED_PATHS = [os.path.join(PROJECT_ROOT, "sampleroot")]
 UPLOAD_PATH = os.path.join(PROJECT_ROOT, "sample_upload_root")
 
