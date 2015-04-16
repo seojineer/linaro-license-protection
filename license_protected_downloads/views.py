@@ -234,6 +234,35 @@ def file_server(request, path):
         return file_server_get(request, path)
 
 
+def _check_build_info(request, path):
+    try:
+        build_info = BuildInfo(path)
+    except IncorrectDataFormatException:
+        # If we can't parse the BuildInfo. Return a HttpResponseForbidden.
+        return HttpResponseForbidden('Error parsing BUILD-INFO.txt')
+
+    auth_groups = build_info.get('auth-groups')
+    if auth_groups:
+        auth_groups = [x.split for x in auth_groups.split(',')]
+        log.info('Checking membership in auth groups: %s', auth_groups)
+        response = False
+        try:
+            for m in group_auth_modules:
+                response = m.process_group_auth(request, auth_groups)
+                if response:
+                    break
+        except GroupAuthError:
+            log.exception("GroupAuthError")
+            response = render(request, 'group_auth_failure.html')
+            response.status_code = 500
+            return response
+
+        if response is False:
+            return group_auth_failed_response(request, auth_groups)
+        elif response is not True:
+            return response
+
+
 def file_server_get(request, path):
 
     url = path
@@ -247,36 +276,9 @@ def file_server_get(request, path):
     path = result[1]
 
     if not internal and BuildInfo.build_info_exists(path):
-        try:
-            build_info = BuildInfo(path)
-        except IncorrectDataFormatException:
-            # If we can't parse the BuildInfo. Return a HttpResponseForbidden.
-            return HttpResponseForbidden(
-                "Error parsing BUILD-INFO.txt")
-
-        auth_groups = build_info.get("auth-groups")
-        if auth_groups:
-            auth_groups = auth_groups.split(",")
-            auth_groups = [g.strip() for g in auth_groups]
-            log.info("Checking membership in auth groups: %s", auth_groups)
-            response = False
-            try:
-                for m in group_auth_modules:
-                    response = m.process_group_auth(request, auth_groups)
-                    if response:
-                        break
-            except GroupAuthError:
-                log.exception("GroupAuthError")
-                response = render(request, 'group_auth_failure.html')
-                response.status_code = 500
-                return response
-
-            if response == False:
-                return group_auth_failed_response(request, auth_groups)
-            elif response == True:
-                pass
-            else:
-                return response
+        resp = _check_build_info(request, path)
+        if resp:
+            return resp
 
     if target_type == "dir":
         # Generate a link to the parent directory (if one exists)
