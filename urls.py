@@ -69,3 +69,5 @@ urlpatterns = patterns(
     # This handler does that.
     url(r'(?P<path>.*)', 'license_protected_downloads.views.file_server'),
 )
+
+handler500 = 'license_protected_downloads.views.error_view'

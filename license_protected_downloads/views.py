@@ -3,6 +3,7 @@ import json
 import mimetypes
 import os
 import re
+import sys
 
 from django.conf import settings
 from django.http import (
@@ -378,3 +379,18 @@ def render_descriptions(path):
                             comment.data.strip())
 
     return text
+
+
+def error_view(request, template_name='500.html'):
+    # the django error handler doesn't use the request context. We need this
+    # because it sets the 'base_page' variable required for our template
+    # to work across different "publishing themes"
+
+    # produce an error message like:
+    #  RuntimeError at <path>/license_protected_downloads/views.py:228
+    ex, _, tb = sys.exc_info()
+    while tb.tb_next:
+        tb = tb.tb_next
+    ex = '%s at %s:%d' % (
+        ex.__name__, tb.tb_frame.f_code.co_filename, tb.tb_lineno)
+    return render(request, template_name, {'exception': ex}, status=500)
