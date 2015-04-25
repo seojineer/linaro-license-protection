@@ -17,22 +17,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import subprocess
-from testtools import TestCase
+import unittest
 
 
-class TestPep8(TestCase):
+@unittest.skipIf(os.environ.get('SKIP_LINT'), 'Skipping lint tests')
+class TestPep8(unittest.TestCase):
     def test_pep8(self):
         # Errors we have to ignore for now: use pep8 error codes like 'E202'.
         ignore = []
         # Ignore return code.
-        proc = subprocess.Popen(['pep8',
+        args = [
+            'pep8',
             '--repeat',
             '--ignore=%s' % ','.join(ignore),
             '--exclude=static',
-            '.'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
+            '.'
+        ]
+        proc = subprocess.Popen(
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (stdout, stderr) = proc.communicate()
         self.assertEquals('', stdout)
         self.assertEquals('', stderr)
