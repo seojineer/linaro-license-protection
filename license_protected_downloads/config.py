@@ -6,6 +6,7 @@ INTERNAL_HOSTS = (
     '81.128.185.50',  # lab.validation.linaro.org
     '188.40.92.79',   # ci.linaro.org (slave x86-64-07)
     '188.40.49.144',  # ci.linaro.org (slave x86-64-08)
+    '188.40.51.209',  # ci.linaro.org (slave aosp-x86-64-08)
 )
 
 WHITELIST = (
