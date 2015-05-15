@@ -48,7 +48,7 @@ class APIKeyStore(models.Model):
     key = models.CharField(max_length=80)
     public = models.BooleanField()
 
-    description = models.CharField(max_length=40, default='')
+    description = models.CharField(max_length=256, default='')
     last_used = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __unicode__(self):
