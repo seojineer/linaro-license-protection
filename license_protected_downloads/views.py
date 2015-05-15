@@ -55,7 +55,12 @@ def _get_header_html_content(path):
     if os.path.isfile(header_html):
         with open(header_html, "r") as infile:
             body = infile.read()
-        body = _process_include_tags(body)
+        orig = os.getcwd()
+        try:
+            os.chdir(path)
+            body = _process_include_tags(body)
+        finally:
+            os.chdir(orig)
         soup = BeautifulSoup(body)
         for chunk in soup.findAll(id="content"):
             header_content += chunk.prettify().decode("utf-8")
@@ -263,6 +268,34 @@ def _check_build_info(request, path):
             return response
 
 
+def _handle_dir_list(request, url, path):
+    # Generate a link to the parent directory (if one exists)
+    if url != '/' and url != '':
+        up_dir = "/" + os.path.split(url)[0]
+    else:
+        up_dir = None
+
+    header_content = _get_header_html_content(path)
+    download = None
+    if 'dl' in request.GET:
+        download = request.GET['dl']
+    rendered_files = RenderTextFiles.find_and_render(path)
+    if os.path.exists(os.path.join(path, settings.ANNOTATED_XML)):
+        if rendered_files is None:
+            rendered_files = {}
+        rendered_files["Git Descriptions"] = render_descriptions(path)
+
+    args = {
+        'dirlist': dir_list(url, path),
+        'up_dir': up_dir,
+        'dl': download,
+        'header_content': header_content,
+        'request': request,
+        'rendered_files': rendered_files,
+    }
+    return render(request, 'dir_template.html', args)
+
+
 def file_server_get(request, path):
 
     url = path
@@ -281,33 +314,7 @@ def file_server_get(request, path):
             return resp
 
     if target_type == "dir":
-        # Generate a link to the parent directory (if one exists)
-        if url != '/' and url != '':
-            up_dir = "/" + os.path.split(url)[0]
-        else:
-            up_dir = None
-
-        old_cwd = os.getcwd()
-        os.chdir(path)
-        header_content = _get_header_html_content(path)
-        os.chdir(old_cwd)
-        download = None
-        if 'dl' in request.GET:
-            download = request.GET['dl']
-        rendered_files = RenderTextFiles.find_and_render(path)
-        if os.path.exists(os.path.join(path, settings.ANNOTATED_XML)):
-            if rendered_files == None:
-                rendered_files = {}
-            rendered_files["Git Descriptions"] = render_descriptions(path)
-
-        return render(request, 'dir_template.html',
-                      {'dirlist': dir_list(url, path),
-                       'up_dir': up_dir,
-                       'dl': download,
-                       'header_content': header_content,
-                       'request': request,
-                       'rendered_files': rendered_files
-                       })
+        return _handle_dir_list(request, url, path)
 
     # If the file listing doesn't contain the file requested for download,
     # return a 404. This prevents the download of BUILD-INFO.txt and other
