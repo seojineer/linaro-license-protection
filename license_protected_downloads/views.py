@@ -1,3 +1,4 @@
+import importlib
 import logging
 import json
 import mimetypes
@@ -13,16 +14,12 @@ from django.http import (
     HttpResponseRedirect,
 )
 from django.shortcuts import render, redirect
-from django.template import RequestContext
 from django.utils.encoding import smart_str, iri_to_uri
 from django.views.decorators.csrf import csrf_exempt
 
 from buildinfo import BuildInfo, IncorrectDataFormatException
 from render_text_files import RenderTextFiles
 from models import License
-# Load group auth "plugin" dynamically
-import importlib
-group_auth_modules = [importlib.import_module(m) for m in settings.GROUP_AUTH_MODULES]
 from BeautifulSoup import BeautifulSoup
 import config
 from group_auth_common import GroupAuthError
@@ -35,6 +32,9 @@ from license_protected_downloads.common import (
 )
 from license_protected_downloads.api.v1 import file_server_post
 
+# Load group auth "plugin" dynamically
+group_auth_modules = [
+    importlib.import_module(m) for m in settings.GROUP_AUTH_MODULES]
 
 LINARO_INCLUDE_FILE_RE = re.compile(
     r'<linaro:include file="(?P<file_name>.*)"[ ]*/>')
@@ -197,7 +197,7 @@ def send_file(path):
     response['Content-Disposition'] = ('attachment; filename=%s' %
                                        smart_str(file_name))
     response['X-Sendfile'] = smart_str(path)
-    #response['Content-Length'] = os.path.getsize(path)
+    # response['Content-Length'] = os.path.getsize(path)
     # TODO: Is it possible to add a redirect to response so we can take
     # the user back to the original directory this file is in?
     return response
@@ -361,7 +361,7 @@ def get_textile_files(request):
 
     rendered_files = RenderTextFiles.find_and_render(path)
     if os.path.exists(os.path.join(path, settings.ANNOTATED_XML)):
-        if rendered_files == None:
+        if rendered_files is None:
             rendered_files = {}
         rendered_files["Git Descriptions"] = render_descriptions(path)
 
