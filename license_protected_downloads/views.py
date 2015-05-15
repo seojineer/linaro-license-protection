@@ -285,13 +285,18 @@ def _handle_dir_list(request, url, path):
             rendered_files = {}
         rendered_files["Git Descriptions"] = render_descriptions(path)
 
+    dirlist = dir_list(url, path)
+    lics = [x['license_digest_list'] for x in dirlist
+            if x['license_digest_list']]
+
     args = {
-        'dirlist': dir_list(url, path),
+        'dirlist': dirlist,
         'up_dir': up_dir,
         'dl': download,
         'header_content': header_content,
         'request': request,
         'rendered_files': rendered_files,
+        'hide_lics': len(lics) == 0,
     }
     return render(request, 'dir_template.html', args)
 

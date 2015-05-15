@@ -243,8 +243,18 @@ def dir_list(url, path, human_readable=True):
 
         if os.path.isdir(file_name):
             target_type = "folder"
+            license_digest_list = []
         else:
             target_type = mimetypes.guess_type(name)[0]
+            pathname = os.path.join(path, name)
+            try:
+                license_digest_list = is_protected(pathname)
+            except Exception as e:
+                print("Invalid BUILD-INFO.txt for %s: %s" % (pathname, repr(e)))
+                traceback.print_exc()
+                license_digest_list = "INVALID"
+        license_list = models.License.objects.all_with_hashes(
+            license_digest_list)
 
         if os.path.exists(file_name):
             size = os.path.getsize(file_name)
@@ -272,15 +282,6 @@ def dir_list(url, path, human_readable=True):
 
             size = _sizeof_fmt(size)
 
-        pathname = os.path.join(path, name)
-        try:
-            license_digest_list = is_protected(pathname)
-        except Exception as e:
-            print("Invalid BUILD-INFO.txt for %s: %s" % (pathname, repr(e)))
-            traceback.print_exc()
-            license_digest_list = "INVALID"
-        license_list = models.License.objects.all_with_hashes(
-            license_digest_list)
         listing.append({'name': name,
                         'size': size,
                         'type': target_type,
