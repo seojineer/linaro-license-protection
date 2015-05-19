@@ -248,7 +248,7 @@ def _check_build_info(request, path):
 
     auth_groups = build_info.get('auth-groups')
     if auth_groups:
-        auth_groups = [x.split for x in auth_groups.split(',')]
+        auth_groups = [x.strip() for x in auth_groups.split(',')]
         log.info('Checking membership in auth groups: %s', auth_groups)
         response = False
         try:
