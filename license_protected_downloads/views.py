@@ -19,7 +19,6 @@ from django.views.decorators.csrf import csrf_exempt
 from buildinfo import IncorrectDataFormatException
 from render_text_files import RenderTextFiles
 from models import License
-from BeautifulSoup import BeautifulSoup
 import config
 from group_auth_common import GroupAuthError
 import xml.dom.minidom as dom
@@ -34,63 +33,7 @@ from license_protected_downloads.api.v1 import file_server_post
 group_auth_modules = [
     importlib.import_module(m) for m in settings.GROUP_AUTH_MODULES]
 
-LINARO_INCLUDE_FILE_RE = re.compile(
-    r'<linaro:include file="(?P<file_name>.*)"[ ]*/>')
-LINARO_INCLUDE_FILE_RE1 = re.compile(
-    r'<linaro:include file="(?P<file_name>.*)">(.*)</linaro:include>')
-
 log = logging.getLogger("llp.views")
-
-
-def _get_header_html_content(path):
-    """
-        Read HEADER.html in current directory if exists and return
-        contents of <div id="content"> block to include in rendered
-        html.
-    """
-    header_html = os.path.join(path, "HEADER.html")
-    header_content = u""
-    if os.path.isfile(header_html):
-        with open(header_html, "r") as infile:
-            body = infile.read()
-        body = _process_include_tags(path, body)
-        soup = BeautifulSoup(body)
-        for chunk in soup.findAll(id="content"):
-            header_content += chunk.prettify().decode("utf-8")
-        header_content = '\n'.join(header_content.split('\n')[1:-1])
-
-    return header_content
-
-
-def _read_file_with_include_data(path, matchobj):
-    """
-        Function to get data for re.sub() in _process_include_tags() from file
-        which name is in named match group 'file_name'.
-        Returns content of file in current directory otherwise empty string.
-    """
-    content = ''
-    fname = os.path.join(path, matchobj.group('file_name'))
-    if os.path.dirname(os.path.normpath(fname)) == path:
-        if os.path.isfile(fname) and not os.path.islink(fname):
-            with open(fname, "r") as infile:
-                content = infile.read()
-
-    return content
-
-
-def _process_include_tags(path, content):
-    """
-        Replaces <linaro:include file="README" /> or
-        <linaro:include file="README">text to show</linaro:include> tags
-        with content of README file or empty string if file not found or
-        not allowed.
-    """
-    def read_func(matchobj):
-        return _read_file_with_include_data(path, matchobj)
-
-    content = re.sub(LINARO_INCLUDE_FILE_RE, read_func, content)
-    content = re.sub(LINARO_INCLUDE_FILE_RE1, read_func, content)
-    return content
 
 
 def get_client_ip(request):
@@ -219,7 +162,6 @@ def _handle_dir_list(request, artifact):
         up_dir = None
 
     path = artifact.full_path
-    header_content = _get_header_html_content(path)
     download = None
     if 'dl' in request.GET:
         download = request.GET['dl']
@@ -237,7 +179,7 @@ def _handle_dir_list(request, artifact):
         'dirlist': dirlist,
         'up_dir': up_dir,
         'dl': download,
-        'header_content': header_content,
+        'header_content': artifact.get_header_html(),
         'request': request,
         'rendered_files': rendered_files,
         'hide_lics': len(lics) == 0,

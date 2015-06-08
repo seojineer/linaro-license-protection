@@ -16,7 +16,6 @@ from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.common import _insert_license_into_db
 from license_protected_downloads.config import INTERNAL_HOSTS
 from license_protected_downloads.tests.helpers import temporary_directory
-from license_protected_downloads.views import _process_include_tags
 from license_protected_downloads import views
 
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -550,90 +549,6 @@ class ViewTests(BaseServeViewTest):
         tmp_file.close()
         self.addCleanup(os.unlink, tmp_filename)
         return os.path.basename(tmp_filename)
-
-    def test_replace_self_closing_tag(self):
-        readme_dir = os.path.join(TESTSERVER_ROOT, 'readme')
-        ret = _process_include_tags(
-            readme_dir, 'Test <linaro:include file="README" /> html')
-        self.assertEqual(ret, r"Test Included from README html")
-
-    def test_replace_self_closing_tag1(self):
-        readme_dir = os.path.join(TESTSERVER_ROOT, 'readme')
-        ret = _process_include_tags(
-            readme_dir, 'Test <linaro:include file="README"/> html')
-        self.assertEqual(ret, r"Test Included from README html")
-
-    def test_replace_with_closing_tag(self):
-        readme_dir = os.path.join(TESTSERVER_ROOT, 'readme')
-        ret = _process_include_tags(
-            readme_dir,
-            'Test <linaro:include file="README">README is missing'
-            '</linaro:include> html')
-        self.assertEqual(ret, r"Test Included from README html")
-
-    def test_replace_non_existent_file(self):
-        readme_dir = os.path.join(TESTSERVER_ROOT, 'readme')
-        ret = _process_include_tags(
-            readme_dir,
-            'Test <linaro:include file="NON_EXISTENT_FILE" /> html')
-        self.assertEqual(ret, r"Test  html")
-
-    def test_replace_empty_file_property(self):
-        readme_dir = os.path.join(TESTSERVER_ROOT, 'readme')
-        ret = _process_include_tags(
-            readme_dir,
-            'Test <linaro:include file="" /> html')
-        self.assertEqual(ret, r"Test  html")
-
-    def test_replace_parent_dir(self):
-        readme_dir = os.path.join(TESTSERVER_ROOT, 'readme')
-        ret = _process_include_tags(
-            readme_dir,
-            'Test <linaro:include file="../README" /> html')
-        self.assertEqual(ret, r"Test  html")
-
-    def test_replace_subdir(self):
-        readme_dir = os.path.join(TESTSERVER_ROOT, 'readme')
-        ret = _process_include_tags(
-            readme_dir,
-            'Test <linaro:include file="subdir/README" /> html')
-        self.assertEqual(ret, r"Test  html")
-
-    def test_replace_subdir_parent_dir(self):
-        readme_dir = os.path.join(TESTSERVER_ROOT, 'readme')
-        ret = _process_include_tags(
-            readme_dir,
-            'Test <linaro:include file="subdir/../README" /> html')
-        self.assertEqual(ret, r"Test Included from README html")
-
-    def test_replace_full_path(self):
-        readme_dir = os.path.join(TESTSERVER_ROOT, 'readme')
-        tmp = self.make_temporary_file("Included from /tmp", root="/tmp")
-        ret = _process_include_tags(
-            readme_dir,
-            'Test <linaro:include file="/tmp/%s" /> html' % tmp)
-        self.assertEqual(ret, r"Test  html")
-
-    def test_replace_self_dir(self):
-        readme_dir = os.path.join(TESTSERVER_ROOT, 'readme')
-        ret = _process_include_tags(
-            readme_dir,
-            'Test <linaro:include file="./README" /> html')
-        self.assertEqual(ret, r"Test Included from README html")
-
-    def test_replace_self_parent_dir(self):
-        readme_dir = os.path.join(TESTSERVER_ROOT, 'readme')
-        ret = _process_include_tags(
-            readme_dir,
-            'Test <linaro:include file="./../README" /> html')
-        self.assertEqual(ret, r"Test  html")
-
-    def test_replace_symlink(self):
-        readme_dir = os.path.join(TESTSERVER_ROOT, 'readme')
-        ret = _process_include_tags(
-            readme_dir,
-            'Test <linaro:include file="READMELINK" /> html')
-        self.assertEqual(ret, r"Test  html")
 
     def test_process_include_tags(self):
         target_file = "readme"

@@ -9,6 +9,7 @@ import traceback
 
 from datetime import datetime
 
+from BeautifulSoup import BeautifulSoup
 from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.utils.encoding import smart_str
@@ -143,6 +144,11 @@ def cached_prop(fn):
 
 
 class Artifact(object):
+    LINARO_INCLUDE_FILE_RE = re.compile(
+        r'<linaro:include file="(?P<file_name>.*)"[ ]*/>')
+    LINARO_INCLUDE_FILE_RE1 = re.compile(
+        r'<linaro:include file="(?P<file_name>.*)">(.*)</linaro:include>')
+
     def __init__(self, urlbase, file_name, size, mtime, human_readable):
         self.urlbase = urlbase
         self.file_name = file_name
@@ -301,6 +307,42 @@ class Artifact(object):
     def has_per_file_eulas(self, eulas):
         return len(eulas) > 0
 
+    def get_file_contents(self, fname):
+        raise NotImplementedError
+
+    def _process_include_tags(self, content):
+        """Replaces <linaro:include file="README" /> or
+        <linaro:include file="README">text to show</linaro:include> tags
+        with content of README file or empty string if file not found or
+        not allowed.
+        """
+        def read_func(matchobj):
+            fname = matchobj.group('file_name')
+            if os.path.normpath(fname) == os.path.basename(fname):
+                return self.get_file_contents(fname)
+
+        content = re.sub(self.LINARO_INCLUDE_FILE_RE, read_func, content)
+        content = re.sub(self.LINARO_INCLUDE_FILE_RE1, read_func, content)
+        return content
+
+    def get_header_html(self):
+        """Read HEADER.html in current directory
+
+        If exists and return contents of <div id="content"> block
+        """
+        assert self.isdir()
+
+        content = ''
+        body = self.get_file_contents('HEADER.html')
+        if body:
+            body = self._process_include_tags(body)
+            soup = BeautifulSoup(body)
+            for chunk in soup.findAll(id='content'):
+                content += chunk.prettify().decode('utf-8')
+
+            content = '\n'.join(content.split('\n')[1:-1])
+        return content
+
 
 class LocalArtifact(Artifact):
     '''An artifact that lives on the local filesystem'''
@@ -359,6 +401,12 @@ class LocalArtifact(Artifact):
             path = os.path.dirname(self.full_path)
         eulas = glob.glob(path + '/*EULA.txt*')
         return [os.path.basename(x) for x in eulas]
+
+    def get_file_contents(self, fname):
+        fname = os.path.join(self.full_path, fname)
+        if os.path.isfile(fname) and not os.path.islink(fname):
+            with open(fname, 'r') as f:
+                return f.read()
 
     def isdir(self):
         return os.path.isdir(self.full_path)
