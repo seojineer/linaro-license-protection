@@ -17,7 +17,7 @@ from django.shortcuts import render, redirect
 from django.utils.encoding import smart_str, iri_to_uri
 from django.views.decorators.csrf import csrf_exempt
 
-from buildinfo import BuildInfo, IncorrectDataFormatException
+from buildinfo import IncorrectDataFormatException
 from render_text_files import RenderTextFiles
 from models import License
 from BeautifulSoup import BeautifulSoup
@@ -224,13 +224,7 @@ def file_server(request, path):
         return file_server_get(request, path)
 
 
-def _check_build_info(request, path):
-    try:
-        build_info = BuildInfo(path)
-    except IncorrectDataFormatException:
-        # If we can't parse the BuildInfo. Return a HttpResponseForbidden.
-        return HttpResponseForbidden('Error parsing BUILD-INFO.txt')
-
+def _check_build_info(request, build_info):
     auth_groups = build_info.get('auth-groups')
     if auth_groups:
         auth_groups = [x.strip() for x in auth_groups.split(',')]
@@ -317,10 +311,15 @@ def file_server_get(request, path):
     path = artifact.full_path
     internal = get_client_ip(request) in config.INTERNAL_HOSTS
 
-    if not internal and BuildInfo.build_info_exists(path):
-        resp = _check_build_info(request, path)
-        if resp:
-            return resp
+    if not internal:
+        try:
+            bi = artifact.get_build_info()
+        except IncorrectDataFormatException:
+            return HttpResponseForbidden('Error parsing BUILD-INFO.txt')
+        if bi:
+            resp = _check_build_info(request, bi)
+            if resp:
+                return resp
 
     if artifact.isdir():
         return _handle_dir_list(request, url, path)

@@ -257,6 +257,9 @@ class Artifact(object):
     def get_license_digests(self):
         raise NotImplementedError()
 
+    def get_build_info(self):
+        raise NotImplementedError()
+
     def get_listing(self):
         if self.isdir():
             ldl = []
@@ -307,6 +310,10 @@ class LocalArtifact(Artifact):
 
     def get_license_digests(self):
         return _is_protected(self.full_path)
+
+    def get_build_info(self):
+        if buildinfo.BuildInfo.build_info_exists(self.full_path):
+            return buildinfo.BuildInfo(self.full_path)
 
     def isdir(self):
         return os.path.isdir(self.full_path)
