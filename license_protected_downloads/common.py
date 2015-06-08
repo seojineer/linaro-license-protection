@@ -149,9 +149,7 @@ def _handle_wildcard(request, fullpath):
     return match
 
 
-def test_path(path, request):
-    """Check that path points to something we can serve up.
-    """
+def _find_served_paths(path, request):
     served_paths = settings.SERVED_PATHS
     # if key is in request.GET["key"] then need to mod path and give
     # access to a per-key directory.
@@ -164,7 +162,13 @@ def test_path(path, request):
             # served_paths as needed.
             if not key_details[0].public:
                 served_paths = [settings.UPLOAD_PATH]
+    return served_paths, path
 
+
+def test_path(path, request):
+    """Check that path points to something we can serve up.
+    """
+    served_paths, path = _find_served_paths(path, request)
     for basepath in served_paths:
         fullpath = safe_path_join(basepath, path)
         if fullpath is None:
