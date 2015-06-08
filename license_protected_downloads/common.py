@@ -87,12 +87,12 @@ def find_artifact(request, path):
         if fullpath is None:
             raise Http404
         if os.path.isfile(fullpath) or os.path.isdir(fullpath):
-            return LocalArtifact('', path, False, basepath)
+            return LocalArtifact(None, '', path, False, basepath)
 
         fullpath = _handle_wildcard(request, fullpath)
         if fullpath:
             basepath, path = os.path.split(fullpath)
-            return LocalArtifact('', path, False, basepath)
+            return LocalArtifact(None, '', path, False, basepath)
 
     raise Http404
 
@@ -128,6 +128,17 @@ def _sizeof_fmt(num):
             return "%3.1f%s" % (num, x)
         num /= 1024.0
     return "%3.1f%s" % (num, 'T')
+
+
+def cached_prop(fn):
+    attr_name = '_cached_' + fn.__name__
+
+    @property
+    def _cached_prop(self):
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, fn(self))
+        return getattr(self, attr_name)
+    return _cached_prop
 
 
 class Artifact(object):
@@ -172,7 +183,12 @@ class Artifact(object):
         raise NotImplementedError()
 
     def get_build_info(self):
-        raise NotImplementedError()
+        buf = self.build_info_buffer
+        if buf:
+            sp = fn = self.urlbase[1:]
+            if not self.isdir():
+                fn = sp + '/' + self.file_name
+            return buildinfo.BuildInfoBase(fn, sp, buf)
 
     def get_listing(self):
         if self.isdir():
@@ -287,7 +303,8 @@ class Artifact(object):
 
 class LocalArtifact(Artifact):
     '''An artifact that lives on the local filesystem'''
-    def __init__(self, urlbase, file_name, human_readable, path):
+    def __init__(self, parent, urlbase, file_name, human_readable, path):
+        self.parent = parent
         self.full_path = os.path.join(path, file_name)
 
         size = mtime = 0
@@ -310,9 +327,16 @@ class LocalArtifact(Artifact):
                     mtype = 'text'
             return mtype
 
-    def get_build_info(self):
-        if buildinfo.BuildInfo.build_info_exists(self.full_path):
-            return buildinfo.BuildInfo(self.full_path)
+    @cached_prop
+    def build_info_buffer(self):
+        if self.parent and not self.isdir():
+            return self.parent.build_info_buffer
+
+        p = buildinfo.BuildInfo.get_search_path(self.full_path)
+        p = os.path.join(p, 'BUILD-INFO.txt')
+        if os.path.exists(p):
+            with open(p) as f:
+                return f.read()
 
     def get_eulas(self):
         if self.isdir():
@@ -329,7 +353,7 @@ class LocalArtifact(Artifact):
 def dir_list(artifact, human_readable=True):
     path = artifact.full_path
     url = artifact.url()
-    artifacts = [LocalArtifact(url, x, human_readable, path)
+    artifacts = [LocalArtifact(artifact, url, x, human_readable, path)
                  for x in os.listdir(path)]
     artifacts.sort(_sort_artifacts)
 

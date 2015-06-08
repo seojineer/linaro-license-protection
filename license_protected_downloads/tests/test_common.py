@@ -20,9 +20,25 @@ class CommonTests(unittest.TestCase):
             (['10', 'foo', '100', 'latest'], ['latest', '10', '100', 'foo']),
         ]
         for files, expected in patterns:
-            artifacts = [common.LocalArtifact('', x, True, '') for x in files]
+            artifacts = [common.LocalArtifact(None, '', x, True, '')
+                         for x in files]
             artifacts.sort(common._sort_artifacts)
             self.assertEqual(expected, [x.file_name for x in artifacts])
+
+    def test_cached_property(self):
+        class Foo(object):
+            def __init__(self):
+                self.count = 0
+
+            @common.cached_prop
+            def bar(self):
+                v = self.count
+                self.count += 1
+                return v
+
+        f = Foo()
+        self.assertEqual(0, f.bar)
+        self.assertEqual(0, f.bar)
 
 if __name__ == '__main__':
     unittest.main()
