@@ -301,6 +301,27 @@ def _handle_dir_list(request, url, path):
     return render(request, 'dir_template.html', args)
 
 
+def _check_file_permission(request, url, path, internal):
+    if internal or is_whitelisted(os.path.join('/', url)) or \
+            'key' in request.GET:  # If user has a key, default to open
+        digests = 'OPEN'
+    else:
+        digests = is_protected(path)
+
+    response = None
+    if not digests:
+        # File has no license text but is protected
+        response = HttpResponseForbidden(
+            'You do not have permission to access this file.')
+    elif digests != 'OPEN':
+        for digest in digests:
+            if not license_accepted(request, digest):
+                # Make sure that user accepted each license one by one
+                response = redirect('/license?lic=' + digest + '&url=' + url)
+                break
+    return response
+
+
 def file_server_get(request, path):
 
     url = path
@@ -324,33 +345,10 @@ def file_server_get(request, path):
     if not file_listed(path, url):
         raise Http404
 
-    if (internal or
-        is_whitelisted(os.path.join('/', url)) or
-        "key" in request.GET):  # If user has a key, default to open
-        digests = 'OPEN'
-    else:
-        digests = is_protected(path)
-
-    response = None
-    if not digests:
-        # File has no license text but is protected
-        response = HttpResponseForbidden(
-            "You do not have permission to access this file.")
-    elif digests == "OPEN":
-        response = None
-    else:
-        for digest in digests:
-            if not license_accepted(request, digest):
-                # Make sure that user accepted each license one by one
-                response = redirect(
-                    '/license?lic=' + digest + "&url=" + url)
-                break
-
-    # If we didn't have any other response, it's ok to send file now
-    if not response:
-        response = send_file(path)
-
-    return response
+    resp = _check_file_permission(request, url, path, internal)
+    if resp:
+        return resp
+    return send_file(path)
 
 
 def get_textile_files(request):
