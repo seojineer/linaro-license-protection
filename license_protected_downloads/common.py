@@ -229,70 +229,84 @@ def _sizeof_fmt(num):
     return "%3.1f%s" % (num, 'T')
 
 
+class Artifact(object):
+    def __init__(self, urlbase, file_name, human_readable, local_path):
+        self.human_readable = human_readable
+        self.file_name = file_name
+        self.urlbase = urlbase
+        self.full_path = os.path.join(local_path, file_name)
+
+    def url(self):
+        url = self.urlbase
+        if url:
+            if url[0] != '/':
+                url = '/' + url
+            if url[-1] != '/':
+                url += '/'
+        else:
+            url = '/'
+        return url + self.file_name
+
+    def get_type(self):
+        if os.path.isdir(self.full_path):
+            return 'folder'
+        else:
+            mtype = mimetypes.guess_type(self.full_path)[0]
+            if self.human_readable:
+                if mtype is None:
+                    mtype = 'other'
+                elif mtype.split('/')[0] == 'text':
+                    mtype = 'text'
+            return mtype
+
+    def get_size(self):
+        size = 0
+        # ensure the file we are looking at exists (not broken symlink)
+        if os.path.exists(self.full_path):
+            size = os.path.getsize(self.full_path)
+            if self.human_readable:
+                size = _sizeof_fmt(size)
+        return size
+
+    def get_mtime(self):
+        mtime = 0
+        # ensure the file we are looking at exists (not broken symlink)
+        if os.path.exists(self.full_path):
+            mtime = os.path.getmtime(self.full_path)
+            if self.human_readable:
+                mtime = datetime.fromtimestamp(mtime)
+                mtime = mtime.strftime('%d-%b-%Y %H:%M')
+        return mtime
+
+    def get_listing(self):
+        if os.path.isdir(self.full_path):
+            ldl = []
+        else:
+            try:
+                ldl = is_protected(self.full_path)
+            except Exception as e:
+                print("Invalid BUILD-INFO.txt for %s: %s" % (
+                    self.full_path, repr(e)))
+                traceback.print_exc()
+                ldl = "INVALID"
+        ll = models.License.objects.all_with_hashes(ldl)
+        return {
+            'name': self.file_name,
+            'size': self.get_size(),
+            'type': self.get_type(),
+            'mtime': self.get_mtime(),
+            'license_digest_list': ldl,
+            'license_list': ll,
+            'url': self.url(),
+        }
+
+
 def dir_list(url, path, human_readable=True):
     files = _listdir(path)
     listing = []
 
     for file_name in files:
-        if _hidden_file(file_name):
-            continue
-
-        name = file_name
-        file_name = os.path.join(path, file_name)
-
-        if os.path.exists(file_name):
-            mtime = os.path.getmtime(file_name)
-        else:
-            # If the file we are looking at doesn't exist (broken symlink for
-            # example), it doesn't have a mtime.
-            mtime = 0
-
-        if os.path.isdir(file_name):
-            target_type = "folder"
-            license_digest_list = []
-        else:
-            target_type = mimetypes.guess_type(name)[0]
-            pathname = os.path.join(path, name)
-            try:
-                license_digest_list = is_protected(pathname)
-            except Exception as e:
-                print("Invalid BUILD-INFO.txt for %s: %s" % (pathname, repr(e)))
-                traceback.print_exc()
-                license_digest_list = "INVALID"
-        license_list = models.License.objects.all_with_hashes(
-            license_digest_list)
-
-        if os.path.exists(file_name):
-            size = os.path.getsize(file_name)
-        else:
-            # If the file we are looking at doesn't exist (broken symlink for
-            # example), it doesn't have a size
-            size = 0
-
-        if not re.search(r'^/', url) and url != '':
-            url = '/' + url
-
-        # Since the code below assume no trailing slash, make sure that
-        # there isn't one.
-        url = re.sub(r'/$', '', url)
-
-        if human_readable:
-            if mtime:
-                mtime = datetime.fromtimestamp(mtime)
-                mtime = mtime.strftime('%d-%b-%Y %H:%M')
-            if target_type:
-                if target_type.split('/')[0] == "text":
-                    target_type = "text"
-            else:
-                target_type = "other"
-
-            size = _sizeof_fmt(size)
-
-        listing.append({'name': name,
-                        'size': size,
-                        'type': target_type,
-                        'mtime': mtime,
-                        'license_digest_list': license_digest_list,
-                        'license_list': license_list,
-                        'url': url + '/' + name})
+        if not _hidden_file(file_name):
+            artifact = Artifact(url, file_name, human_readable, path)
+            listing.append(artifact.get_listing())
     return listing
