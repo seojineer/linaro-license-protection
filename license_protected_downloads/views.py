@@ -300,8 +300,9 @@ def _handle_dir_list(request, url, path):
     return render(request, 'dir_template.html', args)
 
 
-def _check_file_permission(request, url, artifact, internal):
-    if internal or is_whitelisted(os.path.join('/', url)) or \
+def _check_file_permission(request, artifact, internal):
+    url = artifact.url()
+    if internal or is_whitelisted(url) or \
             'key' in request.GET:  # If user has a key, default to open
         digests = 'OPEN'
     else:
@@ -316,6 +317,8 @@ def _check_file_permission(request, url, artifact, internal):
         for digest in digests:
             if not license_accepted(request, digest):
                 # Make sure that user accepted each license one by one
+                assert url[0] == '/'
+                url = url[1:]  # remove leading /
                 response = redirect('/license?lic=' + digest + '&url=' + url)
                 break
     return response
@@ -342,7 +345,7 @@ def file_server_get(request, path):
     if not file_listed(path, url):
         raise Http404
 
-    resp = _check_file_permission(request, url, artifact, internal)
+    resp = _check_file_permission(request, artifact, internal)
     if resp:
         return resp
     return send_file(path)
