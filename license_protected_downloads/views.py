@@ -27,8 +27,7 @@ import xml.dom.minidom as dom
 
 from license_protected_downloads.common import (
     dir_list,
-    is_protected,
-    test_path
+    find_artifact,
 )
 from license_protected_downloads.api.v1 import file_server_post
 
@@ -301,12 +300,12 @@ def _handle_dir_list(request, url, path):
     return render(request, 'dir_template.html', args)
 
 
-def _check_file_permission(request, url, path, internal):
+def _check_file_permission(request, url, artifact, internal):
     if internal or is_whitelisted(os.path.join('/', url)) or \
             'key' in request.GET:  # If user has a key, default to open
         digests = 'OPEN'
     else:
-        digests = is_protected(path)
+        digests = artifact.get_license_digests()
 
     response = None
     if not digests:
@@ -325,18 +324,16 @@ def _check_file_permission(request, url, path, internal):
 def file_server_get(request, path):
 
     url = path
-    result = test_path(path, request)
+    artifact = find_artifact(request, path)
+    path = artifact.full_path
     internal = get_client_ip(request) in config.INTERNAL_HOSTS
-
-    target_type = result[0]
-    path = result[1]
 
     if not internal and BuildInfo.build_info_exists(path):
         resp = _check_build_info(request, path)
         if resp:
             return resp
 
-    if target_type == "dir":
+    if artifact.isdir():
         return _handle_dir_list(request, url, path)
 
     # If the file listing doesn't contain the file requested for download,
@@ -345,14 +342,14 @@ def file_server_get(request, path):
     if not file_listed(path, url):
         raise Http404
 
-    resp = _check_file_permission(request, url, path, internal)
+    resp = _check_file_permission(request, url, artifact, internal)
     if resp:
         return resp
     return send_file(path)
 
 
 def get_textile_files(request):
-    path = test_path(request.GET.get("path"), request)[1]
+    path = find_artifact(request, request.GET.get("path")).full_path
     rendered_files = RenderTextFiles.find_and_render(path)
     if os.path.exists(os.path.join(path, settings.ANNOTATED_XML)):
         if rendered_files is None:

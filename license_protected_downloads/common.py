@@ -56,7 +56,7 @@ def _insert_license_into_db(digest, text, theme):
         l.save()
 
 
-def is_protected(path):
+def _is_protected(path):
     build_info = None
     max_index = 1
     base_path = path
@@ -165,22 +165,20 @@ def _find_served_paths(path, request):
     return served_paths, path
 
 
-def test_path(path, request):
-    """Check that path points to something we can serve up.
-    """
+def find_artifact(request, path):
+    """Return a Artifact object representing a directory or file we serve"""
     served_paths, path = _find_served_paths(path, request)
     for basepath in served_paths:
         fullpath = safe_path_join(basepath, path)
         if fullpath is None:
             raise Http404
-        if os.path.isfile(fullpath):
-            return ("file", fullpath)
-        if os.path.isdir(fullpath):
-            return ("dir", fullpath)
+        if os.path.isfile(fullpath) or os.path.isdir(fullpath):
+            return LocalArtifact('', path, False, basepath)
 
         fullpath = _handle_wildcard(request, fullpath)
         if fullpath:
-            return ('file', fullpath)
+            basepath, path = os.path.split(fullpath)
+            return LocalArtifact('', path, False, basepath)
 
     raise Http404
 
@@ -240,6 +238,9 @@ class Artifact(object):
             mtime = datetime.fromtimestamp(mtime)
             self.mtime = mtime.strftime('%d-%b-%Y %H:%M')
 
+    def isdir(self):
+        raise RuntimeError()
+
     def url(self):
         url = self.urlbase
         if url:
@@ -254,12 +255,15 @@ class Artifact(object):
     def get_type(self):
         raise NotImplementedError()
 
+    def get_license_digests(self):
+        raise NotImplementedError()
+
     def get_listing(self):
-        if os.path.isdir(self.full_path):
+        if self.isdir():
             ldl = []
         else:
             try:
-                ldl = is_protected(self.full_path)
+                ldl = self.get_license_digests()
             except Exception as e:
                 print("Invalid BUILD-INFO.txt for %s: %s" % (
                     self.full_path, repr(e)))
@@ -291,7 +295,7 @@ class LocalArtifact(Artifact):
             urlbase, file_name, size, mtime, human_readable)
 
     def get_type(self):
-        if os.path.isdir(self.full_path):
+        if self.isdir():
             return 'folder'
         else:
             mtype = mimetypes.guess_type(self.full_path)[0]
@@ -301,6 +305,12 @@ class LocalArtifact(Artifact):
                 elif mtype.split('/')[0] == 'text':
                     mtype = 'text'
             return mtype
+
+    def get_license_digests(self):
+        return _is_protected(self.full_path)
+
+    def isdir(self):
+        return os.path.isdir(self.full_path)
 
 
 def dir_list(url, path, human_readable=True):

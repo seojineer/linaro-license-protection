@@ -16,9 +16,8 @@ from license_protected_downloads.models import (
 )
 from license_protected_downloads.common import (
     dir_list,
-    is_protected,
+    find_artifact,
     safe_path_join,
-    test_path,
 )
 
 
@@ -92,29 +91,15 @@ def file_server_post(request, path):
 def list_files_api(request, path):
     path = iri_to_uri(path)
     url = path
-    result = test_path(path, request)
+    artifact = find_artifact(request, path)
 
-    target_type = result[0]
-    path = result[1]
-
-    if target_type == "file":
-        file_url = url
-        if file_url[0] != "/":
-            file_url = "/" + file_url
-        path = os.path.dirname(path)
-        url = os.path.dirname(url)
-
-    listing = dir_list(url, path, human_readable=False)
+    if artifact.isdir():
+        listing = dir_list(url, path, human_readable=False)
+    else:
+        listing = [artifact.get_listing()]
 
     clean_listing = []
     for entry in listing:
-        if target_type == "file" and file_url != entry["url"]:
-            # If we are getting a listing for a single file, skip the rest
-            continue
-
-        if len(entry["license_list"]) == 0:
-            entry["license_list"] = ["Open"]
-
         clean_listing.append({
             "name": entry["name"],
             "size": entry["size"],
@@ -130,16 +115,13 @@ def list_files_api(request, path):
 
 def get_license_api(request, path):
     path = iri_to_uri(path)
-    result = test_path(path, request)
+    artifact = find_artifact(request, path)
 
-    target_type = result[0]
-    path = result[1]
-
-    if target_type == "dir":
+    if artifact.isdir():
         data = json.dumps({"licenses":
                            ["ERROR: License only shown for a single file."]})
     else:
-        license_digest_list = is_protected(path)
+        license_digest_list = artifact.get_license_digests()
         license_list = License.objects.all_with_hashes(license_digest_list)
         if len(license_list) == 0:
             license_list = ["Open"]
