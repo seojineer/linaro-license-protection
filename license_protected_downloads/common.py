@@ -347,6 +347,10 @@ class Artifact(object):
             content = '\n'.join(content.split('\n')[1:-1])
         return content
 
+    def get_annotated_manifest(self):
+        assert self.isdir()
+        return self.get_file_contents(settings.ANNOTATED_XML)
+
 
 class LocalArtifact(Artifact):
     '''An artifact that lives on the local filesystem'''

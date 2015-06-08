@@ -161,13 +161,13 @@ def _handle_dir_list(request, artifact):
     else:
         up_dir = None
 
-    path = artifact.full_path
     download = None
     if 'dl' in request.GET:
         download = request.GET['dl']
     rendered_files = RenderTextFiles.find_and_render(artifact)
-    if os.path.exists(os.path.join(path, settings.ANNOTATED_XML)):
-        rendered_files["Git Descriptions"] = render_descriptions(path)
+    ann = artifact.get_annotated_manifest()
+    if ann:
+        rendered_files["Git Descriptions"] = render_descriptions(ann)
 
     dirlist = dir_list(artifact)
     lics = [x['license_digest_list'] for x in dirlist
@@ -239,15 +239,14 @@ def file_server_get(request, path):
 def get_textile_files(request):
     artifact = find_artifact(request, request.GET.get("path"))
     rendered_files = RenderTextFiles.find_and_render(artifact)
-    if os.path.exists(os.path.join(artifact.full_path, settings.ANNOTATED_XML)):
-        if rendered_files is None:
-            rendered_files = {}
-        rendered_files["Git Descriptions"] = render_descriptions(artifact.full_path)
+    ann = artifact.get_annotated_manifest()
+    if ann:
+        rendered_files["Git Descriptions"] = render_descriptions(ann)
 
     return HttpResponse(json.dumps(rendered_files))
 
 
-def render_descriptions(path):
+def render_descriptions(buf):
     """
        Extracts project name and its description from annotated source manifest
        and returns html string to include in tab.
@@ -255,8 +254,7 @@ def render_descriptions(path):
     text = ''
     line = '<p><strong>Project:</strong> "%s"<br>' \
            '<strong>Description:</strong> "%s"</p>'
-    filename = os.path.join(path, settings.ANNOTATED_XML)
-    xmldoc = dom.parse(filename)
+    xmldoc = dom.parseString(buf)
     nodes = xmldoc.documentElement.childNodes
 
     for index, node in enumerate(nodes):

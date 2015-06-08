@@ -397,6 +397,12 @@ class ViewTests(BaseServeViewTest):
         self.assertContains(
             response, r"Welcome to the Linaro releases server")
 
+    def test_render_descriptions(self):
+        url = 'http://testserver/~linaro-android/staging-panda/'
+        resp = self.client.get(url, follow=True)
+        self.assertEquals(200, resp.status_code)
+        self.assertIn('<a href="#tabs-2">Git Descriptions</a>', resp.content)
+
     def test_exception_internal_host_for_lic(self):
         internal_host = INTERNAL_HOSTS[0]
         target_file = 'build-info/origen-blob.txt'
