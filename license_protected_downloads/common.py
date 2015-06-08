@@ -39,96 +39,10 @@ def safe_path_join(base_path, *paths):
     return target_path
 
 
-def _check_special_eula(path):
-    if glob.glob(path + ".EULA.txt.*"):
-        return True
-
-
-def _get_theme(path):
-    eula = glob.glob(path + ".EULA.txt.*")
-    vendor = os.path.splitext(eula[0])[1]
-    return vendor[1:]
-
-
 def _insert_license_into_db(digest, text, theme):
     if not models.License.objects.filter(digest=digest):
         l = models.License(digest=digest, text=text, theme=theme)
         l.save()
-
-
-def _is_protected(path):
-    build_info = None
-    max_index = 1
-    base_path = path
-    if not os.path.isdir(base_path):
-        base_path = os.path.dirname(base_path)
-
-    buildinfo_path = os.path.join(base_path, "BUILD-INFO.txt")
-    open_eula_path = os.path.join(base_path, "OPEN-EULA.txt")
-    eula_path = os.path.join(base_path, "EULA.txt")
-
-    if os.path.isfile(buildinfo_path):
-        try:
-            build_info = buildinfo.BuildInfo(path)
-        except buildinfo.IncorrectDataFormatException:
-            # If we can't parse the BuildInfo, return [], which indicates no
-            # license in dir_list and will trigger a 403 error in file_server.
-            return []
-
-        license_type = build_info.get("license-type")
-        license_text = build_info.get("license-text")
-        theme = build_info.get("theme")
-        auth_groups = build_info.get("auth-groups")
-        max_index = build_info.max_index
-    elif os.path.isfile(open_eula_path):
-        return "OPEN"
-    elif os.path.isfile(eula_path):
-        if re.search("snowball", path):
-            theme = "stericsson"
-        elif re.search("origen", path):
-            theme = "samsung"
-        else:
-            theme = "linaro"
-        license_type = "protected"
-        license_file = os.path.join(settings.PROJECT_ROOT,
-                                    'templates/licenses/' + theme + '.txt')
-        auth_groups = False
-        with open(license_file, "r") as infile:
-            license_text = infile.read()
-    elif _check_special_eula(path):
-        theme = _get_theme(path)
-        license_type = "protected"
-        license_file = os.path.join(settings.PROJECT_ROOT,
-                                    'templates/licenses/' + theme + '.txt')
-        auth_groups = False
-        with open(license_file, "r") as infile:
-            license_text = infile.read()
-    elif _check_special_eula(base_path + "/*"):
-        return "OPEN"
-    else:
-        return []
-
-    digests = []
-
-    if license_type:
-        if license_type == "open":
-            return "OPEN"
-
-        if auth_groups and not license_text:
-            return "OPEN"
-        elif license_text:
-            for i in range(max_index):
-                if build_info:
-                    license_text = build_info.get("license-text", i)
-                    theme = build_info.get("theme", i)
-                digest = hashlib.md5(license_text).hexdigest()
-                digests.append(digest)
-                _insert_license_into_db(digest, license_text, theme)
-        else:
-            log.info("No license text or auth groups found: check the "
-                     "BUILD-INFO file.")
-
-    return digests
 
 
 def _handle_wildcard(request, fullpath):
@@ -254,7 +168,7 @@ class Artifact(object):
     def get_type(self):
         raise NotImplementedError()
 
-    def get_license_digests(self):
+    def get_eulas(self):
         raise NotImplementedError()
 
     def get_build_info(self):
@@ -282,6 +196,94 @@ class Artifact(object):
             'url': self.url(),
         }
 
+    def get_digest(self, lic_type, lic_text, theme, auth_groups):
+        if lic_type == 'open' or (auth_groups and not lic_text):
+            return 'OPEN'
+
+        if not lic_text:
+            log.info('No license text or auth groups found: check the '
+                     'BUILD-INFO file.')
+            return
+
+        digest = hashlib.md5(lic_text).hexdigest()
+        _insert_license_into_db(digest, lic_text, theme)
+        return digest
+
+    def get_build_info_digests(self, bi):
+        digests = []
+
+        lic_type = bi.get('license-type')
+        auth_groups = bi.get('auth-groups')
+        for i in range(bi.max_index):
+            lic_txt = bi.get('license-text', i)
+            theme = bi.get('theme', i)
+            d = self.get_digest(lic_type, lic_txt, theme, auth_groups)
+            if d == 'OPEN':
+                return d
+            elif d:
+                digests.append(d)
+        return digests
+
+    def get_eula_digests(self):
+        path = self.urlbase + self.file_name
+        theme = 'linaro'
+        if 'snowball' in path:
+            theme = 'stericsson'
+        elif 'origen' in path:
+            theme = 'samsung'
+        lic_type = 'protected'
+        lic_file = os.path.join(
+            settings.PROJECT_ROOT, 'templates/licenses/' + theme + '.txt')
+        with open(lic_file) as f:
+            lic_txt = f.read()
+            return [self.get_digest(lic_type, lic_txt, theme, None)]
+
+    def get_license_digests(self):
+        bi = self.get_build_info()
+        if bi:
+            return self.get_build_info_digests(bi)
+
+        eulas = self.get_eulas()
+
+        if self.has_open_eula(eulas):
+            return 'OPEN'
+
+        if self.has_eula(eulas):
+            return self.get_eula_digests()
+
+        theme = self.get_eula_per_file_theme(eulas)
+        if theme:
+            lic_file = os.path.join(settings.PROJECT_ROOT,
+                                    'templates/licenses/' + theme + '.txt')
+            with open(lic_file) as f:
+                lic_txt = f.read()
+            return [self.get_digest('protected', lic_txt, theme, None)]
+
+        if self.has_per_file_eulas(eulas):
+            return 'OPEN'
+
+        return []
+
+    def has_open_eula(self, eulas):
+        for x in eulas:
+            if 'OPEN-EULA.txt' in x:
+                return True
+
+    def has_eula(self, eulas):
+        for x in eulas:
+            if x == 'EULA.txt':
+                return True
+
+    def get_eula_per_file_theme(self, eulas):
+        eula_pat = os.path.basename(self.file_name) + '.EULA.txt'
+        for x in eulas:
+            if eula_pat in x:
+                vendor = os.path.splitext(x)[1]
+                return vendor[1:]
+
+    def has_per_file_eulas(self, eulas):
+        return len(eulas) > 0
+
 
 class LocalArtifact(Artifact):
     '''An artifact that lives on the local filesystem'''
@@ -308,12 +310,17 @@ class LocalArtifact(Artifact):
                     mtype = 'text'
             return mtype
 
-    def get_license_digests(self):
-        return _is_protected(self.full_path)
-
     def get_build_info(self):
         if buildinfo.BuildInfo.build_info_exists(self.full_path):
             return buildinfo.BuildInfo(self.full_path)
+
+    def get_eulas(self):
+        if self.isdir():
+            path = self.full_path
+        else:
+            path = os.path.dirname(self.full_path)
+        eulas = glob.glob(path + '/*EULA.txt*')
+        return [os.path.basename(x) for x in eulas]
 
     def isdir(self):
         return os.path.isdir(self.full_path)
