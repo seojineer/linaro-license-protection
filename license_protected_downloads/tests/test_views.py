@@ -2,7 +2,6 @@ __author__ = 'dooferlad'
 
 import hashlib
 import os
-import tempfile
 import unittest
 import urlparse
 
@@ -13,7 +12,10 @@ from django.test import Client, TestCase
 from django.http import HttpResponse
 
 from license_protected_downloads.buildinfo import BuildInfo
-from license_protected_downloads.common import _insert_license_into_db
+from license_protected_downloads.common import (
+    _insert_license_into_db,
+    LocalArtifact,
+)
 from license_protected_downloads.config import INTERNAL_HOSTS
 from license_protected_downloads.tests.helpers import temporary_directory
 from license_protected_downloads import views
@@ -36,11 +38,177 @@ class BaseServeViewTest(TestCase):
         self.old_master_api_key = settings.MASTER_API_KEY
         settings.MASTER_API_KEY = "1234abcd"
 
+        self.urlbase = 'http://testserver/'
+
     def tearDown(self):
         settings.SERVED_PATHS = self.old_served_paths
         settings.MASTER_API_KEY = self.old_master_api_key
         os.rmdir(settings.UPLOAD_PATH)
         settings.UPLOAD_PATH = self.old_upload_path
+
+    @staticmethod
+    def _get_artifact(path):
+        return LocalArtifact(None, '', path, False, TESTSERVER_ROOT)
+
+    def _test_get_file(self, path, follow_redirect):
+        url = urlparse.urljoin(self.urlbase, path)
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        file_path = os.path.join(TESTSERVER_ROOT, path)
+        self.assertEqual(resp['X-Sendfile'], file_path)
+
+
+class BuildInfoProtectedTests(BaseServeViewTest):
+    '''Perform tests of files protected by build-info'''
+    def _test_redirected_build_info(self, path, expected_response):
+        build_info = self._get_artifact(path).get_build_info()
+
+        # Try to fetch file from server - we should be redirected
+        url = urlparse.urljoin(self.urlbase, path)
+        response = self.client.get(url, follow=True)
+        digest = hashlib.md5(build_info.get('license-text')).hexdigest()
+        redir_path = '/license?lic=%s&url=%s' % (digest, path)
+        self.assertRedirects(response, redir_path)
+
+        # Make sure that we get the license text in the license page
+        self.assertContains(response, build_info.get("license-text"))
+        self.assertContains(response, expected_response)
+
+    def test_redirect_to_license_samsung(self):
+        self._test_redirected_build_info(
+            'build-info/origen-blob.txt', 'exynos.png')
+
+    def test_redirect_to_license_ste(self):
+        self._test_redirected_build_info(
+            'build-info/snowball-blob.txt', 'igloo.png')
+
+    def test_redirect_to_license_linaro(self):
+        self._test_redirected_build_info(
+            'build-info/linaro-blob.txt', 'linaro.png')
+
+    def test_unprotected_BUILD_INFO(self):
+        target_file = 'build-info/panda-open.txt'
+        self._test_get_file(target_file, True)
+
+    def test_broken_build_info_directory(self):
+        url = 'http://testserver/build-info/broken-build-info'
+        response = self.client.get(url, follow=True)
+        # If a build-info file is invalid, we don't allow access
+        self.assertEqual(response.status_code, 403)
+
+    def test_broken_build_info_file(self):
+        url = 'http://testserver/build-info/broken-build-info/test.txt'
+        response = self.client.get(url, follow=True)
+        # If a build-info file is invalid, we don't allow access
+        self.assertEqual(response.status_code, 403)
+
+    def test_partial_build_info_file_open(self):
+        target = 'partial-license-settings/' \
+                 'partially-complete-build-info/should_be_open.txt'
+        self._test_get_file(target, True)
+
+    def test_partial_build_info_file_protected(self):
+        target = 'partial-license-settings/' \
+                 'partially-complete-build-info/should_be_protected.txt'
+        self._test_redirected_build_info(target, 'exynos.png')
+
+    def test_partial_build_info_file_unspecified(self):
+        target = 'partial-license-settings/' \
+                 'partially-complete-build-info/should_be_inaccessible.txt'
+        url = urlparse.urljoin("http://testserver/", target)
+        response = self.client.get(url, follow=True)
+        # If a build-info file has no information about this file
+        self.assertEqual(response.status_code, 403)
+
+
+class EulaProtectedTests(BaseServeViewTest):
+    '''Perform tests of files protected by EULA in their directory'''
+    def test_never_available_dirs(self):
+        target_file = '~linaro-android/staging-imx53/test.txt'
+        url = urlparse.urljoin(self.urlbase, target_file)
+        response = self.client.get(url, follow=True)
+        self.assertEqual(response.status_code, 403)
+
+    def test_OPEN_EULA_txt(self):
+        target_file = '~linaro-android/staging-vexpress-a9/test.txt'
+        self._test_get_file(target_file, True)
+
+    def _test_redirected_eula(self, path, license, theme_txt):
+        with open(license) as f:
+            license = f.read()
+
+        url = urlparse.urljoin(self.urlbase, path)
+        response = self.client.get(url, follow=True)
+        digest = hashlib.md5(license).hexdigest()
+
+        redir_path = '/license?lic=%s&url=%s' % (digest, path)
+        self.assertRedirects(response, redir_path)
+        self.assertContains(response, license)
+        self.assertContains(response, theme_txt)
+
+    def test_protected_by_EULA_txt(self):
+        target_file = '~linaro-android/staging-origen/test.txt'
+        eula_path = os.path.join(
+            settings.PROJECT_ROOT, 'templates/licenses/samsung.txt')
+        self._test_redirected_eula(target_file, eula_path, 'exynos.png')
+
+    def test_per_file_license_samsung(self):
+        # Get BuildInfo for target file
+        target_file = 'images/origen-blob.txt'
+        eula_path = os.path.join(
+            settings.PROJECT_ROOT, 'templates/licenses/samsung.txt')
+        self._test_redirected_eula(target_file, eula_path, 'exynos.png')
+
+    def test_per_file_non_protected_dirs(self):
+        self._test_get_file('images/MANIFEST', False)
+
+    @mock.patch('license_protected_downloads.views.config')
+    def test_protected_internal_file(self, config):
+        '''ensure a protected file can be downloaded by an internal host'''
+        config.INTERNAL_HOSTS = ('127.0.0.1',)
+        target_file = '~linaro-android/staging-origen/test.txt'
+        self._test_get_file(target_file, False)
+
+
+class WildCardTests(BaseServeViewTest):
+    def test_wildcard_found(self):
+        url = 'http://testserver/~linaro-android/staging-panda/te*.txt'
+        resp = self.client.get(url, follow=True)
+        self.assertEquals(200, resp.status_code)
+
+        # test the single character match "?" which is urlencoded as %3f
+        url = 'http://testserver/~linaro-android/staging-panda/te%3ft.txt'
+        resp = self.client.get(url, follow=True)
+        self.assertEquals(200, resp.status_code)
+
+    def test_wildcard_multiple(self):
+        url = 'http://testserver/~linaro-android/staging-panda/*.txt'
+        resp = self.client.get(url, follow=True)
+        self.assertEquals(404, resp.status_code)
+
+    def test_wildcard_protected(self):
+        url = 'https://testserver/~linaro-android/staging-origen/te*.txt'
+        resp = self.client.get(url)
+        self.assertEquals(302, resp.status_code)
+        self.assertIn('license?lic=', resp['Location'])
+
+
+class HeaderTests(BaseServeViewTest):
+    def test_header_html(self):
+        url = 'http://testserver/~linaro-android'
+        resp = self.client.get(url, follow=True)
+        self.assertContains(resp, 'Welcome to the Linaro releases server')
+
+    def test_process_include_tags(self):
+        url = 'http://testserver/readme'
+        response = self.client.get(url, follow=True)
+        self.assertContains(response, 'Included from README')
+
+    def test_render_descriptions(self):
+        url = 'http://testserver/~linaro-android/staging-panda/'
+        resp = self.client.get(url, follow=True)
+        self.assertEquals(200, resp.status_code)
+        self.assertIn('<a href="#tabs-2">Git Descriptions</a>', resp.content)
 
 
 class ViewTests(BaseServeViewTest):
@@ -64,68 +232,10 @@ class ViewTests(BaseServeViewTest):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '/build-info')
 
-    def test_redirect_to_license_samsung(self):
-        # Get BuildInfo for target file
-        target_file = "build-info/origen-blob.txt"
-        file_path = os.path.join(TESTSERVER_ROOT, target_file)
-        build_info = BuildInfo(file_path)
-
-        # Try to fetch file from server - we should be redirected
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-        digest = hashlib.md5(build_info.get("license-text")).hexdigest()
-        self.assertRedirects(response, '/license?lic=%s&url=%s' %
-                                       (digest, target_file))
-
-        # Make sure that we get the license text in the license page
-        self.assertContains(response, build_info.get("license-text"))
-
-        # Test that we use the "samsung" theme. This contains exynos.png
-        self.assertContains(response, "exynos.png")
-
-    def test_redirect_to_license_ste(self):
-        # Get BuildInfo for target file
-        target_file = "build-info/snowball-blob.txt"
-        file_path = os.path.join(TESTSERVER_ROOT, target_file)
-        build_info = BuildInfo(file_path)
-
-        # Try to fetch file from server - we should be redirected
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-        digest = hashlib.md5(build_info.get("license-text")).hexdigest()
-        self.assertRedirects(response, '/license?lic=%s&url=%s' %
-                                       (digest, target_file))
-
-        # Make sure that we get the license text in the license page
-        self.assertContains(response, build_info.get("license-text"))
-
-        # Test that we use the "stericsson" theme. This contains igloo.png
-        self.assertContains(response, "igloo.png")
-
-    def test_redirect_to_license_linaro(self):
-        # Get BuildInfo for target file
-        target_file = "build-info/linaro-blob.txt"
-        file_path = os.path.join(TESTSERVER_ROOT, target_file)
-        build_info = BuildInfo(file_path)
-
-        # Try to fetch file from server - we should be redirected
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-        digest = hashlib.md5(build_info.get("license-text")).hexdigest()
-        self.assertRedirects(response, '/license?lic=%s&url=%s' %
-                                       (digest, target_file))
-
-        # Make sure that we get the license text in the license page
-        self.assertContains(response, build_info.get("license-text"))
-
-        # Test that we use the "linaro" theme. This contains linaro.png
-        self.assertContains(response, "linaro.png")
-
     @staticmethod
     def set_up_license(target_file, index=0):
         # Get BuildInfo for target file
-        file_path = os.path.join(TESTSERVER_ROOT, target_file)
-        build_info = BuildInfo(file_path)
+        build_info = ViewTests._get_artifact(target_file).get_build_info()
 
         # Insert license information into database
         text = build_info.get("license-text", index)
@@ -201,96 +311,12 @@ class ViewTests(BaseServeViewTest):
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)
 
-    def test_OPEN_EULA_txt(self):
-        target_file = '~linaro-android/staging-vexpress-a9/test.txt'
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-
-        # If we have access to the file, we will get an X-Sendfile response
-        self.assertEqual(response.status_code, 200)
-        file_path = os.path.join(TESTSERVER_ROOT, target_file)
-        self.assertEqual(response['X-Sendfile'], file_path)
-
-    def test_never_available_dirs(self):
-        target_file = '~linaro-android/staging-imx53/test.txt'
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-
-        # If we don't have access we will get a Forbidden response (403)
-        self.assertEqual(response.status_code, 403)
-
-    def test_protected_by_EULA_txt(self):
-        # Get BuildInfo for target file
-        target_file = "~linaro-android/staging-origen/test.txt"
-
-        # Try to fetch file from server - we should be redirected
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-
-        eula_path = os.path.join(settings.PROJECT_ROOT,
-                                 "templates/licenses/samsung.txt")
-        with open(eula_path) as license_file:
-            license_text = license_file.read()
-
-        digest = hashlib.md5(license_text).hexdigest()
-        self.assertRedirects(response, "/license?lic=%s&url=%s" %
-                                       (digest, target_file))
-
-        # Make sure that we get the license text in the license page
-        self.assertContains(response, license_text)
-
-        # Test that we use the "samsung" theme. This contains exynos.png
-        self.assertContains(response, "exynos.png")
-
-    @mock.patch('license_protected_downloads.views.config')
-    def test_protected_internal_file(self, config):
-        '''ensure a protected file can be downloaded by an internal host'''
-        config.INTERNAL_HOSTS = ('127.0.0.1',)
-        target_file = "~linaro-android/staging-origen/test.txt"
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('X-Sendfile', response)
-
     @mock.patch('license_protected_downloads.views.config')
     def test_protected_internal_listing(self, config):
         '''ensure directory listings are browseable for internal hosts'''
         config.INTERNAL_HOSTS = ('127.0.0.1',)
         response = self.client.get('http://testserver/')
         self.assertIn('linaro-license-protection.git/commit', response.content)
-
-    def test_per_file_license_samsung(self):
-        # Get BuildInfo for target file
-        target_file = "images/origen-blob.txt"
-
-        # Try to fetch file from server - we should be redirected
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-
-        eula_path = os.path.join(settings.PROJECT_ROOT,
-                                 "templates/licenses/samsung.txt")
-        with open(eula_path) as license_file:
-            license_text = license_file.read()
-
-        digest = hashlib.md5(license_text).hexdigest()
-        self.assertRedirects(response, "/license?lic=%s&url=%s" %
-                                       (digest, target_file))
-
-        # Make sure that we get the license text in the license page
-        self.assertContains(response, license_text)
-
-        # Test that we use the "samsung" theme. This contains exynos.png
-        self.assertContains(response, "exynos.png")
-
-    def test_per_file_non_protected_dirs(self):
-        target_file = "images/MANIFEST"
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-
-        # If we have access to the file, we will get an X-Sendfile response
-        self.assertEqual(response.status_code, 200)
-        file_path = os.path.join(TESTSERVER_ROOT, target_file)
-        self.assertEqual(response['X-Sendfile'], file_path)
 
     def test_dir_containing_only_dirs(self):
         target_file = "~linaro-android"
@@ -308,37 +334,6 @@ class ViewTests(BaseServeViewTest):
         url = urlparse.urljoin("http://testserver/", target_file)
         response = self.client.get(url, follow=True)
         self.assertContains(response, "not found", status_code=404)
-
-    def test_wildcard_found(self):
-        url = 'http://testserver/~linaro-android/staging-panda/te*.txt'
-        resp = self.client.get(url, follow=True)
-        self.assertEquals(200, resp.status_code)
-
-        # test the single character match "?" which is urlencoded as %3f
-        url = 'http://testserver/~linaro-android/staging-panda/te%3ft.txt'
-        resp = self.client.get(url, follow=True)
-        self.assertEquals(200, resp.status_code)
-
-    def test_wildcard_multiple(self):
-        url = 'http://testserver/~linaro-android/staging-panda/*.txt'
-        resp = self.client.get(url, follow=True)
-        self.assertEquals(404, resp.status_code)
-
-    def test_wildcard_protected(self):
-        url = 'https://testserver/~linaro-android/staging-origen/te*.txt'
-        resp = self.client.get(url)
-        self.assertEquals(302, resp.status_code)
-        self.assertIn('license?lic=', resp['Location'])
-
-    def test_unprotected_BUILD_INFO(self):
-        target_file = 'build-info/panda-open.txt'
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-
-        # If we have access to the file, we will get an X-Sendfile response
-        self.assertEqual(response.status_code, 200)
-        file_path = os.path.join(TESTSERVER_ROOT, target_file)
-        self.assertEqual(response['X-Sendfile'], file_path)
 
     def test_redirect_to_file_on_accept_multi_license(self):
         target_file = "build-info/multi-license.txt"
@@ -388,20 +383,6 @@ class ViewTests(BaseServeViewTest):
         self.assertEqual(response.status_code, 200)
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)
-
-    def test_header_html(self):
-        target_file = "~linaro-android"
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-
-        self.assertContains(
-            response, r"Welcome to the Linaro releases server")
-
-    def test_render_descriptions(self):
-        url = 'http://testserver/~linaro-android/staging-panda/'
-        resp = self.client.get(url, follow=True)
-        self.assertEquals(200, resp.status_code)
-        self.assertIn('<a href="#tabs-2">Git Descriptions</a>', resp.content)
 
     def test_exception_internal_host_for_lic(self):
         internal_host = INTERNAL_HOSTS[0]
@@ -459,22 +440,6 @@ class ViewTests(BaseServeViewTest):
         # Test that we use the "samsung" theme. This contains exynos.png
         self.assertContains(response, "exynos.png")
 
-    def test_broken_build_info_directory(self):
-        target_file = "build-info/broken-build-info"
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-
-        # If a build-info file is invalid, we don't allow access
-        self.assertEqual(response.status_code, 403)
-
-    def test_broken_build_info_file(self):
-        target_file = "build-info/broken-build-info/test.txt"
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-
-        # If a build-info file is invalid, we don't allow access
-        self.assertEqual(response.status_code, 403)
-
     def test_unable_to_download_hidden_files(self):
         target_file = '~linaro-android/staging-vexpress-a9/OPEN-EULA.txt'
         url = urlparse.urljoin("http://testserver/", target_file)
@@ -483,40 +448,6 @@ class ViewTests(BaseServeViewTest):
         # This file exists, but isn't listed so we shouldn't be able to
         # download it.
         self.assertEqual(response.status_code, 404)
-
-    def test_partial_build_info_file_open(self):
-        target_file = ("partial-license-settings/"
-                       "partially-complete-build-info/"
-                       "should_be_open.txt")
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-
-        # If a build-info file specifies this file is open
-        self.assertEqual(response.status_code, 200)
-
-    def test_partial_build_info_file_protected(self):
-        target_file = ("partial-license-settings/"
-                       "partially-complete-build-info/"
-                       "should_be_protected.txt")
-        file_path = os.path.join(TESTSERVER_ROOT, target_file)
-        build_info = BuildInfo(file_path)
-
-        # Try to fetch file from server - we should be redirected
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-        digest = hashlib.md5(build_info.get("license-text")).hexdigest()
-        self.assertRedirects(response, '/license?lic=%s&url=%s' %
-                                       (digest, target_file))
-
-    def test_partial_build_info_file_unspecified(self):
-        target_file = ("partial-license-settings/"
-                       "partially-complete-build-info/"
-                       "should_be_inaccessible.txt")
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-
-        # If a build-info file has no information about this file
-        self.assertEqual(response.status_code, 403)
 
     def test_listings_do_not_contain_double_slash_in_link(self):
         target_file = 'images/'
@@ -543,25 +474,6 @@ class ViewTests(BaseServeViewTest):
         self.assertEqual(response.status_code, 200)
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)
-
-    def make_temporary_file(self, data, root=None):
-        """Creates a temporary file and fills it with data.
-
-        Returns the file name of the new temporary file.
-        """
-        tmp_file_handle, tmp_filename = tempfile.mkstemp(dir=root)
-        tmp_file = os.fdopen(tmp_file_handle, "w")
-        tmp_file.write(data)
-        tmp_file.close()
-        self.addCleanup(os.unlink, tmp_filename)
-        return os.path.basename(tmp_filename)
-
-    def test_process_include_tags(self):
-        target_file = "readme"
-        url = urlparse.urljoin("http://testserver/", target_file)
-        response = self.client.get(url, follow=True)
-
-        self.assertContains(response, r"Included from README")
 
     def test_path_to_root(self):
         response = self.client.get("http://testserver//", follow=True)
