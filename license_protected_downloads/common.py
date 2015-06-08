@@ -10,7 +10,8 @@ import traceback
 from datetime import datetime
 
 from django.conf import settings
-from django.http import Http404
+from django.http import Http404, HttpResponse
+from django.utils.encoding import smart_str
 
 from license_protected_downloads import(
     buildinfo,
@@ -182,6 +183,9 @@ class Artifact(object):
     def get_eulas(self):
         raise NotImplementedError()
 
+    def get_file_download_response(self):
+        raise NotImplementedError()
+
     def get_build_info(self):
         buf = self.build_info_buffer
         if buf:
@@ -323,6 +327,19 @@ class LocalArtifact(Artifact):
                 elif mtype.split('/')[0] == 'text':
                     mtype = 'text'
             return mtype
+
+    def get_file_download_response(self):
+        "Return HttpResponse which will send path to user's browser."
+        assert not self.isdir()
+        file_name = os.path.basename(self.full_path)
+        mime = mimetypes.guess_type(file_name)[0]
+        if mime is None:
+            mime = "application/force-download"
+        response = HttpResponse(mimetype=mime)
+        response['Content-Disposition'] = ('attachment; filename=%s' %
+                                           smart_str(file_name))
+        response['X-Sendfile'] = smart_str(self.full_path)
+        return response
 
     @cached_prop
     def build_info_buffer(self):

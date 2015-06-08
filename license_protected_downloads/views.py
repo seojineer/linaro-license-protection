@@ -1,7 +1,6 @@
 import importlib
 import logging
 import json
-import mimetypes
 import os
 import re
 import sys
@@ -14,7 +13,7 @@ from django.http import (
     HttpResponseRedirect,
 )
 from django.shortcuts import render, redirect
-from django.utils.encoding import smart_str, iri_to_uri
+from django.utils.encoding import iri_to_uri
 from django.views.decorators.csrf import csrf_exempt
 
 from buildinfo import IncorrectDataFormatException
@@ -150,23 +149,6 @@ def is_whitelisted(url):
             found = True
 
     return found
-
-
-def send_file(path):
-    "Return HttpResponse which will send path to user's browser."
-    file_name = os.path.basename(path)
-    mimetypes.init()
-    mime = mimetypes.guess_type(path)[0]
-    if mime is None:
-        mime = "application/force-download"
-    response = HttpResponse(mimetype=mime)
-    response['Content-Disposition'] = ('attachment; filename=%s' %
-                                       smart_str(file_name))
-    response['X-Sendfile'] = smart_str(path)
-    # response['Content-Length'] = os.path.getsize(path)
-    # TODO: Is it possible to add a redirect to response so we can take
-    # the user back to the original directory this file is in?
-    return response
 
 
 def group_auth_failed_response(request, auth_groups):
@@ -311,7 +293,7 @@ def file_server_get(request, path):
     resp = _check_file_permission(request, artifact, internal)
     if resp:
         return resp
-    return send_file(artifact.full_path)
+    return artifact.get_file_download_response()
 
 
 def get_textile_files(request):
