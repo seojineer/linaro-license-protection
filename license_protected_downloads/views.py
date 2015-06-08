@@ -54,12 +54,7 @@ def _get_header_html_content(path):
     if os.path.isfile(header_html):
         with open(header_html, "r") as infile:
             body = infile.read()
-        orig = os.getcwd()
-        try:
-            os.chdir(path)
-            body = _process_include_tags(body)
-        finally:
-            os.chdir(orig)
+        body = _process_include_tags(path, body)
         soup = BeautifulSoup(body)
         for chunk in soup.findAll(id="content"):
             header_content += chunk.prettify().decode("utf-8")
@@ -68,28 +63,15 @@ def _get_header_html_content(path):
     return header_content
 
 
-def is_same_parent_dir(parent, filename):
-    """
-        Checks if filename's parent dir is parent.
-    """
-    full_filename = os.path.join(parent, filename)
-    normalized_path = os.path.normpath(os.path.realpath(full_filename))
-    if parent == os.path.dirname(normalized_path):
-        return True
-
-    return False
-
-
-def read_file_with_include_data(matchobj):
+def _read_file_with_include_data(path, matchobj):
     """
         Function to get data for re.sub() in _process_include_tags() from file
         which name is in named match group 'file_name'.
         Returns content of file in current directory otherwise empty string.
     """
     content = ''
-    current_dir = os.getcwd()
-    fname = matchobj.group('file_name')
-    if is_same_parent_dir(current_dir, fname):
+    fname = os.path.join(path, matchobj.group('file_name'))
+    if os.path.dirname(os.path.normpath(fname)) == path:
         if os.path.isfile(fname) and not os.path.islink(fname):
             with open(fname, "r") as infile:
                 content = infile.read()
@@ -97,19 +79,18 @@ def read_file_with_include_data(matchobj):
     return content
 
 
-def _process_include_tags(content):
+def _process_include_tags(path, content):
     """
         Replaces <linaro:include file="README" /> or
         <linaro:include file="README">text to show</linaro:include> tags
         with content of README file or empty string if file not found or
         not allowed.
     """
-    content = re.sub(LINARO_INCLUDE_FILE_RE,
-                     read_file_with_include_data,
-                     content)
-    content = re.sub(LINARO_INCLUDE_FILE_RE1,
-                     read_file_with_include_data,
-                     content)
+    def read_func(matchobj):
+        return _read_file_with_include_data(path, matchobj)
+
+    content = re.sub(LINARO_INCLUDE_FILE_RE, read_func, content)
+    content = re.sub(LINARO_INCLUDE_FILE_RE1, read_func, content)
     return content
 
 
