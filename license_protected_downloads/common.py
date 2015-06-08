@@ -168,7 +168,7 @@ def test_path(path, request):
     for basepath in served_paths:
         fullpath = safe_path_join(basepath, path)
         if fullpath is None:
-            return None
+            raise Http404
         if os.path.isfile(fullpath):
             return ("file", fullpath)
         if os.path.isdir(fullpath):
@@ -177,6 +177,8 @@ def test_path(path, request):
         fullpath = _handle_wildcard(request, fullpath)
         if fullpath:
             return ('file', fullpath)
+
+    raise Http404
 
 
 def _hidden_file(file_name):

@@ -3,7 +3,6 @@ import os
 
 from django.views.decorators.csrf import csrf_exempt
 from django.http import (
-    Http404,
     HttpResponse,
     HttpResponseServerError
 )
@@ -94,42 +93,37 @@ def list_files_api(request, path):
     path = iri_to_uri(path)
     url = path
     result = test_path(path, request)
-    if not result:
-        raise Http404
 
     target_type = result[0]
     path = result[1]
 
-    if target_type:
-        if target_type == "file":
-            file_url = url
-            if file_url[0] != "/":
-                file_url = "/" + file_url
-            path = os.path.dirname(path)
-            url = os.path.dirname(url)
+    if target_type == "file":
+        file_url = url
+        if file_url[0] != "/":
+            file_url = "/" + file_url
+        path = os.path.dirname(path)
+        url = os.path.dirname(url)
 
-        listing = dir_list(url, path, human_readable=False)
+    listing = dir_list(url, path, human_readable=False)
 
-        clean_listing = []
-        for entry in listing:
-            if target_type == "file" and file_url != entry["url"]:
-                # If we are getting a listing for a single file, skip the rest
-                continue
+    clean_listing = []
+    for entry in listing:
+        if target_type == "file" and file_url != entry["url"]:
+            # If we are getting a listing for a single file, skip the rest
+            continue
 
-            if len(entry["license_list"]) == 0:
-                entry["license_list"] = ["Open"]
+        if len(entry["license_list"]) == 0:
+            entry["license_list"] = ["Open"]
 
-            clean_listing.append({
-                "name": entry["name"],
-                "size": entry["size"],
-                "type": entry["type"],
-                "mtime": entry["mtime"],
-                "url": entry["url"],
-            })
+        clean_listing.append({
+            "name": entry["name"],
+            "size": entry["size"],
+            "type": entry["type"],
+            "mtime": entry["mtime"],
+            "url": entry["url"],
+        })
 
-        data = json.dumps({"files": clean_listing})
-    else:
-        data = json.dumps({"files": ["File not found."]})
+    data = json.dumps({"files": clean_listing})
 
     return HttpResponse(data, mimetype='application/json')
 
@@ -137,8 +131,6 @@ def list_files_api(request, path):
 def get_license_api(request, path):
     path = iri_to_uri(path)
     result = test_path(path, request)
-    if not result:
-        raise Http404
 
     target_type = result[0]
     path = result[1]

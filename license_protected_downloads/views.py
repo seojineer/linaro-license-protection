@@ -307,9 +307,6 @@ def file_server_get(request, path):
     result = test_path(path, request)
     internal = get_client_ip(request) in config.INTERNAL_HOSTS
 
-    if not result:
-        raise Http404
-
     target_type = result[0]
     path = result[1]
 
@@ -357,13 +354,7 @@ def file_server_get(request, path):
 
 
 def get_textile_files(request):
-
-    result = test_path(request.GET.get("path"), request)
-    if not result:
-        raise Http404
-
-    path = result[1]
-
+    path = test_path(request.GET.get("path"), request)[1]
     rendered_files = RenderTextFiles.find_and_render(path)
     if os.path.exists(os.path.join(path, settings.ANNOTATED_XML)):
         if rendered_files is None:
