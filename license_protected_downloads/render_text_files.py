@@ -23,23 +23,12 @@ class RenderTextFiles:
         return base_list.index(a[0]) - base_list.index(b[0])
 
     @classmethod
-    def find_and_render(cls, path):
-
+    def find_and_render(cls, artifact):
         result = {}
 
-        try:
-            filepaths = cls.find_relevant_files(path)
-        except:
-            # This is ok, no tabs when multiple returned.
-            return None
-
-        if filepaths:
-            for filepath in filepaths:
-                title = settings.FILES_MAP[os.path.basename(filepath)]
-                result[title] = cls.render_file(filepath)
-
-        if not filepaths and len(result) == 0:
-            return None
+        for path, fd in artifact.get_textile_files():
+            title = settings.FILES_MAP[os.path.basename(path)]
+            result[title] = cls.render_file(fd)
 
         result_items = sorted(result.items(), cmp=cls.sort_tabs_by_priority)
         result = OrderedDict.OrderedDict()
@@ -48,10 +37,9 @@ class RenderTextFiles:
         return result
 
     @classmethod
-    def render_file(cls, filepath):
+    def render_file(cls, fp):
         try:
-            file_obj = open(filepath, 'r')
-            return textile.textile(file_obj.read())
+            return textile.textile(fp.read())
         except:
             # Do nothing, parsing failed.
             pass

@@ -165,10 +165,8 @@ def _handle_dir_list(request, artifact):
     download = None
     if 'dl' in request.GET:
         download = request.GET['dl']
-    rendered_files = RenderTextFiles.find_and_render(path)
+    rendered_files = RenderTextFiles.find_and_render(artifact)
     if os.path.exists(os.path.join(path, settings.ANNOTATED_XML)):
-        if rendered_files is None:
-            rendered_files = {}
         rendered_files["Git Descriptions"] = render_descriptions(path)
 
     dirlist = dir_list(artifact)
@@ -239,12 +237,12 @@ def file_server_get(request, path):
 
 
 def get_textile_files(request):
-    path = find_artifact(request, request.GET.get("path")).full_path
-    rendered_files = RenderTextFiles.find_and_render(path)
-    if os.path.exists(os.path.join(path, settings.ANNOTATED_XML)):
+    artifact = find_artifact(request, request.GET.get("path"))
+    rendered_files = RenderTextFiles.find_and_render(artifact)
+    if os.path.exists(os.path.join(artifact.full_path, settings.ANNOTATED_XML)):
         if rendered_files is None:
             rendered_files = {}
-        rendered_files["Git Descriptions"] = render_descriptions(path)
+        rendered_files["Git Descriptions"] = render_descriptions(artifact.full_path)
 
     return HttpResponse(json.dumps(rendered_files))
 

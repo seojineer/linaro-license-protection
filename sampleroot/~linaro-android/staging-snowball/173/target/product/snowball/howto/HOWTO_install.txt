@@ -188,7 +188,7 @@ bc.         eject /media/boot
 * Boot the board
 ** Insert the SD card into the board
 ** Reboot the board
-*** “Cmd>" prompt from the Boot Loader"
+*** "Cmd>" prompt from the Boot Loader"
 *** Press the red reboot button
 
 h2. Using pre-built image
@@ -251,5 +251,5 @@ pre. sudo linaro-android-media-create --mmc /dev/sdX --dev vexpress --system sys
 * Boot the board
 ** Insert the SD card into the board
 ** Reboot the board
-*** “Cmd>" prompt from the Boot Loader
+*** "Cmd>" prompt from the Boot Loader
 *** Press the red reboot button

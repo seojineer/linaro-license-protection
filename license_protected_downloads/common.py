@@ -17,6 +17,7 @@ from django.utils.encoding import smart_str
 from license_protected_downloads import(
     buildinfo,
     models,
+    render_text_files,
 )
 
 
@@ -190,6 +191,9 @@ class Artifact(object):
         raise NotImplementedError()
 
     def get_file_download_response(self):
+        raise NotImplementedError()
+
+    def get_textile_files(self):
         raise NotImplementedError()
 
     def get_build_info(self):
@@ -407,6 +411,14 @@ class LocalArtifact(Artifact):
         if os.path.isfile(fname) and not os.path.islink(fname):
             with open(fname, 'r') as f:
                 return f.read()
+
+    def get_textile_files(self):
+        assert self.isdir()
+        files = render_text_files.RenderTextFiles.find_relevant_files(
+            self.full_path)
+        for f in files:
+            with open(f) as fd:
+                yield f, fd
 
     def isdir(self):
         return os.path.isdir(self.full_path)
