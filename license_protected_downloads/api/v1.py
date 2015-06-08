@@ -90,11 +90,10 @@ def file_server_post(request, path):
 
 def list_files_api(request, path):
     path = iri_to_uri(path)
-    url = path
     artifact = find_artifact(request, path)
 
     if artifact.isdir():
-        listing = dir_list(url, path, human_readable=False)
+        listing = dir_list(artifact, human_readable=False)
     else:
         listing = [artifact.get_listing()]
 
@@ -109,7 +108,6 @@ def list_files_api(request, path):
         })
 
     data = json.dumps({"files": clean_listing})
-
     return HttpResponse(data, mimetype='application/json')
 
 

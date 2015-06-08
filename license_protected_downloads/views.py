@@ -247,13 +247,15 @@ def _check_build_info(request, build_info):
             return response
 
 
-def _handle_dir_list(request, url, path):
+def _handle_dir_list(request, artifact):
     # Generate a link to the parent directory (if one exists)
-    if url != '/' and url != '':
-        up_dir = "/" + os.path.split(url)[0]
+    url = artifact.url()
+    if url != '/':
+        up_dir = os.path.split(url)[0]
     else:
         up_dir = None
 
+    path = artifact.full_path
     header_content = _get_header_html_content(path)
     download = None
     if 'dl' in request.GET:
@@ -264,7 +266,7 @@ def _handle_dir_list(request, url, path):
             rendered_files = {}
         rendered_files["Git Descriptions"] = render_descriptions(path)
 
-    dirlist = dir_list(url, path)
+    dirlist = dir_list(artifact)
     lics = [x['license_digest_list'] for x in dirlist
             if x['license_digest_list']]
 
@@ -305,10 +307,7 @@ def _check_file_permission(request, artifact, internal):
 
 
 def file_server_get(request, path):
-
-    url = path
     artifact = find_artifact(request, path)
-    path = artifact.full_path
     internal = get_client_ip(request) in config.INTERNAL_HOSTS
 
     if not internal:
@@ -322,7 +321,7 @@ def file_server_get(request, path):
                 return resp
 
     if artifact.isdir():
-        return _handle_dir_list(request, url, path)
+        return _handle_dir_list(request, artifact)
 
     # prevent download of files like BUILD-INFO.txt
     if artifact.hidden():
@@ -331,7 +330,7 @@ def file_server_get(request, path):
     resp = _check_file_permission(request, artifact, internal)
     if resp:
         return resp
-    return send_file(path)
+    return send_file(artifact.full_path)
 
 
 def get_textile_files(request):

@@ -319,12 +319,11 @@ class LocalArtifact(Artifact):
         return os.path.isdir(self.full_path)
 
 
-def dir_list(url, path, human_readable=True):
-
-    artifacts = []
-    if os.path.exists(path):
-        artifacts = [LocalArtifact(url, x, human_readable, path)
-                     for x in os.listdir(path)]
+def dir_list(artifact, human_readable=True):
+    path = artifact.full_path
+    url = artifact.url()
+    artifacts = [LocalArtifact(url, x, human_readable, path)
+                 for x in os.listdir(path)]
     artifacts.sort(_sort_artifacts)
 
     listing = []
