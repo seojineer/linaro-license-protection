@@ -228,11 +228,17 @@ def _sizeof_fmt(num):
 
 
 class Artifact(object):
-    def __init__(self, urlbase, file_name, human_readable, local_path):
-        self.human_readable = human_readable
-        self.file_name = file_name
+    def __init__(self, urlbase, file_name, size, mtime, human_readable):
         self.urlbase = urlbase
-        self.full_path = os.path.join(local_path, file_name)
+        self.file_name = file_name
+        self.size = size
+        self.mtime = mtime
+        self.human_readable = human_readable
+
+        if human_readable:
+            self.size = _sizeof_fmt(size)
+            mtime = datetime.fromtimestamp(mtime)
+            self.mtime = mtime.strftime('%d-%b-%Y %H:%M')
 
     def url(self):
         url = self.urlbase
@@ -246,35 +252,7 @@ class Artifact(object):
         return url + self.file_name
 
     def get_type(self):
-        if os.path.isdir(self.full_path):
-            return 'folder'
-        else:
-            mtype = mimetypes.guess_type(self.full_path)[0]
-            if self.human_readable:
-                if mtype is None:
-                    mtype = 'other'
-                elif mtype.split('/')[0] == 'text':
-                    mtype = 'text'
-            return mtype
-
-    def get_size(self):
-        size = 0
-        # ensure the file we are looking at exists (not broken symlink)
-        if os.path.exists(self.full_path):
-            size = os.path.getsize(self.full_path)
-            if self.human_readable:
-                size = _sizeof_fmt(size)
-        return size
-
-    def get_mtime(self):
-        mtime = 0
-        # ensure the file we are looking at exists (not broken symlink)
-        if os.path.exists(self.full_path):
-            mtime = os.path.getmtime(self.full_path)
-            if self.human_readable:
-                mtime = datetime.fromtimestamp(mtime)
-                mtime = mtime.strftime('%d-%b-%Y %H:%M')
-        return mtime
+        raise NotImplementedError()
 
     def get_listing(self):
         if os.path.isdir(self.full_path):
@@ -290,20 +268,46 @@ class Artifact(object):
         ll = models.License.objects.all_with_hashes(ldl)
         return {
             'name': self.file_name,
-            'size': self.get_size(),
-            'type': self.get_type(),
-            'mtime': self.get_mtime(),
+            'size': self.size,
+            'mtime': self.mtime,
             'license_digest_list': ldl,
             'license_list': ll,
+            'type': self.get_type(),
             'url': self.url(),
         }
+
+
+class LocalArtifact(Artifact):
+    '''An artifact that lives on the local filesystem'''
+    def __init__(self, urlbase, file_name, human_readable, path):
+        self.full_path = os.path.join(path, file_name)
+
+        size = mtime = 0
+        # ensure the file we are looking at exists (not broken symlink)
+        if os.path.exists(self.full_path):
+            size = os.path.getsize(self.full_path)
+            mtime = os.path.getmtime(self.full_path)
+        super(LocalArtifact, self).__init__(
+            urlbase, file_name, size, mtime, human_readable)
+
+    def get_type(self):
+        if os.path.isdir(self.full_path):
+            return 'folder'
+        else:
+            mtype = mimetypes.guess_type(self.full_path)[0]
+            if self.human_readable:
+                if mtype is None:
+                    mtype = 'other'
+                elif mtype.split('/')[0] == 'text':
+                    mtype = 'text'
+            return mtype
 
 
 def dir_list(url, path, human_readable=True):
 
     artifacts = []
     if os.path.exists(path):
-        artifacts = [Artifact(url, x, human_readable, path)
+        artifacts = [LocalArtifact(url, x, human_readable, path)
                      for x in os.listdir(path)]
     artifacts.sort(_sort_artifacts)
 

@@ -20,7 +20,7 @@ class CommonTests(unittest.TestCase):
             (['10', 'foo', '100', 'latest'], ['latest', '10', '100', 'foo']),
         ]
         for files, expected in patterns:
-            artifacts = [common.Artifact('', x, True, '') for x in files]
+            artifacts = [common.LocalArtifact('', x, True, '') for x in files]
             artifacts.sort(common._sort_artifacts)
             self.assertEqual(expected, [x.file_name for x in artifacts])
 
