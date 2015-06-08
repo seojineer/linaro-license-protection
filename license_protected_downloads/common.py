@@ -194,26 +194,24 @@ def _hidden_file(file_name):
     return False
 
 
-def _listdir(path):
-    '''Lists the contents of a directory sorted to our requirements.
+def _sort_artifacts(a, b):
+    '''Ensures directory listings follow our ordering rules for artifacts.
 
     If the directory is all numbers it sorts them numerically. The "latest"
     entry will always be the first entry. Else use standard sorting.
     '''
-    def _sort(a, b):
-        try:
-            return cmp(int(a), int(b))
-        except:
-            pass
-        if a == 'latest':
-            return -1
-        elif b == 'latest':
-            return 1
+    a = a.file_name
+    b = b.file_name
+    try:
+        return cmp(int(a), int(b))
+    except:
+        pass
+    if a == 'latest':
+        return -1
+    elif b == 'latest':
+        return 1
 
-        return cmp(a, b)
-    files = os.listdir(path)
-    files.sort(_sort)
-    return files
+    return cmp(a, b)
 
 
 def _sizeof_fmt(num):
@@ -302,11 +300,15 @@ class Artifact(object):
 
 
 def dir_list(url, path, human_readable=True):
-    files = _listdir(path)
-    listing = []
 
-    for file_name in files:
-        if not _hidden_file(file_name):
-            artifact = Artifact(url, file_name, human_readable, path)
+    artifacts = []
+    if os.path.exists(path):
+        artifacts = [Artifact(url, x, human_readable, path)
+                     for x in os.listdir(path)]
+    artifacts.sort(_sort_artifacts)
+
+    listing = []
+    for artifact in artifacts:
+        if not _hidden_file(artifact.file_name):
             listing.append(artifact.get_listing())
     return listing
