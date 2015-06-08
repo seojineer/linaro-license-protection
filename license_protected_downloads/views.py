@@ -160,20 +160,6 @@ def redirect_to_root(request):
     return redirect('/')
 
 
-def file_listed(path, url):
-    """Boolean response to "does this files show up in a directory listing."""
-    file_name = os.path.basename(path)
-    dir_name = os.path.dirname(path)
-
-    found = False
-    file_list = dir_list(url, dir_name)
-    for file in file_list:
-        if file["name"] == file_name:
-            found = True
-
-    return found
-
-
 def is_whitelisted(url):
     """ Check if requested file is under whitelisted path.
     """
@@ -339,10 +325,8 @@ def file_server_get(request, path):
     if artifact.isdir():
         return _handle_dir_list(request, url, path)
 
-    # If the file listing doesn't contain the file requested for download,
-    # return a 404. This prevents the download of BUILD-INFO.txt and other
-    # hidden files.
-    if not file_listed(path, url):
+    # prevent download of files like BUILD-INFO.txt
+    if artifact.hidden():
         raise Http404
 
     resp = _check_file_permission(request, artifact, internal)

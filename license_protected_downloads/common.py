@@ -183,15 +183,6 @@ def find_artifact(request, path):
     raise Http404
 
 
-def _hidden_file(file_name):
-    hidden_files = ["BUILD-INFO.txt", "EULA.txt", "HEADER.html",
-                    "HOWTO_", "textile", ".htaccess", "licenses"]
-    for pattern in hidden_files:
-        if re.search(pattern, file_name):
-            return True
-    return False
-
-
 def _sort_artifacts(a, b):
     '''Ensures directory listings follow our ordering rules for artifacts.
 
@@ -240,6 +231,14 @@ class Artifact(object):
 
     def isdir(self):
         raise RuntimeError()
+
+    def hidden(self):
+        hidden_files = ["BUILD-INFO.txt", "EULA.txt", "HEADER.html",
+                        "HOWTO_", "textile", ".htaccess", "licenses"]
+        for pattern in hidden_files:
+            if re.search(pattern, self.file_name):
+                return True
+        return False
 
     def url(self):
         url = self.urlbase
@@ -323,6 +322,6 @@ def dir_list(url, path, human_readable=True):
 
     listing = []
     for artifact in artifacts:
-        if not _hidden_file(artifact.file_name):
+        if not artifact.hidden():
             listing.append(artifact.get_listing())
     return listing
