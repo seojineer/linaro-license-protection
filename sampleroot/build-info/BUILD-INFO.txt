@@ -28,7 +28,7 @@ License-Text: <p>IMPORTANT — PLEASE READ THE FOLLOWING AGREEMENT CAREFULLY.</p
   OTHERWISE USE THE SOFTWARE.
  </p>
 
-Files-Pattern: *panda*
+Files-Pattern: panda*
 Build-Name: landing-panda
 License-Type: open
 

@@ -34,7 +34,7 @@ Theme: linaro
 License-Type: protected
 License-Text: License
 
-Files-Pattern: *panda*
+Files-Pattern: panda*
 Build-Name: landing-panda
 License-Type: open
 

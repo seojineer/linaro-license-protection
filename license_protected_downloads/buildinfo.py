@@ -126,19 +126,9 @@ class BuildInfoBase(object):
                 # File name matches a key directly - don't need to iterate
                 # through each using fnmatch to implement globs.
                 return block[self.fname]
-
-            if self.full_file_name == self.search_path:
-                # Searching for directory match. This will only match the "*"
-                # glob.
-                if '*' in block:
-                    return block['*']
-                else:
-                    return [{}]
-
             for key in block:
                 if key != 'format-version':
-                    if fnmatch.fnmatch(self.full_file_name,
-                                       os.path.join(self.search_path, key)):
+                    if fnmatch.fnmatch(self.fname, key):
                         return block[key]
         return [{}]
 
