@@ -19,7 +19,7 @@ class BuildInfoBaseTests(unittest.TestCase):
     def setUp(self):
         p = os.path.join(THIS_DIRECTORY, "BUILD-INFO.txt")
         with open(os.path.join(THIS_DIRECTORY, "BUILD-INFO.txt")) as f:
-            self.build_info = BuildInfoBase(p, os.path.dirname(p), f.read())
+            self.build_info = BuildInfoBase(p, f.read())
 
     def test_get_emptyField(self):
         value = "notempty"
@@ -187,8 +187,6 @@ class BuildInfoBaseTests(unittest.TestCase):
             [{'license-type': 'protected'}, {'license-type': 'protected'}])
 
     def test_getInfoForFile(self):
-        self.build_info.full_file_name = os.path.join(
-            self.build_info.search_path, 'foo.pyc')
         self.build_info.fname = 'foo.pyc'
         self.build_info.build_info_array = [{}]
         data = ["Format-Version: 2.0",
@@ -205,8 +203,6 @@ class BuildInfoBaseTests(unittest.TestCase):
         self.assertEquals(self.build_info.file_info_array, [{}])
 
     def test_getInfoForFile_no_block_for_file(self):
-        self.build_info.full_file_name = os.path.join(
-            self.build_info.search_path, 'foo.pyc')
         self.build_info.fname = 'foo.pyc'
         self.build_info.build_info_array = [{}]
         data = ["Format-Version: 2.0",

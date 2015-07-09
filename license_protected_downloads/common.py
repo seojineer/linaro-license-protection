@@ -185,10 +185,7 @@ class Artifact(object):
     def get_build_info(self):
         buf = self.build_info_buffer
         if buf:
-            sp = fn = self.urlbase[1:]
-            if not self.isdir():
-                fn = sp + '/' + self.file_name
-            return buildinfo.BuildInfoBase(fn, sp, buf)
+            return buildinfo.BuildInfoBase(self.file_name, buf)
 
     def get_listing(self):
         if self.isdir():

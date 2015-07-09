@@ -15,9 +15,7 @@ class BuildInfoBase(object):
         "openid-launchpad-teams",
     ]
 
-    def __init__(self, full_name, search_path, content):
-        self.full_file_name = full_name
-        self.search_path = search_path
+    def __init__(self, full_name, content):
         self.fname = os.path.basename(full_name)
 
         self.index = 0
@@ -157,7 +155,7 @@ class BuildInfo(BuildInfoBase):
         build_info_file = os.path.join(search_path, "BUILD-INFO.txt")
 
         with open(build_info_file, "r") as f:
-            super(BuildInfo, self).__init__(fn, search_path, f.read())
+            super(BuildInfo, self).__init__(fn, f.read())
 
     @classmethod
     def get_search_path(cls, path):
