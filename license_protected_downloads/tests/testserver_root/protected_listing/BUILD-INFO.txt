@@ -1,0 +1,6 @@
+Format-Version: 0.5
+
+Files-Pattern: *.txt,
+License-Type: protected
+Auth-Groups: lmg-members-only
+

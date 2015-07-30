@@ -120,6 +120,23 @@ class BuildInfoProtectedTests(BaseServeViewTest):
         # If a build-info file has no information about this file
         self.assertEqual(response.status_code, 403)
 
+    def test_directory_protected(self):
+        '''Ensure we can protect an entire directory. This is done by having a
+        trailing "," in the files-pattern of the build-info file. Given the
+        fragile nature of build-info we need to validate it can work
+        with/without a trailing slast'''
+        url = 'http://testserver/protected_listing'
+        response = self.client.get(url, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            '<title>OpenID transaction in progress</title>', response.content)
+
+        url = 'http://testserver/protected_listing/'
+        response = self.client.get(url, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            '<title>OpenID transaction in progress</title>', response.content)
+
 
 class EulaProtectedTests(BaseServeViewTest):
     '''Perform tests of files protected by EULA in their directory'''

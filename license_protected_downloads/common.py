@@ -199,6 +199,11 @@ class Artifact(object):
     def get_build_info(self):
         buf = self.build_info_buffer
         if buf:
+            # directory listings are handled specially, the build-info logic
+            # will get license-digests for *all* files iff you pass no
+            # file-name to its constructor
+            if self.isdir():
+                return buildinfo.BuildInfoBase('', buf)
             return buildinfo.BuildInfoBase(self.file_name, buf)
 
     def get_listing(self):
