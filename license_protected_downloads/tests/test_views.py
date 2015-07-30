@@ -346,6 +346,13 @@ class ViewTests(BaseServeViewTest):
             r'<th></th><th>Name</th><th>Last modified</th>'
             '<th>Size</th><th style="display: None">License</th>')
 
+    def test_dir_redirect(self):
+        '''URLs to directs without trailing / should result in a redirect'''
+        url = 'http://testserver/~linaro-android'
+        response = self.client.get(url)
+        self.assertEqual(302, response.status_code)
+        self.assertEqual(url + '/', response['Location'])
+
     def test_not_found_file(self):
         target_file = "12qwaszx"
         url = urlparse.urljoin("http://testserver/", target_file)

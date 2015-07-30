@@ -182,7 +182,10 @@ class Artifact(object):
                 url += '/'
         else:
             url = '/'
-        return url + self.file_name
+        url = url + self.file_name
+        if self.isdir() and url[-1] != '/':
+            url += '/'
+        return url
 
     def get_type(self):
         raise NotImplementedError()

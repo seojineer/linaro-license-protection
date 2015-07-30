@@ -154,6 +154,9 @@ def _check_build_info(request, build_info):
 
 
 def _handle_dir_list(request, artifact):
+    if request.path[-1] != '/':
+        return redirect(request.path + '/')
+
     # Generate a link to the parent directory (if one exists)
     url = artifact.url()
     if url != '/':
