@@ -160,7 +160,13 @@ def _handle_dir_list(request, artifact):
     # Generate a link to the parent directory (if one exists)
     url = artifact.url()
     if url != '/':
+        if url[-1] == '/':
+            # we must remove trailing slash to find parent
+            url = url[:-1]
         up_dir = os.path.split(url)[0]
+        if up_dir[-1] != '/':
+            # now we need the trailing slash
+            up_dir += '/'
     else:
         up_dir = None
 

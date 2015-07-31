@@ -353,6 +353,17 @@ class ViewTests(BaseServeViewTest):
         self.assertEqual(302, response.status_code)
         self.assertEqual(url + '/', response['Location'])
 
+    def test_parent_dir(self):
+        '''Ensure the listing has the correct parent directory link'''
+        url = 'http://testserver/~linaro-android/'
+        response = self.client.get(url)
+        self.assertEqual(200, response.status_code)
+        self.assertIn('"/">Parent Directory', response.content)
+
+        url = 'http://testserver/~linaro-android/staging-panda/'
+        response = self.client.get(url, follow_redirect=True)
+        self.assertIn('"/~linaro-android/">Parent Directory', response.content)
+
     def test_not_found_file(self):
         target_file = "12qwaszx"
         url = urlparse.urljoin("http://testserver/", target_file)
