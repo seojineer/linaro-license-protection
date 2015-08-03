@@ -67,6 +67,8 @@ urlpatterns = patterns(
 
     url(r'^api/v3/token/(?P<token>.*)$',
         'license_protected_downloads.api.v3.token'),
+    url(r'^api/v3/publish/(?P<path>.*)$',
+        'license_protected_downloads.api.v3.publish'),
 
     # Catch-all. We always return a file (or try to) if it exists.
     # This handler does that.
