@@ -4,17 +4,19 @@ import os
 import tempfile
 import unittest
 
-from license_protected_downloads import common
+from license_protected_downloads.artifact import LocalArtifact
+from license_protected_downloads.artifact.base import _sizeof_fmt, cached_prop
+from license_protected_downloads.common import _sort_artifacts
 from license_protected_downloads.tests.test_views import TESTSERVER_ROOT
 
 
 class CommonTests(unittest.TestCase):
     def test_sizeof_fmt(self):
-        self.assertEqual(common._sizeof_fmt(1), '1')
-        self.assertEqual(common._sizeof_fmt(1234), '1.2K')
-        self.assertEqual(common._sizeof_fmt(1234567), '1.2M')
-        self.assertEqual(common._sizeof_fmt(1234567899), '1.1G')
-        self.assertEqual(common._sizeof_fmt(1234567899999), '1.1T')
+        self.assertEqual(_sizeof_fmt(1), '1')
+        self.assertEqual(_sizeof_fmt(1234), '1.2K')
+        self.assertEqual(_sizeof_fmt(1234567), '1.2M')
+        self.assertEqual(_sizeof_fmt(1234567899), '1.1G')
+        self.assertEqual(_sizeof_fmt(1234567899999), '1.1T')
 
     def test_sort_artifacts(self):
         patterns = [
@@ -23,9 +25,9 @@ class CommonTests(unittest.TestCase):
             (['10', 'foo', '100', 'latest'], ['latest', '10', '100', 'foo']),
         ]
         for files, expected in patterns:
-            artifacts = [common.LocalArtifact(None, '', x, True, '')
+            artifacts = [LocalArtifact(None, '', x, True, '')
                          for x in files]
-            artifacts.sort(common._sort_artifacts)
+            artifacts.sort(_sort_artifacts)
             self.assertEqual(expected, [x.file_name for x in artifacts])
 
     def test_cached_property(self):
@@ -33,7 +35,7 @@ class CommonTests(unittest.TestCase):
             def __init__(self):
                 self.count = 0
 
-            @common.cached_prop
+            @cached_prop
             def bar(self):
                 v = self.count
                 self.count += 1
@@ -46,7 +48,7 @@ class CommonTests(unittest.TestCase):
 
 class ArtifactTests(unittest.TestCase):
     def setUp(self):
-        self.artifact = common.LocalArtifact(
+        self.artifact = LocalArtifact(
             None, '/', 'readme', False, TESTSERVER_ROOT)
 
     def make_temporary_file(self, data, root=None):

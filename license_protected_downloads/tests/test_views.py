@@ -12,10 +12,8 @@ from django.test import Client, TestCase
 from django.http import HttpResponse
 
 from license_protected_downloads.buildinfo import BuildInfo
-from license_protected_downloads.common import (
-    _insert_license_into_db,
-    LocalArtifact,
-)
+from license_protected_downloads.artifact import LocalArtifact
+from license_protected_downloads.artifact.base import _insert_license_into_db
 from license_protected_downloads.config import INTERNAL_HOSTS
 from license_protected_downloads.tests.helpers import temporary_directory
 from license_protected_downloads import views
