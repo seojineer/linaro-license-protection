@@ -28,6 +28,12 @@ class APIv2Tests(TestCase):
         self.addCleanup(m.stop)
         m.start()
 
+        m = mock.patch(
+            'license_protected_downloads.artifact.S3Artifact.get_bucket')
+        self.addCleanup(m.stop)
+        mo = m.start()
+        mo.return_value = None
+
     def test_token_no_auth(self):
         resp = self.client.get('/api/v2/token/')
         self.assertEqual(401, resp.status_code)

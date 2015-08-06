@@ -8,6 +8,7 @@ python-openid
 requests
 South==0.7.3
 textile
+boto
 
 mock
 testrepository

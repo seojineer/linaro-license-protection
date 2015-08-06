@@ -38,6 +38,12 @@ class BaseServeViewTest(TestCase):
 
         self.urlbase = 'http://testserver/'
 
+        m = mock.patch(
+            'license_protected_downloads.artifact.S3Artifact.get_bucket')
+        self.addCleanup(m.stop)
+        self.s3_mock = m.start()
+        self.s3_mock.return_value = None
+
     def tearDown(self):
         settings.SERVED_PATHS = self.old_served_paths
         settings.MASTER_API_KEY = self.old_master_api_key

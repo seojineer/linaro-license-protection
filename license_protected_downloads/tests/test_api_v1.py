@@ -44,6 +44,12 @@ class APITests(TestCase):
         self.tmpdir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.tmpdir)
 
+        m = mock.patch(
+            'license_protected_downloads.artifact.S3Artifact.get_bucket')
+        self.addCleanup(m.stop)
+        mo = m.start()
+        mo.return_value = None
+
     def test_api_get_license_list(self):
         target_file = "build-info/snowball-blob.txt"
         digest = ViewTests.set_up_license(target_file)

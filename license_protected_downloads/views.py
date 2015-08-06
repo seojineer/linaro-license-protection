@@ -170,6 +170,9 @@ def _handle_dir_list(request, artifact):
     else:
         up_dir = None
 
+    # must come before call to find_and_render to optimize s3
+    dirlist = dir_list(artifact)
+
     download = None
     if 'dl' in request.GET:
         download = request.GET['dl']
@@ -178,7 +181,6 @@ def _handle_dir_list(request, artifact):
     if ann:
         rendered_files["Git Descriptions"] = render_descriptions(ann)
 
-    dirlist = dir_list(artifact)
     lics = [x['license_digest_list'] for x in dirlist
             if x['license_digest_list']]
 
@@ -247,6 +249,7 @@ def file_server_get(request, path):
 
 def get_textile_files(request):
     artifact = find_artifact(request, request.GET.get("path"))
+    dir_list(request, artifact)  # required for s3
     rendered_files = RenderTextFiles.find_and_render(artifact)
     ann = artifact.get_annotated_manifest()
     if ann:

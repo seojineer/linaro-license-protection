@@ -11,3 +11,4 @@ from license_protected_downloads.tests.test_pyflakes import *
 from license_protected_downloads.tests.test_render_text_files import *
 from license_protected_downloads.tests.test_splicebuildinfos import *
 from license_protected_downloads.tests.test_views import *
+from license_protected_downloads.tests.test_s3 import *
