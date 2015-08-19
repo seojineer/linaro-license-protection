@@ -154,7 +154,10 @@ def _check_build_info(request, build_info):
 
 
 def _handle_dir_list(request, artifact):
-    if request.path[-1] != '/':
+    download = None
+    if 'dl' in request.GET:
+        download = request.GET['dl']
+    elif request.path[-1] != '/':
         return redirect(request.path + '/')
 
     # Generate a link to the parent directory (if one exists)
@@ -172,10 +175,6 @@ def _handle_dir_list(request, artifact):
 
     # must come before call to find_and_render to optimize s3
     dirlist = dir_list(artifact)
-
-    download = None
-    if 'dl' in request.GET:
-        download = request.GET['dl']
     rendered_files = RenderTextFiles.find_and_render(artifact)
     ann = artifact.get_annotated_manifest()
     if ann:

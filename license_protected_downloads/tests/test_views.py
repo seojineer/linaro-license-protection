@@ -325,10 +325,15 @@ class ViewTests(BaseServeViewTest):
         # cookies from the current session, and re-introduce them.
         client = Client()
         client.cookies[accept_cookie_name] = accept_cookie_name
-        response = client.get(url)
+        response = client.get(response['Location'])
 
-        # If we have access to the file, we will get an X-Sendfile response
+        # If we have access to the file, we get a page with "refresh" directive
         self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            '<meta http-equiv="REFRESH" content="0;url=', response.content)
+
+        # now download the file
+        response = client.get(url)
         file_path = os.path.join(TESTSERVER_ROOT, target_file)
         self.assertEqual(response['X-Sendfile'], file_path)
 
