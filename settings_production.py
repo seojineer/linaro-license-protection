@@ -28,3 +28,7 @@ for p in SERVED_PATHS + [UPLOAD_PATH]:
 if os.path.exists(os.path.join(DEPLOYMENT_DIR, 'header_override.html')):
     BASE_PAGE = 'header_override.html'
     TEMPLATE_DIRS += (DEPLOYMENT_DIR,)
+
+# allow site specific overrides for secrets
+if os.path.exists(os.path.join(DEPLOYMENT_DIR, 'secrets.py')):
+    execfile(os.path.join(DEPLOYMENT_DIR, 'secrets.py'))
