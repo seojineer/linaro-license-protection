@@ -633,7 +633,7 @@ class ViewHelpersTests(BaseServeViewTest):
         self.assertTrue(isinstance(response, HttpResponse))
         self.assertContains(
             response,
-            "You need to be the member of one of the linaro batman, catwoman "
+            "You need to be the member of one of the linaro, batman, catwoman "
             "or joker groups",
             status_code=403)
 
