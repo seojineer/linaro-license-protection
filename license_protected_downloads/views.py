@@ -246,7 +246,7 @@ def file_server_get(request, path):
 
 def get_textile_files(request):
     artifact = find_artifact(request, request.GET.get("path"))
-    dir_list(request, artifact)  # required for s3
+    dir_list(artifact)  # required for s3
     rendered_files = RenderTextFiles.find_and_render(artifact)
     ann = artifact.get_annotated_manifest()
     if ann:

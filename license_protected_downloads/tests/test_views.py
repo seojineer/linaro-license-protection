@@ -1,6 +1,7 @@
 __author__ = 'dooferlad'
 
 import hashlib
+import json
 import os
 import unittest
 import urlparse
@@ -230,6 +231,11 @@ class HeaderTests(BaseServeViewTest):
         resp = self.client.get(url, follow=True)
         self.assertEquals(200, resp.status_code)
         self.assertIn('<a href="#tabs-2">Git Descriptions</a>', resp.content)
+
+    def test_get_textile_files(self):
+        resp = self.client.get(
+            '/get-textile-files?path=~linaro-android/staging-panda/')
+        self.assertIn('EULA', json.loads(resp.content))
 
 
 class ViewTests(BaseServeViewTest):
