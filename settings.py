@@ -116,6 +116,7 @@ INSTALLED_APPS = (
     'django_openid_auth',
     'south',
     'license_protected_downloads',
+    'longerusername',
 )
 
 AUTHENTICATION_BACKENDS = (

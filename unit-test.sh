@@ -6,6 +6,11 @@ cd $HERE
 SKIP_LINT="${SKIP_LINT-1}"
 VENV_DIR="${VENV_DIR-$HERE/.venv}"
 
+if [ ! -f /usr/bin/virtualenv ] ; then
+	echo "installing python-virutalenv"
+	sudo apt-get install -f python-virtualenv
+fi
+
 if [ -z $VIRTUAL_ENV ] ; then
 	echo "creating venv: $VENV_DIR ..."
 	virtualenv $VENV_DIR
