@@ -1,6 +1,6 @@
 beautifulsoup
 Django==1.3.7
-django-openid-auth
+django-openid-auth==0.5
 html2text
 pep8
 pyflakes
