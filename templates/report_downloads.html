@@ -1,0 +1,10 @@
+{% extends base_page %}
+
+{% block content %}
+<h2>{{year_month}} Downloads by {{label}}</h2>
+<table>
+{% for download in downloads %}
+<tr><td>{{download.name}}</td><td>{{download.count}}</td></tr>
+{% endfor %}
+</table>
+{% endblock %}

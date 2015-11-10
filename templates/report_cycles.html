@@ -1,0 +1,14 @@
+{% extends base_page %}
+
+{% block content %}
+<h2>Report Cycles</h2>
+<table>
+{% for month in months%}
+  <tr>
+    <td>{{month}}</td>
+    <td><a href="./{{month}}/downloads/?by=component">By Component</a></td>
+    <td><a href="./{{month}}/downloads/?by=build">By Build</a></td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}

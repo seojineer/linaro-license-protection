@@ -4,6 +4,7 @@ import uuid
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Count
 
 
 def ip_field(required=True):
@@ -127,3 +128,28 @@ class Download(models.Model):
             Download.objects.create(ip=ip, name=name, link=link)
         except:
             logging.exception('unable to mark download')
+
+    @staticmethod
+    def next_month(ts):
+        if ts.month < 12:
+            return ts.replace(month=ts.month + 1)
+        return ts.replace(year=ts.year + 1, month=1)
+
+    @staticmethod
+    def month_queryset(year_month):
+        start = datetime.datetime.strptime(year_month, '%Y.%m')
+        end = Download.next_month(start)
+        return Download.objects.filter(
+            timestamp__gte=start, timestamp__lte=end)
+
+    @staticmethod
+    def report(year_month, column_name):
+        return Download.month_queryset(
+            year_month
+        ).values(
+            column_name,
+        ).annotate(
+            count=Count(column_name)
+        ).order_by(
+            '-count'
+        )

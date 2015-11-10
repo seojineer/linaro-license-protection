@@ -1,3 +1,4 @@
+import datetime
 import importlib
 import logging
 import json
@@ -291,3 +292,51 @@ def error_view(request, template_name='500.html'):
     ex = '%s at %s:%d' % (
         ex.__name__, tb.tb_frame.f_code.co_filename, tb.tb_lineno)
     return render(request, template_name, {'exception': ex}, status=500)
+
+
+def group_authenticated(group):
+    def wrap(f):
+        def wrapped_f(*args, **kwargs):
+            resp = _check_build_info(args[0], {'auth-groups': group})
+            if resp:
+                return resp
+            return f(*args, **kwargs)
+        return wrapped_f
+    return wrap
+
+
+@group_authenticated('linaro')
+def reports(request):
+    # Start with the oldest month we have a download from and build up a list.
+    months = []
+    cur = Download.objects.order_by('timestamp')[0].timestamp
+    now = datetime.datetime.now()
+
+    while (100 * cur.year) + cur.month < (100 * now.year) + now.month:
+        months.append(cur.strftime('%Y.%m'))
+        cur = Download.next_month(cur)
+    months.append(now.strftime('%Y.%m'))
+    months.reverse()
+
+    args = {
+        'months': months,
+    }
+    return render(request, 'report_cycles.html', args)
+
+
+@group_authenticated('linaro')
+def reports_month_downloads(request, year_month):
+    downloads = Download.report(year_month, 'name')
+    if request.GET.get('by', 'build') == 'build':
+        label = 'Build'
+        downloads = [x for x in downloads if 'components' not in x['name']]
+    else:
+        label = 'Component'
+        downloads = [x for x in downloads if 'components' in x['name']]
+
+    args = {
+        'label': label,
+        'year_month': year_month,
+        'downloads': downloads,
+    }
+    return render(request, 'report_downloads.html', args)
