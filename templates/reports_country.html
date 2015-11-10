@@ -1,0 +1,18 @@
+{% extends base_page %}
+
+{% block content %}
+<h2>{{year_month}} Downloads by Country</h2>
+<table>
+<tr>
+  <th>Country</th><th>Components</th><th>Builds</th><th>Total</th>
+</tr>
+{% for download in downloads %}
+<tr>
+  <td>{{download.country}}</td>
+  <td>{{download.components}}</td>
+  <td>{{download.builds}}</td>
+  <td>{{download.total}}</td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

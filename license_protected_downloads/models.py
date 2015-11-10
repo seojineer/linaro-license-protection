@@ -143,10 +143,14 @@ class Download(models.Model):
             timestamp__gte=start, timestamp__lte=end)
 
     @staticmethod
-    def report(year_month, column_name):
-        return Download.month_queryset(
+    def report(year_month, column_name, **extra_filters):
+        qs = Download.month_queryset(
             year_month
-        ).values(
+        )
+        if extra_filters:
+            qs = qs.filter(**extra_filters)
+
+        return qs.values(
             column_name,
         ).annotate(
             count=Count(column_name)

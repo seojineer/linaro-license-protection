@@ -340,3 +340,29 @@ def reports_month_downloads(request, year_month):
         'downloads': downloads,
     }
     return render(request, 'report_downloads.html', args)
+
+
+@group_authenticated('linaro')
+def reports_month_country(request, year_month):
+    downloads = {}
+    # We have to go in 2 passes, the first pass gets the total
+    # the 2nd pass gets total of components (and we can then calculate builds).
+    for x in Download.report(year_month, 'country'):
+        e = downloads.setdefault(
+            x['country'],
+            {'country': x['country'], 'components': 0, 'builds': 0})
+        e['total'] = x['count']
+        e['builds'] = x['count']  # in case no components are hit below
+
+    extra_filters = {'name__contains': 'components'}
+    for x in Download.report(year_month, 'country', **extra_filters):
+        e = downloads[x['country']]
+        e['components'] = x['count']
+        e['builds'] = e['total'] - x['count']
+
+    args = {
+        'year_month': year_month,
+        'downloads': sorted(
+            downloads.values(), key=lambda x: x['total'], reverse=True),
+    }
+    return render(request, 'reports_country.html', args)
