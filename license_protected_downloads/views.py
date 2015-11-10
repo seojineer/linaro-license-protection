@@ -360,6 +360,7 @@ def _geo_report(request, year_month, column, label):
         e['builds'] = e['total'] - x['count']
 
     args = {
+        'column': column,
         'label': label,
         'year_month': year_month,
         'downloads': sorted(
@@ -374,3 +375,23 @@ def reports_month_country(request, year_month):
 
 def reports_month_region(request, year_month):
     return _geo_report(request, year_month, 'region_isp', 'Region/ISP')
+
+
+@group_authenticated('linaro')
+def _geo_details(request, year_month, column, value):
+    extra_filters = {column: value}
+    downloads = Download.report(year_month, 'name', **extra_filters)
+    args = {
+        'label': value,
+        'year_month': year_month,
+        'downloads': downloads,
+    }
+    return render(request, 'report_geo_details.html', args)
+
+
+def reports_month_country_details(request, year_month, country):
+    return _geo_details(request, year_month, 'country', country)
+
+
+def reports_month_region_details(request, year_month, region):
+    return _geo_details(request, year_month, 'region_isp', region)

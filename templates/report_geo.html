@@ -8,7 +8,7 @@
 </tr>
 {% for download in downloads %}
 <tr>
-  <td>{{download.geo}}</td>
+  <td><a href="./{{download.geo}}/">{{download.geo}}</a></td>
   <td>{{download.components}}</td>
   <td>{{download.builds}}</td>
   <td>{{download.total}}</td>
