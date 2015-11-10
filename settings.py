@@ -267,8 +267,10 @@ TAB_PRIORITY = ['Release Notes',
                 'OpenJDK']
 
 BASE_PAGE = 'header.html'
+BOT_USER_AGENTS = ['Googlebot/2', 'bingbot/2', 'Yahoo! Slurp', 'Baiduspider/2']
 
 MASTER_API_KEY = ""
+TRACK_DOWNLOAD_STATS = False
 
 # Try to import local_settings. If it doesn't exist, generate it. It contains
 # SECRET_KEY (to keep it secret).

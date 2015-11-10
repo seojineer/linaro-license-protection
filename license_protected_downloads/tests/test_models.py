@@ -4,11 +4,15 @@ import datetime
 import hashlib
 import unittest
 
+import mock
+
+from django.conf import settings
 from django.test import TestCase
 
 from license_protected_downloads.models import (
     APIKeyStore,
     APIToken,
+    Download,
     License,
 )
 
@@ -62,6 +66,20 @@ class APITokenTests(TestCase):
         token = APIToken.objects.create(key=self.key, expires=expires)
         self.assertFalse(token.valid_request(self.request))
         self.assertTrue(len(token.token) > 0)
+
+
+class DownloadTests(TestCase):
+    def test_cant_fail(self):
+        '''Ensure Download.mark can't raise an exception.
+        This would cause a user's download to fail.'''
+        val = settings.TRACK_DOWNLOAD_STATS
+        try:
+            settings.TRACK_DOWNLOAD_STATS = True
+            with mock.patch('logging.exception') as l:
+                Download.mark(None, None)
+                self.assertEqual(1, l.call_count)
+        finally:
+            settings.TRACK_DOWNLOAD_STATS = val
 
 
 if __name__ == '__main__':

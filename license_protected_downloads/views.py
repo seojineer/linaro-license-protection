@@ -18,7 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from buildinfo import IncorrectDataFormatException
 from render_text_files import RenderTextFiles
-from models import License
+from models import License, Download
 import config
 from group_auth_common import GroupAuthError
 import xml.dom.minidom as dom
@@ -241,6 +241,8 @@ def file_server_get(request, path):
     resp = _check_file_permission(request, artifact, internal)
     if resp:
         return resp
+
+    Download.mark(request, artifact)
     return artifact.get_file_download_response()
 
 

@@ -16,6 +16,7 @@ from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.artifact import LocalArtifact
 from license_protected_downloads.artifact.base import _insert_license_into_db
 from license_protected_downloads.config import INTERNAL_HOSTS
+from license_protected_downloads.models import Download
 from license_protected_downloads.tests.helpers import temporary_directory
 from license_protected_downloads import views
 
@@ -542,6 +543,19 @@ class ViewTests(BaseServeViewTest):
 
         # Shouldn't be able to escape served paths...
         self.assertEqual(response.status_code, 404)
+
+    def test_download_stats(self):
+        val = settings.TRACK_DOWNLOAD_STATS
+        try:
+            settings.TRACK_DOWNLOAD_STATS = True
+            self._test_get_file('build-info/panda-open.txt', True)
+            downloads = list(Download.objects.all())
+            self.assertEqual(1, len(downloads))
+            self.assertEqual('/build-info/panda-open.txt', downloads[0].name)
+            self.assertEqual('127.0.0.1', downloads[0].ip)
+            self.assertFalse(downloads[0].link)
+        finally:
+            settings.TRACK_DOWNLOAD_STATS = val
 
 
 class HowtoViewTests(BaseServeViewTest):

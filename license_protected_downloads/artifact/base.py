@@ -103,6 +103,9 @@ class Artifact(object):
     def get_textile_files(self):
         raise NotImplementedError()
 
+    def get_real_name(self):
+        raise NotImplementedError()
+
     def get_build_info(self):
         buf = self.build_info_buffer
         if buf:

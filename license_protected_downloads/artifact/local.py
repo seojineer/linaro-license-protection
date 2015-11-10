@@ -89,3 +89,8 @@ class LocalArtifact(Artifact):
 
     def isdir(self):
         return os.path.isdir(self.full_path)
+
+    def get_real_name(self):
+        base_len = len(self.full_path) - len(self.file_name)
+        rp = os.path.realpath(self.full_path)
+        return '/' + rp[base_len:]

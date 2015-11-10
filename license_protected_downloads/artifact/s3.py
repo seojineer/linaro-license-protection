@@ -119,7 +119,10 @@ class S3Artifact(Artifact):
         else:
             key = settings.S3_PREFIX_PATH + self.urlbase[1:]
 
-        key += '/' + self.file_name + '/' + fname
+        if self.isdir():
+            key += '/' + self.file_name + '/' + fname
+        else:
+            key += '/' + os.path.dirname(self.file_name) + fname
         try:
             key = boto.s3.key.Key(self.bucket, key)
             return key.get_contents_as_string()
@@ -145,3 +148,11 @@ class S3Artifact(Artifact):
 
     def isdir(self):
         return self.mtype == 'folder'
+
+    def get_real_name(self):
+        url = self.url()
+        path = self.get_file_contents('.s3_linked_from')
+        if path:
+            path = path.replace(settings.S3_PREFIX_PATH, '/')
+            url = url.replace(os.path.dirname(url), path)
+        return url

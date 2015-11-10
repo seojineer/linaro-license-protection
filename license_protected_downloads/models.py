@@ -1,6 +1,8 @@
 import datetime
+import logging
 import uuid
 
+from django.conf import settings
 from django.db import models
 
 
@@ -95,3 +97,33 @@ class APILog(models.Model):
         APILog.objects.create(label=label, ip=ip, path=request.path, key=key)
         if key:
             key.save()  # bump the last_used timestamp
+
+
+class Download(models.Model):
+    timestamp = models.DateTimeField(auto_now_add=True)
+    ip = ip_field()
+    name = models.CharField(max_length=256)
+    link = models.BooleanField(
+        help_text='Was this a real path or a link like "latest"')
+
+    country = models.CharField(max_length=256, blank=True, null=True)
+    region_isp = models.CharField(max_length=256, blank=True, null=True)
+
+    @staticmethod
+    def mark(request, artifact):
+        try:
+            if not settings.TRACK_DOWNLOAD_STATS:
+                return
+
+            # Don't keep track of bot downloads.
+            agent = request.META.get('HTTP_USER_AGENT', '')
+            for bot in settings.BOT_USER_AGENTS:
+                if bot in agent:
+                    return
+
+            ip = get_ip(request)
+            name = artifact.get_real_name()
+            link = name != artifact.url()
+            Download.objects.create(ip=ip, name=name, link=link)
+        except:
+            logging.exception('unable to mark download')
