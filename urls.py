@@ -79,6 +79,8 @@ urlpatterns = patterns(
         'license_protected_downloads.views.reports_month_downloads'),
     url(r'^reports/(?P<year_month>\d{4}\.\d{2})/country/$',
         'license_protected_downloads.views.reports_month_country'),
+    url(r'^reports/(?P<year_month>\d{4}\.\d{2})/region/$',
+        'license_protected_downloads.views.reports_month_region'),
 
     # Catch-all. We always return a file (or try to) if it exists.
     # This handler does that.
