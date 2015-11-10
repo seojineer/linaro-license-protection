@@ -19,6 +19,8 @@ ALLOWED_HOSTS = [os.environ.get('HOST_NAME', 'localhost')]
 SERVED_PATHS = [os.path.join(DEPLOYMENT_DIR, 'www')]
 UPLOAD_PATH = os.path.join(DEPLOYMENT_DIR, 'uploads')
 FILE_UPLOAD_TEMP_DIR = '/mnt/django-uploads'
+IP2LOCATION_FILE = os.path.join(
+    DEPLOYMENT_DIR, 'IP-COUNTRY-REGION-CITY-ISP.BIN')
 
 for p in SERVED_PATHS + [UPLOAD_PATH]:
     if not os.path.exists(p):
