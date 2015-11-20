@@ -11,6 +11,11 @@ INTERNAL_HOSTS = (
     '213.133.116.86', # ci.linaro.org (slave aosp-x86-64-09)
     '78.46.190.194',  # ci.linaro.org (slave aosp-x86-64-10)
     '217.140.96.140', # cambridge.arm.com
+    '73.14.250.225', # Tyler's lab - nwdrone.com
+    '73.14.250.226', # 
+    '73.14.250.227', # 
+    '73.14.250.228', # 
+    '73.14.250.229', # 
 )
 
 WHITELIST = (
