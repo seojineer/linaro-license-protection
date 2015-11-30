@@ -140,7 +140,7 @@ class Download(models.Model):
         start = datetime.datetime.strptime(year_month, '%Y.%m')
         end = Download.next_month(start)
         return Download.objects.filter(
-            timestamp__gte=start, timestamp__lte=end)
+            timestamp__gte=start, timestamp__lte=end).exclude(country=None)
 
     @staticmethod
     def report(year_month, column_name, **extra_filters):

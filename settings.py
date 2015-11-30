@@ -267,7 +267,10 @@ TAB_PRIORITY = ['Release Notes',
                 'OpenJDK']
 
 BASE_PAGE = 'header.html'
-BOT_USER_AGENTS = ['Googlebot/2', 'bingbot/2', 'Yahoo! Slurp', 'Baiduspider/2']
+BOT_USER_AGENTS = [
+    'Googlebot/2', 'bingbot/2', 'Yahoo! Slurp', 'Baiduspider/2',
+    'YandexBot/3.0',
+]
 
 MASTER_API_KEY = ""
 TRACK_DOWNLOAD_STATS = False
