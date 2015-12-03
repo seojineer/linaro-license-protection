@@ -16,8 +16,25 @@ def ip_field(required=True):
 
 
 def get_ip(request):
-    ip = request.META.get('REMOTE_ADDR')
-    return request.META.get('HTTP_X_FORWARDED_FOR', ip).split(',')[0]
+    # fields taken from:
+    #  https://github.com/un33k/django-ipware/blob/master/ipware/defaults.py
+    ip_meta_vals = (
+        'HTTP_X_FORWARDED_FOR',
+        'HTTP_CLIENT_IP',
+        'HTTP_X_REAL_IP',
+        'HTTP_X_FORWARDED',
+        'HTTP_X_CLUSTER_CLIENT_IP',
+        'HTTP_FORWARDED_FOR',
+        'HTTP_FORWARDED',
+        'HTTP_VIA',
+        'X_FORWARDED_FOR',
+        'REMOTE_ADDR',
+    )
+    for field in ip_meta_vals:
+        ip = request.META.get(field)
+        if ip:
+            return ip.split(',')[0]
+    return 'unkwnown'
 
 
 class LicenseManager(models.Manager):
