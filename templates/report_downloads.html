@@ -1,10 +1,30 @@
 {% extends base_page %}
 
 {% block content %}
-<h2>{{year_month}} Downloads by {{label}}</h2>
-<table>
+
+<script language="javascript" type="text/javascript">
+var dataset = [
 {% for download in downloads %}
-<tr><td>{{download.name}}</td><td>{{download.count}}</td></tr>
+  ["{{download.name}}", {{download.count}}],
 {% endfor %}
+]
+$(document).ready(function() {
+  $('#reports_table').DataTable({
+    order: [[ 1, "desc" ]],
+    aLengthMenu: [
+      [25, 50, 75, 100, -1],
+      [25, 50, 75, 100, "All"]
+    ],
+    iDisplayLength: 50,
+    data: dataset,
+  });
+} );
+</script>
+
+<h2>{{year_month}} Downloads by {{label}}</h2>
+<table id="reports_table">
+  <thead>
+    <tr><th>Name</th><th>Count</th></tr>
+  </thead>
 </table>
 {% endblock %}

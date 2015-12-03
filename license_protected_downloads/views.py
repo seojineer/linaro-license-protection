@@ -386,7 +386,7 @@ def _geo_details(request, year_month, column, value):
         'year_month': year_month,
         'downloads': downloads,
     }
-    return render(request, 'report_geo_details.html', args)
+    return render(request, 'report_downloads.html', args)
 
 
 def reports_month_country_details(request, year_month, country):
