@@ -71,21 +71,28 @@ urlpatterns = patterns(
         'license_protected_downloads.api.v3.publish'),
     url(r'^api/v3/link_latest/(?P<path>.*)$',
         'license_protected_downloads.api.v3.link_latest'),
+)
 
-    url(r'^reports/$',
-        'license_protected_downloads.views.reports'),
+if settings.TRACK_DOWNLOAD_STATS:
+    urlpatterns += patterns(
+        '',
+        url(r'^reports/$',
+            'license_protected_downloads.views.reports'),
 
-    url(r'^reports/(?P<year_month>\d{4}\.\d{2})/downloads/',
-        'license_protected_downloads.views.reports_month_downloads'),
-    url(r'^reports/(?P<year_month>\d{4}\.\d{2})/country/$',
-        'license_protected_downloads.views.reports_month_country'),
-    url(r'^reports/(?P<year_month>\d{4}\.\d{2})/region/$',
-        'license_protected_downloads.views.reports_month_region'),
-    url(r'^reports/(?P<year_month>\d{4}\.\d{2})/country/(?P<country>.*)/',
-        'license_protected_downloads.views.reports_month_country_details'),
-    url(r'^reports/(?P<year_month>\d{4}\.\d{2})/region/(?P<region>.*)/',
-        'license_protected_downloads.views.reports_month_region_details'),
+        url(r'^reports/(?P<year_month>\d{4}\.\d{2})/downloads/',
+            'license_protected_downloads.views.reports_month_downloads'),
+        url(r'^reports/(?P<year_month>\d{4}\.\d{2})/country/$',
+            'license_protected_downloads.views.reports_month_country'),
+        url(r'^reports/(?P<year_month>\d{4}\.\d{2})/region/$',
+            'license_protected_downloads.views.reports_month_region'),
+        url(r'^reports/(?P<year_month>\d{4}\.\d{2})/country/(?P<country>.*)/',
+            'license_protected_downloads.views.reports_month_country_details'),
+        url(r'^reports/(?P<year_month>\d{4}\.\d{2})/region/(?P<region>.*)/',
+            'license_protected_downloads.views.reports_month_region_details'),
+    )
 
+urlpatterns += patterns(
+    '',
     # Catch-all. We always return a file (or try to) if it exists.
     # This handler does that.
     url(r'(?P<path>.*)', 'license_protected_downloads.views.file_server'),
