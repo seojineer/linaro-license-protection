@@ -342,6 +342,16 @@ def reports_month_downloads(request, year_month):
     return render(request, 'report_downloads.html', args)
 
 
+def reports_month_file_downloads(request, year_month, name):
+    downloads = Download.report(year_month, 'region_isp', name=name)
+    args = {
+        'name': name,
+        'year_month': year_month,
+        'downloads': downloads,
+    }
+    return render(request, 'report_file.html', args)
+
+
 @group_authenticated('linaro')
 def _geo_report(request, year_month, column, label):
     downloads = {}

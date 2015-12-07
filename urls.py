@@ -79,8 +79,10 @@ if settings.TRACK_DOWNLOAD_STATS:
         url(r'^reports/$',
             'license_protected_downloads.views.reports'),
 
-        url(r'^reports/(?P<year_month>\d{4}\.\d{2})/downloads/',
+        url(r'^reports/(?P<year_month>\d{4}\.\d{2})/downloads/$',
             'license_protected_downloads.views.reports_month_downloads'),
+        url(r'^reports/(?P<year_month>\d{4}\.\d{2})/downloads(?P<name>/.*)',
+            'license_protected_downloads.views.reports_month_file_downloads'),
         url(r'^reports/(?P<year_month>\d{4}\.\d{2})/country/$',
             'license_protected_downloads.views.reports_month_country'),
         url(r'^reports/(?P<year_month>\d{4}\.\d{2})/region/$',
