@@ -114,7 +114,7 @@ def find_artifact(request, path):
 
         fullpath = _handle_wildcard(request, fullpath)
         if fullpath:
-            basepath, path = os.path.split(fullpath)
+            path = fullpath[len(basepath) + 1:]
             return LocalArtifact(None, '', path, False, basepath)
 
     r = _find_s3_artifact(request, path)
