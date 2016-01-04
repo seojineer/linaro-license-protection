@@ -26,13 +26,12 @@ def get_ip(request):
         'HTTP_X_CLUSTER_CLIENT_IP',
         'HTTP_FORWARDED_FOR',
         'HTTP_FORWARDED',
-        'HTTP_VIA',
         'X_FORWARDED_FOR',
         'REMOTE_ADDR',
     )
     for field in ip_meta_vals:
         ip = request.META.get(field)
-        if ip:
+        if ip and ip != 'unknown':
             return ip.split(',')[0]
     return 'unkwnown'
 

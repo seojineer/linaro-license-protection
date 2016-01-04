@@ -18,11 +18,15 @@ class Command(BaseCommand):
         for download in Download.objects.filter(country=None):
             try:
                 loc = ipl.get_all(download.ip)
+                download.country = loc.country_short
+                download.region_isp = '%s / %s' % (loc.region, loc.isp)
             except:
-                print "Unable to get IP location data for:", download.id
-                raise
-            download.country = loc.country_short
-            download.region_isp = '%s / %s' % (loc.region, loc.isp)
+                if ':' in download.ip:
+                    print 'Inserting ipv6-unknown for', download.id
+                    download.country = download.region_isp = 'ipv6-unknown'
+                else:
+                    print "Unable to get IP location data for:", download.id
+                    raise
             download.save()
 
     def _find_dups(self):
