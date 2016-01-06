@@ -269,7 +269,7 @@ TAB_PRIORITY = ['Release Notes',
 BASE_PAGE = 'header.html'
 BOT_USER_AGENTS = [
     'Googlebot/2', 'bingbot/2', 'Yahoo! Slurp', 'Baiduspider/2',
-    'YandexBot/3.0',
+    'YandexBot/3.0', 'MJ12bot',
 ]
 
 MASTER_API_KEY = ""
