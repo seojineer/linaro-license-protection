@@ -1,15 +1,19 @@
 import os
 import sys
 
-from django.core.handlers.wsgi import WSGIHandler
-
 here = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(here)
 
 os.environ["DJANGO_SETTINGS_MODULE"] = 'settings_production'
 APP_ENVS = ['SITE_NAME', 'HOST_NAME']
 
-_app = WSGIHandler()
+try:
+    from django.core.wsgi import get_wsgi_application
+    _app = get_wsgi_application()
+except ImportError:
+    # for < django 1.6
+    from django.core.handlers.wsgi import WSGIHandler
+    _app = WSGIHandler()
 
 
 def application(environ, start_response):
