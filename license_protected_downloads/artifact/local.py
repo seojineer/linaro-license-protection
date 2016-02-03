@@ -48,7 +48,7 @@ class LocalArtifact(Artifact):
         mime = mimetypes.guess_type(file_name)[0]
         if mime is None:
             mime = "application/force-download"
-        response = HttpResponse(mimetype=mime)
+        response = HttpResponse(content_type=mime)
         response['Content-Disposition'] = ('attachment; filename=%s' %
                                            smart_str(file_name))
         response['X-Sendfile'] = smart_str(self.full_path)

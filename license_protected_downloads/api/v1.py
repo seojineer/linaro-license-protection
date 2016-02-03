@@ -108,7 +108,7 @@ def list_files_api(request, path):
         })
 
     data = json.dumps({"files": clean_listing})
-    return HttpResponse(data, mimetype='application/json')
+    return HttpResponse(data, content_type='application/json')
 
 
 def get_license_api(request, path):
@@ -128,4 +128,4 @@ def get_license_api(request, path):
                             for l in license_list]
         data = json.dumps({"licenses": license_list})
 
-    return HttpResponse(data, mimetype='application/json')
+    return HttpResponse(data, content_type='application/json')
