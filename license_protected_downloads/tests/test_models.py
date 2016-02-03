@@ -50,7 +50,7 @@ class LicenseTestCase(TestCase):
 
 class APITokenTests(TestCase):
     def setUp(self):
-        self.key = APIKeyStore.objects.create(key='foo')
+        self.key = APIKeyStore.objects.create(key='foo', public=True)
         self.request = None
 
     def test_no_expire(self):

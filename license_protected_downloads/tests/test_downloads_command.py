@@ -9,7 +9,7 @@ from license_protected_downloads.management.commands.downloads_report import (
 
 
 def _create_download(ip, name, hours_ago=0):
-    d = Download.objects.create(ip=ip, name=name)
+    d = Download.objects.create(ip=ip, name=name, link=False)
     if hours_ago > 0:
         d.timestamp = datetime.datetime.now() - datetime.timedelta(
             hours=hours_ago)
