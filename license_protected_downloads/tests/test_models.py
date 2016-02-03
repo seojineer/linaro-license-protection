@@ -81,6 +81,22 @@ class DownloadTests(TestCase):
         finally:
             settings.TRACK_DOWNLOAD_STATS = val
 
+    def test_next_month(self):
+        stamps = [
+            # a leap year
+            (datetime.datetime.strptime('2016.01 30', '%Y.%m %d'),
+             (2016, 2, 29)),
+            (datetime.datetime.strptime('2015.12', '%Y.%m'),
+             (2016, 1, 01)),
+            (datetime.datetime.strptime('2015.12 31', '%Y.%m %d'),
+             (2016, 1, 31)),
+            (datetime.datetime.strptime('2017.01 30', '%Y.%m %d'),
+             (2017, 2, 28)),
+        ]
+        for ts, expected in stamps:
+            ts = Download.next_month(ts)
+            self.assertEqual(expected, (ts.year, ts.month, ts.day))
+
 
 if __name__ == '__main__':
     unittest.main()

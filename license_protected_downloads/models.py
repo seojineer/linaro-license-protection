@@ -1,3 +1,4 @@
+import calendar
 import datetime
 import logging
 import uuid
@@ -148,7 +149,9 @@ class Download(models.Model):
     @staticmethod
     def next_month(ts):
         if ts.month < 12:
-            return ts.replace(month=ts.month + 1)
+            next_month = ts.month + 1
+            last_day = min(ts.day, calendar.monthrange(ts.year, next_month)[1])
+            return ts.replace(month=next_month, day=last_day)
         return ts.replace(year=ts.year + 1, month=1)
 
     @staticmethod
