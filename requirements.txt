@@ -1,15 +1,13 @@
 beautifulsoup
-Django==1.3.7
-django-openid-auth==0.5
+Django==1.8.10
+django-openid-auth
 html2text
 pep8
 pyflakes
 python-openid
 requests
-South==0.7.3
 textile
 boto
-longerusername
 IP2Location
 mock
 testrepository
