@@ -18,4 +18,4 @@ if [ -z $VIRTUAL_ENV ] ; then
 	pip install -r requirements.txt
 fi
 
-SKIP_LINT=$SKIP_LINT ./manage.py test license_protected_downloads
+DJANGO_SETTINGS_MODULE=settings SKIP_LINT=$SKIP_LINT ./manage.py test license_protected_downloads
