@@ -21,7 +21,8 @@ urlpatterns = patterns(
     # same server.  When we get rid of apache openid protection,
     # we can go back to using just "openid" here.
     url(r'^linaro-openid/', include('django_openid_auth.urls')),
-    url(r'^login/?$', RedirectView.as_view(url='/linaro-openid/login/')),
+    url(r'^login/?$',
+        RedirectView.as_view(url='/linaro-openid/login/', permanent=True)),
     url(r'^logout/?$', 'django.contrib.auth.views.logout'),
 
     # Handle JS libs and CSS.
