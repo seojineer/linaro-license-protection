@@ -34,6 +34,8 @@ def get_ip(request):
         ip = request.META.get(field)
         if ip and ip != 'unknown':
             return ip.split(',')[0]
+
+    logging.warn('Unable to find request ip: %r', request.META)
     return 'unkwnown'
 
 
