@@ -101,15 +101,23 @@ class APIv3PublishTests(TestCase):
         token = APIToken.objects.create(key=self.api_key).token
 
         self._post_file('/api/v3/publish/builds/123/a', token, content)
+        self._post_file('/api/v3/publish/builds/123/subdir/f', token, content)
         info = 'Format-Version: 0.5\n\nFiles-Pattern: *\nLicense-Type: open\n'
         self._post_file(
             '/api/v3/publish/builds/123/BUILD-INFO.txt', token, info)
+        self._post_file(
+            '/api/v3/publish/builds/123/subdir/BUILD-INFO.txt', token, info)
 
         resp = self.client.post(
             '/api/v3/link_latest/builds/123', HTTP_AUTHTOKEN=token)
         self.assertEqual(201, resp.status_code)
 
         resp = self.client.get('/builds/latest/a')
+        self.assertEqual(302, resp.status_code)
+        resp = urllib2.urlopen(resp['Location'])
+        self.assertEqual(content, resp.read())
+
+        resp = self.client.get('/builds/latest/subdir/f')
         self.assertEqual(302, resp.status_code)
         resp = urllib2.urlopen(resp['Location'])
         self.assertEqual(content, resp.read())

@@ -63,7 +63,7 @@ class LatestLinkResource(PublishResource):
             path = path[:-1]  # make os.path.dirname give parent
         path = settings.S3_PREFIX_PATH + path
 
-        items = list(b.list(delimiter='/', prefix=path + '/'))
+        items = list(b.list(path))
         if len(items) == 0:
             APILog.mark(self.request, 'INVALID_ARGUMENTS', self.api_key)
             raise HttpResponseError('Target does not exist: ' + self.path, 404)
