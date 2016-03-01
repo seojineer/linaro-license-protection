@@ -2,6 +2,7 @@ import calendar
 import datetime
 import logging
 import uuid
+import csv
 
 from django.conf import settings
 from django.db import models
@@ -36,7 +37,7 @@ def get_ip(request):
             return ip.split(',')[0]
 
     logging.warn('Unable to find request ip: %r', request.META)
-    return 'unkwnown'
+    return 'unknown'
 
 
 class LicenseManager(models.Manager):
@@ -144,7 +145,9 @@ class Download(models.Model):
             ip = get_ip(request)
             name = artifact.get_real_name()
             link = name != artifact.url()
-            Download.objects.create(ip=ip, name=name, link=link)
+            with open(settings.REPORT_CSV, "a") as f:
+                writer = csv.writer(f)
+                writer.writerow([ip, name, link])
         except:
             logging.exception('unable to mark download')
 

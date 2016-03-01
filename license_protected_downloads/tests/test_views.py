@@ -5,13 +5,14 @@ import json
 import os
 import unittest
 import urlparse
+import csv
+import tempfile
 
 import mock
 
 from django.conf import settings
 from django.test import Client, TestCase
 from django.http import HttpResponse
-
 from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.artifact import LocalArtifact
 from license_protected_downloads.artifact.base import _insert_license_into_db
@@ -19,6 +20,7 @@ from license_protected_downloads.config import INTERNAL_HOSTS
 from license_protected_downloads.models import Download
 from license_protected_downloads.tests.helpers import temporary_directory
 from license_protected_downloads import views
+from django.core.management import call_command
 
 THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 TESTSERVER_ROOT = os.path.join(THIS_DIRECTORY, "testserver_root")
@@ -544,18 +546,22 @@ class ViewTests(BaseServeViewTest):
         # Shouldn't be able to escape served paths...
         self.assertEqual(response.status_code, 404)
 
+    @mock.patch('django.conf.settings.REPORT_CSV',
+                tempfile.mkdtemp() + '/download_report.csv')
+    @mock.patch('django.conf.settings.TRACK_DOWNLOAD_STATS', True)
     def test_download_stats(self):
-        val = settings.TRACK_DOWNLOAD_STATS
-        try:
-            settings.TRACK_DOWNLOAD_STATS = True
-            self._test_get_file('build-info/panda-open.txt', True)
-            downloads = list(Download.objects.all())
-            self.assertEqual(1, len(downloads))
-            self.assertEqual('/build-info/panda-open.txt', downloads[0].name)
-            self.assertEqual('127.0.0.1', downloads[0].ip)
-            self.assertFalse(downloads[0].link)
-        finally:
-            settings.TRACK_DOWNLOAD_STATS = val
+        self._test_get_file('build-info/panda-open.txt', True)
+        for row in csv.reader(open(settings.REPORT_CSV)):
+            self.assertEqual('/build-info/panda-open.txt', row[1])
+            self.assertEqual('127.0.0.1', row[0])
+            self.assertEqual('False', row[2])
+        # Process CSV into DB and check data
+        call_command('report_process')
+        downloads = list(Download.objects.all())
+        self.assertEqual(1, len(downloads))
+        self.assertEqual('/build-info/panda-open.txt', downloads[0].name)
+        self.assertEqual('127.0.0.1', downloads[0].ip)
+        self.assertFalse(downloads[0].link)
 
 
 class HowtoViewTests(BaseServeViewTest):

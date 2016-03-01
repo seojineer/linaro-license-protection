@@ -4,3 +4,6 @@ licenses.db
 static
 *.pyc
 *.swp
+.idea
+download_report*.csv
+.venv
