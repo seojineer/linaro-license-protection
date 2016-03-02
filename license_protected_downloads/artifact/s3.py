@@ -29,8 +29,9 @@ class S3Artifact(Artifact):
         return cls.bucket
 
     def __init__(self, bucket, item, parent, human_readable):
-        base = '/' + os.path.dirname(item.name)
-        base = base.replace(settings.S3_PREFIX_PATH, '')
+        base = item.name.replace(settings.S3_PREFIX_PATH, '')
+        if base:
+            base = '/' + os.path.dirname(base)
 
         if hasattr(item, 'size'):
             file_name = os.path.basename(item.name)
@@ -42,8 +43,11 @@ class S3Artifact(Artifact):
         else:
             self.mtype = 'folder'
             self.children = []
-            base = os.path.dirname(base)
-            file_name = os.path.basename(item.name[:-1])
+            if base:
+                base = os.path.dirname(base)
+                file_name = os.path.basename(item.name[:-1])
+            else:
+                file_name = ''
             item.size = 0
             item.last_modified = '-'
         self.bucket = bucket
