@@ -8,7 +8,7 @@ import glob
 import logging
 import csv
 
-logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().setLevel(logging.WARN)
 
 
 class Command(BaseCommand):
@@ -31,10 +31,9 @@ class Command(BaseCommand):
 
         # Process any report files that have failed in the pass.
         for name in glob.glob(filename+'_*.csv'):
-            print name
             try:
+                logging.info('Processing %s', name)
                 for row in csv.reader(open(name)):
-                    logging.info('Processing %s', name)
                     Download.objects.create(ip=row[0], name=row[1],
                                             link=str2bool(row[2]))
                 os.remove(name)
