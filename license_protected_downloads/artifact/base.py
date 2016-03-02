@@ -124,7 +124,7 @@ class Artifact(object):
                 ldl = self.get_license_digests()
             except Exception as e:
                 print("Invalid BUILD-INFO.txt for %s: %s" % (
-                    self.full_path, repr(e)))
+                    self.url, repr(e)))
                 traceback.print_exc()
                 ldl = "INVALID"
         ll = models.License.objects.all_with_hashes(ldl)
