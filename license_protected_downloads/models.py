@@ -33,8 +33,10 @@ def get_ip(request):
     )
     for field in ip_meta_vals:
         ip = request.META.get(field)
-        if ip and ip != 'unknown':
-            return ip.split(',')[0]
+        if ip:
+            ip = ip.split(',')[0]
+            if ip != 'unknown':
+                return ip.split(',')[0]
 
     logging.warn('Unable to find request ip: %r', request.META)
     return 'unknown'
