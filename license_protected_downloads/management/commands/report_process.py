@@ -26,7 +26,7 @@ class Command(BaseCommand):
             os.rename(settings.REPORT_CSV, filename + '_' + timestamp +
                       file_extension)
         except OSError as e:
-            if e.errno != os.errno.EEXIST:
+            if e.errno != os.errno.ENOENT:
                 raise
 
         # Process any report files that have failed in the pass.
