@@ -13,7 +13,13 @@ _app = get_wsgi_application()
 
 def application(environ, start_response):
     from django.conf import settings
-    settings.ALLOWED_HOSTS = [environ['HOST_NAME']]
+    try:
+        with open(settings.ALLOWED_HOSTS_FILE, 'r') as f:
+            settings.ALLOWED_HOSTS = [x.strip() for x in f]
+    except IOError as e:
+        if e.errno != os.errno.ENOENT:
+            settings.ALLOWED_HOSTS = [environ['HOST_NAME']]
+
 
     # pass the WSGI environment variables on through to os.environ
     for var in APP_ENVS:

@@ -14,6 +14,7 @@ DATABASES = {
     }
 }
 
+ALLOWED_HOSTS_FILE = os.path.join(DEPLOYMENT_DIR, "allowed_hosts.txt")
 SERVED_PATHS = [os.path.join(DEPLOYMENT_DIR, 'www')]
 UPLOAD_PATH = os.path.join(DEPLOYMENT_DIR, 'uploads')
 FILE_UPLOAD_TEMP_DIR = '/srv/django-uploads'
