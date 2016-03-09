@@ -7,6 +7,7 @@ import time
 import glob
 import logging
 import csv
+import fcntl
 
 logging.getLogger().setLevel(logging.WARN)
 
@@ -15,6 +16,12 @@ class Command(BaseCommand):
     help = 'Process csv file to postgres and do some log rotating'
 
     def handle(self, *args, **options):
+        # Ensure only one script is running at a time
+        f = open(os.path.join(settings.REPORT_CSV + '.lock'), 'w+')
+        try:
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except IOError:
+            sys.exit('Script is already running')
 
         def str2bool(self):
             # http://stackoverflow.com/questions/715417
