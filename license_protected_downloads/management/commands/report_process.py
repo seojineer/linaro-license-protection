@@ -8,6 +8,7 @@ import glob
 import logging
 import csv
 import fcntl
+import sys
 
 logging.getLogger().setLevel(logging.WARN)
 
