@@ -13,7 +13,7 @@ fi
 
 if [ -z $VIRTUAL_ENV ] ; then
 	echo "creating venv: $VENV_DIR ..."
-	virtualenv $VENV_DIR
+	virtualenv --python=`which python2` $VENV_DIR
 	. $VENV_DIR/bin/activate
 	pip install -r requirements.txt
 fi
