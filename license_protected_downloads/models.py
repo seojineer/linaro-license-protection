@@ -3,6 +3,7 @@ import datetime
 import logging
 import uuid
 import csv
+import socket
 
 from django.conf import settings
 from django.db import models
@@ -36,7 +37,13 @@ def get_ip(request):
         if ip:
             ip = ip.split(',')[0]
             if ip != 'unknown':
-                return ip.split(',')[0]
+                ip = ip.split(',')[0]
+                try:
+                    socket.inet_aton(ip)
+                    return ip
+                except socket.error:
+                    # weird field, lets log to try and understand
+                    logging.warning('Odd "IP" field: %s = %s', field, ip)
 
     logging.warn('Unable to find request ip: %r', request.META)
     return 'unknown'
