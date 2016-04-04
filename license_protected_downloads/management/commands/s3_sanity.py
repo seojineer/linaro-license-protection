@@ -33,13 +33,17 @@ class Command(BaseCommand):
         changed = False
         for key in master_bucket_keys:
             if not key.name.endswith('/'):
-                if '-' in key.etag:
+                if '-' in key.etag and key.size <= 5368709120:
                     logging.info('Multipart file found %s', key.name)
                     changed = True
                     # Setting metadata causes S3 to convert a multipart file
                     # into a valid md5sum.
-                    key.set_remote_metadata({'linaro-checker': 'True'}, {},
-                                          True)
+                    try:
+                        key.set_remote_metadata({'linaro-checker': 'True'}, {},
+                                                True)
+                    except Exception:
+                        logging.exception('S3Connection error for %s',
+                                          key.name)
 
         if changed:
             # Wait for the files to sync between buckets.
@@ -49,5 +53,5 @@ class Command(BaseCommand):
             for key, value in (master_keys - self.slave_bucket(bucket_name)):
                 if not key.endswith('/'):
                     if '-' not in key:
-                        logging.warn('file %s is out of sync in bucket %s'
-                                     , (key, bucket_name))
+                        logging.warn('file %s is out of sync in bucket %s',
+                                     key, bucket_name)
