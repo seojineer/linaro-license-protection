@@ -6,12 +6,13 @@ import os
 import unittest
 import urlparse
 import csv
+import shutil
 import tempfile
 
 import mock
 
 from django.conf import settings
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.http import HttpResponse
 from license_protected_downloads.buildinfo import BuildInfo
 from license_protected_downloads.artifact import LocalArtifact
@@ -546,17 +547,20 @@ class ViewTests(BaseServeViewTest):
         # Shouldn't be able to escape served paths...
         self.assertEqual(response.status_code, 404)
 
-    @mock.patch('django.conf.settings.REPORT_CSV',
-                tempfile.mkdtemp() + '/download_report.csv')
-    @mock.patch('django.conf.settings.TRACK_DOWNLOAD_STATS', True)
+    @override_settings(TRACK_DOWNLOAD_STATS=True)
     def test_download_stats(self):
-        self._test_get_file('build-info/panda-open.txt', True)
-        for row in csv.reader(open(settings.REPORT_CSV)):
-            self.assertEqual('/build-info/panda-open.txt', row[1])
-            self.assertEqual('127.0.0.1', row[0])
-            self.assertEqual('False', row[2])
-        # Process CSV into DB and check data
-        call_command('report_process')
+        tempdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tempdir)
+        report_csv = os.path.join(tempdir, 'download_report.csv')
+        with override_settings(REPORT_CSV=report_csv):
+            self._test_get_file('build-info/panda-open.txt', True)
+            for row in csv.reader(open(settings.REPORT_CSV)):
+                self.assertEqual('/build-info/panda-open.txt', row[1])
+                self.assertEqual('127.0.0.1', row[0])
+                self.assertEqual('False', row[2])
+            # Process CSV into DB and check data
+            call_command('report_process')
+
         downloads = list(Download.objects.all())
         self.assertEqual(1, len(downloads))
         self.assertEqual('/build-info/panda-open.txt', downloads[0].name)
