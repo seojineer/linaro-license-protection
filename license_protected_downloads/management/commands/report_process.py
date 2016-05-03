@@ -42,8 +42,11 @@ class Command(BaseCommand):
             try:
                 logging.info('Processing %s', name)
                 for row in csv.reader(open(name)):
-                    Download.objects.create(ip=row[0], name=row[1],
-                                            link=str2bool(row[2]))
+                    # This looks odd, but we sometimes get URLs with newlines
+                    # in them and we need the real file name
+                    name = row[1].replace('\n', '')
+                    Download.objects.create(
+                        ip=row[0], name=name, link=str2bool(row[2]))
                 os.remove(name)
             except (csv.Error, DatabaseError):
                 logging.exception('unable to process csv %s', name)
