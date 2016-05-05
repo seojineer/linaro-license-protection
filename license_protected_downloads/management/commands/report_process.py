@@ -44,9 +44,9 @@ class Command(BaseCommand):
                 for row in csv.reader(open(name)):
                     # This looks odd, but we sometimes get URLs with newlines
                     # in them and we need the real file name
-                    name = row[1].replace('\n', '')
+                    download = row[1].replace('\n', '')
                     Download.objects.create(
-                        ip=row[0], name=name, link=str2bool(row[2]))
+                        ip=row[0], name=download, link=str2bool(row[2]))
                 os.remove(name)
             except (csv.Error, DatabaseError):
                 logging.exception('unable to process csv %s', name)
