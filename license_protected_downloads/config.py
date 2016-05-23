@@ -10,6 +10,7 @@ INTERNAL_HOSTS = (
     '81.128.185.52',  # lng.validation.linaro.org
     '188.40.92.79',   # ci.linaro.org (slave x86-64-07)
     '188.40.49.144',  # ci.linaro.org (slave x86-64-08)
+    '144.76.6.139',   # ci.linaro.org (slave aosp-x86-64-07)
     '188.40.51.209',  # ci.linaro.org (slave aosp-x86-64-08)
     '213.133.116.86', # ci.linaro.org (slave aosp-x86-64-09)
     '78.46.190.194',  # ci.linaro.org (slave aosp-x86-64-10)
