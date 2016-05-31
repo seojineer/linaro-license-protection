@@ -47,7 +47,7 @@ class Command(BaseCommand):
 
         if changed:
             # Wait for the files to sync between buckets.
-            time.sleep(480)
+            time.sleep(600)
 
         for bucket_name in slave_bucket_name:
             for key, value in (master_keys - self.slave_bucket(bucket_name)):
