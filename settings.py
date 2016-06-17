@@ -185,6 +185,13 @@ LOGGING = {
     }
 }
 
+# disable caches by default for testing (enabled in production)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+
 import django
 if django.VERSION < (1, 6):
     # old django needs a hack to not send emails for ALLOWED_HOSTS violations

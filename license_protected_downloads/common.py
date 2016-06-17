@@ -4,6 +4,7 @@ import os
 import boto
 
 from django.conf import settings
+from django.core.cache import cache
 from django.http import Http404
 
 from license_protected_downloads import models
@@ -29,6 +30,16 @@ def safe_path_join(base_path, *paths):
         return None
 
     return target_path
+
+
+def cached_call(key, func, *args, **kwargs):
+    key = func.__name__ + key
+    v = cache.get(key)
+    if v:
+        return v
+    v = func(*args, **kwargs)
+    cache.set(key, v)
+    return v
 
 
 def _handle_wildcard(request, fullpath):

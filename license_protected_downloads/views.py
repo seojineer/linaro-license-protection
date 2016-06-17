@@ -25,6 +25,7 @@ from group_auth_common import GroupAuthError
 import xml.dom.minidom as dom
 
 from license_protected_downloads.common import (
+    cached_call,
     dir_list,
     find_artifact,
 )
@@ -219,7 +220,7 @@ def _check_file_permission(request, artifact, internal):
 
 
 def file_server_get(request, path):
-    artifact = find_artifact(request, path)
+    artifact = cached_call(path, find_artifact, request, path)
     internal = get_client_ip(request) in config.INTERNAL_HOSTS
 
     if not internal:
@@ -233,7 +234,7 @@ def file_server_get(request, path):
                 return resp
 
     if artifact.isdir():
-        return _handle_dir_list(request, artifact)
+        return cached_call(path, _handle_dir_list, request, artifact)
 
     # prevent download of files like BUILD-INFO.txt
     if artifact.hidden():
