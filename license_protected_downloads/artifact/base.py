@@ -12,6 +12,7 @@ from license_protected_downloads import(
     buildinfo,
     models,
 )
+from license_protected_downloads.render_text_files import RenderTextFiles
 
 log = logging.getLogger("llp.views")
 
@@ -70,8 +71,8 @@ class Artifact(object):
 
     def hidden(self):
         hidden_files = ["BUILD-INFO.txt", "EULA.txt", "HEADER.html",
-                        "HOWTO_", "textile", ".htaccess", "licenses",
-                        ".s3_linked_from"]
+                        "HEADER.textile", "HOWTO_", "textile", ".htaccess",
+                        "licenses", ".s3_linked_from"]
         for pattern in hidden_files:
             if re.search(pattern, self.file_name):
                 return True
@@ -245,13 +246,19 @@ class Artifact(object):
         return content
 
     def get_header_html(self):
-        """Read HEADER.html in current directory
+        """Read HEADER.html or HEADER.textile in current directory
 
         If exists and return contents of <div id="content"> block
         """
         assert self.isdir()
 
         content = ''
+        body = self.get_file_contents('HEADER.textile')
+        if body:
+            content = RenderTextFiles.render_buff(body)
+            if content:
+                return content
+
         body = self.get_file_contents('HEADER.html')
         if body:
             body = self._process_include_tags(body)

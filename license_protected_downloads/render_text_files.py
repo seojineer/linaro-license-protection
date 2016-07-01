@@ -37,12 +37,16 @@ class RenderTextFiles:
         return result
 
     @classmethod
-    def render_file(cls, fp):
+    def render_buff(cls, buff):
         try:
-            return textile.textile(fp.read())
+            return textile.textile(buff)
         except:
             # Do nothing, parsing failed.
             pass
+
+    @classmethod
+    def render_file(cls, fp):
+        return cls.render_buff(fp.read())
 
     @classmethod
     def find_relevant_files(cls, path):

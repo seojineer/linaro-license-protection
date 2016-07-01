@@ -225,6 +225,11 @@ class HeaderTests(BaseServeViewTest):
         resp = self.client.get(url, follow=True)
         self.assertContains(resp, 'Welcome to the Linaro releases server')
 
+    def test_header_textile(self):
+        url = 'http://testserver/readme/subdir'
+        resp = self.client.get(url, follow=True)
+        self.assertContains(resp, 'HEADER</span>.textile was included')
+
     def test_process_include_tags(self):
         url = 'http://testserver/readme'
         response = self.client.get(url, follow=True)
