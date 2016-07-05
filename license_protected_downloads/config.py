@@ -10,16 +10,18 @@ INTERNAL_HOSTS = (
     '81.128.185.52',  # lng.validation.linaro.org
     '188.40.92.79',   # ci.linaro.org (slave x86-64-07)
     '188.40.49.144',  # ci.linaro.org (slave x86-64-08)
+    '148.251.184.94',  # ci.linaro.org (slave x86-64-09)
+    '138.201.52.83',  # ci.linaro.org (slave x86-64-10)
     '144.76.6.139',   # ci.linaro.org (slave aosp-x86-64-07)
     '188.40.51.209',  # ci.linaro.org (slave aosp-x86-64-08)
     '213.133.116.86', # ci.linaro.org (slave aosp-x86-64-09)
     '78.46.190.194',  # ci.linaro.org (slave aosp-x86-64-10)
     '217.140.96.140', # cambridge.arm.com
     '73.14.250.225', # Tyler's lab - nwdrone.com
-    '73.14.250.226', # 
-    '73.14.250.227', # 
-    '73.14.250.228', # 
-    '73.14.250.229', # 
+    '73.14.250.226', #
+    '73.14.250.227', #
+    '73.14.250.228', #
+    '73.14.250.229', #
 )
 
 WHITELIST = (
