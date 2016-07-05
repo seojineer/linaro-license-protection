@@ -37,3 +37,11 @@ if os.path.exists(os.path.join(DEPLOYMENT_DIR, 'secrets.py')):
 # make sure django directory exists
 if not os.path.isdir(FILE_UPLOAD_TEMP_DIR):
     raise RuntimeError('Missing Django upload dir')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/tmp/releases-django-cache',
+        'TIMEOUT': 5 * 60,  # 5 minute cache
+    }
+}
