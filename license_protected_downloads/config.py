@@ -5,6 +5,7 @@ INTERNAL_HOSTS = (
     '54.225.81.132',  # android-build.linaro.org
     '82.71.243.201',  # validation.linaro.org
     '82.71.243.203',
+    '51.148.40.7',
     '81.128.185.42',  # tcwg.validation.linaro.org
     '81.128.185.50',  # lab.validation.linaro.org
     '81.128.185.52',  # lng.validation.linaro.org
