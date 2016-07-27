@@ -9,7 +9,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 class Command(BaseCommand):
-    help = 'Make sure S3 buckets are in sync and there are no issues'
+    help = 'Ensure two S3 buckets are in sync by checking the etag/md5sum'
     conn = S3Connection(settings.AWS_ACCESS_KEY_ID,
                         settings.AWS_SECRET_ACCESS_KEY)
 
