@@ -7,6 +7,7 @@ from boto.s3.connection import S3Connection
 
 logging.getLogger().setLevel(logging.INFO)
 
+
 class Command(BaseCommand):
     help = 'Ensure the hidden dotfile is created in the latest_link folder'
     conn = S3Connection(settings.AWS_ACCESS_KEY_ID,
@@ -24,9 +25,13 @@ class Command(BaseCommand):
         list2 = []
         for i in set(paths):
             for key in self.bucket.list(prefix=os.path.split(i)[0]):
-                if os.path.split(os.path.dirname(key.name))[1].isdigit():
-                    list1.append(os.path.split(os.path.dirname(key.name))[1])
-                    list2.append(os.path.split(os.path.dirname(key.name))[0])
+                # Need to replace "." for releases folder e.g. 15.06,16.06 etc
+                build_no = os.path.split(os.path.dirname(key.name))[1]\
+                    .replace(".", "", 1)
+                parent_dir = os.path.split(os.path.dirname(key.name))[0]
+                if build_no.isdigit():
+                    list1.append(build_no)
+                    list2.append(parent_dir)
             key_name = '.s3_linked_from'
             file_content = '%s/%s' % (', '.join(set(list2)), max(list1,
                                                                  key=int))
