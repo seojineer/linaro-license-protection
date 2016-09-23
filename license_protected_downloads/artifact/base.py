@@ -98,7 +98,7 @@ class Artifact(object):
     def get_eulas(self):
         raise NotImplementedError()
 
-    def get_file_download_response(self):
+    def get_file_download_response(self, method='GET'):
         raise NotImplementedError()
 
     def get_textile_files(self):

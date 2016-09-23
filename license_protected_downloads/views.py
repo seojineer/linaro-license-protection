@@ -121,12 +121,9 @@ def file_server(request, path):
     """Serve up a file / directory listing or license page as required"""
     path = iri_to_uri(path)
 
-    # Intercept post requests and send them to file_server_post.
     if request.method == "POST":
         return file_server_post(request, path)
-
-    # GET requests are handled by file_server_get
-    elif request.method == "GET":
+    elif request.method in ('GET', 'HEAD'):
         return file_server_get(request, path)
 
 
@@ -244,8 +241,9 @@ def file_server_get(request, path):
     if resp:
         return resp
 
-    Download.mark(request, artifact)
-    return artifact.get_file_download_response()
+    if request.method == 'GET':
+        Download.mark(request, artifact)
+    return artifact.get_file_download_response(request.method)
 
 
 def get_textile_files(request):

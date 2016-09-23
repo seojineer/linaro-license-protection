@@ -394,6 +394,12 @@ class ViewTests(BaseServeViewTest):
         response = self.client.get(url, follow=True)
         self.assertContains(response, "not found", status_code=404)
 
+    def test_HEAD(self):
+        url = 'http://testserver/build-info/panda-open.txt'
+        response = self.client.head(url)
+        self.assertEqual(200, response.status_code)
+        self.assertTrue(response.has_header('x-sendfile'))
+
     def test_redirect_to_file_on_accept_multi_license(self):
         target_file = "build-info/multi-license.txt"
         digest = self.set_up_license(target_file)

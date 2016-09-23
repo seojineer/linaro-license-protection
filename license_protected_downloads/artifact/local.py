@@ -41,7 +41,7 @@ class LocalArtifact(Artifact):
                     mtype = 'text'
             return mtype
 
-    def get_file_download_response(self):
+    def get_file_download_response(self, method='GET'):
         "Return HttpResponse which will send path to user's browser."
         assert not self.isdir()
         file_name = os.path.basename(self.full_path)
