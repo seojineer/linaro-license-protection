@@ -37,9 +37,11 @@ class Command(BaseCommand):
         bucket = conn.get_bucket(settings.S3_BUCKET, validate=False)
         bucket_key = bucket.list(options['prefix'])
 
+        now = self.x_days_ago(int(options['days']))
+
         for key in bucket_key:
             if not any(map(key.name.startswith, EXCLUDE_FILES)):
-                if key.last_modified < self.x_days_ago(int(options['days'])):
+                if key.last_modified < now:
                     if options['dryrun']:
                         logging.info('Will delete %s', key.name)
                     else:
