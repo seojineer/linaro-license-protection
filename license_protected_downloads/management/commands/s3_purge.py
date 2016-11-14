@@ -6,12 +6,6 @@ import datetime
 from boto.s3.connection import S3Connection
 
 logging.getLogger().setLevel(logging.INFO)
-EXCLUDE_FILES = (
-    'releases/',
-    '96boards/',
-    'snapshots/components/toolchain/infrastructure',
-    'snapshots/components/toolchain/gcc-linaro'
-)
 
 
 class Command(BaseCommand):
@@ -40,7 +34,7 @@ class Command(BaseCommand):
         now = self.x_days_ago(int(options['days']))
 
         for key in bucket_key:
-            if not any(map(key.name.startswith, EXCLUDE_FILES)):
+            if not any(map(key.name.startswith, settings.S3_PURGE_EXCLUDES)):
                 if key.last_modified < now:
                     if options['dryrun']:
                         logging.info('Will delete %s', key.name)

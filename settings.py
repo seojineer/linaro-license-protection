@@ -15,6 +15,7 @@ CSS_PATH = os.path.join(ROOT_PATH, "css")
 TEMPLATES_PATH = os.path.join(ROOT_PATH, "templates")
 TEXTILE_FALLBACK_PATH = os.path.join(TEMPLATES_PATH, "textile_fallbacks")
 REPORT_CSV = os.path.join(PROJECT_ROOT, "download_report.csv")
+S3_PURGE_EXCLUDES = []
 
 ADMINS = (
     ('linaro-infrastructure', 'linaro-infrastructure-errors@linaro.org'),
