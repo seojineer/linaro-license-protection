@@ -144,14 +144,18 @@ def _sort_artifacts(a, b):
     a = a.file_name
     b = b.file_name
     try:
-        return cmp(int(a), int(b))
+        # we want listings of build numbers (integers) and releases (floats eg
+        # "16.12" to listed in reverse order so they show newest to oldest
+        return cmp(float(b), float(a))
     except:
         pass
+    # always give preference to make "latest" show first
     if a == 'latest':
         return -1
     elif b == 'latest':
         return 1
 
+    # just do a normal string sort
     return cmp(a, b)
 
 

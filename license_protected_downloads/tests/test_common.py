@@ -21,8 +21,8 @@ class CommonTests(unittest.TestCase):
     def test_sort_artifacts(self):
         patterns = [
             (['b', 'a', 'latest', 'c'], ['latest', 'a', 'b', 'c']),
-            (['10', '1', '100', 'latest'], ['latest', '1', '10', '100']),
-            (['10', 'foo', '100', 'latest'], ['latest', '10', '100', 'foo']),
+            (['10', '1', '100', 'latest'], ['latest', '100', '10', '1']),
+            (['10', 'foo', '100', 'latest'], ['latest', '100', '10', 'foo']),
         ]
         for files, expected in patterns:
             artifacts = [LocalArtifact(None, '', x, True, '')
