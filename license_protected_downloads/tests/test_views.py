@@ -569,6 +569,7 @@ class ViewTests(BaseServeViewTest):
                 self.assertEqual('/build-info/panda-open.txt', row[1])
                 self.assertEqual('127.0.0.1', row[0])
                 self.assertEqual('False', row[2])
+                self.assertEqual('/', row[3])
             # Process CSV into DB and check data
             call_command('report_process')
 
@@ -577,6 +578,7 @@ class ViewTests(BaseServeViewTest):
         self.assertEqual('/build-info/panda-open.txt', downloads[0].name)
         self.assertEqual('127.0.0.1', downloads[0].ip)
         self.assertFalse(downloads[0].link)
+        self.assertEqual('/', downloads[0].ref)
 
 
 class HowtoViewTests(BaseServeViewTest):

@@ -46,7 +46,8 @@ class Command(BaseCommand):
                     # in them and we need the real file name
                     download = row[1].replace('\n', '')
                     Download.objects.create(
-                        ip=row[0], name=download, link=str2bool(row[2]))
+                        ip=row[0], name=download, link=str2bool(row[2]),
+                        ref=row[3])
                 os.remove(name)
             except (csv.Error, DatabaseError):
                 logging.exception('unable to process csv %s', name)
