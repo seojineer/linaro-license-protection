@@ -138,7 +138,7 @@ class Download(models.Model):
 
     country = models.CharField(max_length=256, blank=True, null=True)
     region_isp = models.CharField(max_length=256, blank=True, null=True)
-    ref = models.CharField(max_length=256, blank=True, null=True)
+    ref = models.CharField(max_length=4096, blank=True, null=True)
 
     @staticmethod
     def mark(request, artifact):
@@ -159,7 +159,7 @@ class Download(models.Model):
             ref = http_ref.replace('\n', '').replace(',', '')
             with open(settings.REPORT_CSV, "a") as f:
                 writer = csv.writer(f)
-                writer.writerow([ip, name, link, ref])
+                writer.writerow([ip, name, link, ref[:4096]])
         except:
             logging.exception('unable to mark download')
 
