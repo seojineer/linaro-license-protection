@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand
 
 import logging
 import datetime
+import fnmatch
 from boto.s3.connection import S3Connection
 
 logging.getLogger().setLevel(logging.INFO)
@@ -30,12 +31,12 @@ class Command(BaseCommand):
                             settings.AWS_SECRET_ACCESS_KEY)
         bucket = conn.get_bucket(settings.S3_BUCKET, validate=False)
         bucket_key = bucket.list(options['prefix'])
-
         now = self.x_days_ago(int(options['days']))
 
         for key in bucket_key:
-            if not any(map(key.name.startswith, settings.S3_PURGE_EXCLUDES)):
-                if key.last_modified < now:
+            if key.last_modified < now:
+                if not any(fnmatch.fnmatch(key.name, p) for p in
+                           settings.S3_PURGE_EXCLUDES):
                     if options['dryrun']:
                         logging.info('Will delete %s', key.name)
                     else:
@@ -44,4 +45,4 @@ class Command(BaseCommand):
                             bucket.delete_key(key)
                         except Exception:
                             logging.exception('S3Connection error for %s',
-                                              key.name)
+                                          key.name)
