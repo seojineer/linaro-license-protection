@@ -1,5 +1,6 @@
 import fnmatch
 import os
+import urllib
 
 import boto
 
@@ -97,7 +98,7 @@ def _find_s3_artifact(request, path):
     if not b:
         return  # s3 isn't configured
 
-    prefix = settings.S3_PREFIX_PATH + path
+    prefix = settings.S3_PREFIX_PATH + urllib.pathname2url(path)
     if prefix[-1] == '/':
         # s3 listing give sub dir, we don't want that
         prefix = prefix[:-1]

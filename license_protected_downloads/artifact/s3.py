@@ -1,6 +1,7 @@
 import datetime
 import mimetypes
 import os
+import urllib
 import time
 
 import boto
@@ -50,6 +51,7 @@ class S3Artifact(Artifact):
                 file_name = ''
             item.size = 0
             item.last_modified = '-'
+        file_name = urllib.url2pathname(file_name)
         self.bucket = bucket
         self.parent = parent
         if parent and hasattr(self.parent, 'children'):
@@ -128,7 +130,7 @@ class S3Artifact(Artifact):
         else:
             key += '/' + os.path.dirname(self.file_name) + fname
         try:
-            key = boto.s3.key.Key(self.bucket, key)
+            key = boto.s3.key.Key(self.bucket, urllib.pathname2url(key))
             return key.get_contents_as_string()
         except boto.exception.S3ResponseError:
             pass  # return None - its okay
