@@ -1,5 +1,4 @@
 import os
-import urllib
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -28,7 +27,7 @@ class PublishResource(v2.PublishResource):
         if not b:
             raise HttpResponseError('S3 is not enabled', 403)
 
-        path = urllib.pathname2url(self.path)
+        path = S3Artifact.pathname2url(self.path)
         k = b.new_key(settings.S3_PREFIX_PATH + path)
         if k.exists():
             APILog.mark(self.request, 'FILE_OVERWRITE_DENIED')

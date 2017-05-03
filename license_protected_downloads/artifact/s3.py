@@ -1,7 +1,6 @@
 import datetime
 import mimetypes
 import os
-import urllib
 import time
 
 import boto
@@ -29,6 +28,19 @@ class S3Artifact(Artifact):
                 cls.bucket = c.get_bucket(settings.S3_BUCKET)
         return cls.bucket
 
+    @staticmethod
+    def pathname2url(path):
+        '''There are certain characters S3 doesn't deal with for key names when
+           trying to generate signed urls. This url-encodes them in a way that
+           makes S3 happy.'''
+        # currently the "~" is the only character we know breaks things
+        return path.replace('~', '%7E')
+
+    @staticmethod
+    def url2pathname(path):
+        '''Reverses the changes done by pathname2url'''
+        return path.replace('%7E', '~')
+
     def __init__(self, bucket, item, parent, human_readable):
         base = item.name.replace(settings.S3_PREFIX_PATH, '')
         if base:
@@ -51,7 +63,7 @@ class S3Artifact(Artifact):
                 file_name = ''
             item.size = 0
             item.last_modified = '-'
-        file_name = urllib.url2pathname(file_name)
+        file_name = self.url2pathname(file_name)
         self.bucket = bucket
         self.parent = parent
         if parent and hasattr(self.parent, 'children'):
@@ -130,7 +142,7 @@ class S3Artifact(Artifact):
         else:
             key += '/' + os.path.dirname(self.file_name) + fname
         try:
-            key = boto.s3.key.Key(self.bucket, urllib.pathname2url(key))
+            key = boto.s3.key.Key(self.bucket, self.pathname2url(key))
             return key.get_contents_as_string()
         except boto.exception.S3ResponseError:
             pass  # return None - its okay
