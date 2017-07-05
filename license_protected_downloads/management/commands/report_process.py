@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from license_protected_downloads.models import Download
-from django.db import DatabaseError
+from django.db import DataError, DatabaseError
 import os
 import time
 import glob
@@ -45,9 +45,13 @@ class Command(BaseCommand):
                     # This looks odd, but we sometimes get URLs with newlines
                     # in them and we need the real file name
                     download = row[1].replace('\n', '')
-                    Download.objects.create(
-                        ip=row[0], name=download, link=str2bool(row[2]),
-                        ref=row[3])
+                    try:
+                        Download.objects.create(
+                            ip=row[0], name=download, link=str2bool(row[2]),
+                            ref=row[3])
+                    except DataError:
+                        logging.error(
+                            'Skipping invalid download entry: %s', row)
                 os.remove(name)
             except (csv.Error, DatabaseError):
                 logging.exception('unable to process csv %s', name)
