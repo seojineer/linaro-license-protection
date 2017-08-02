@@ -17,7 +17,6 @@ DATABASES = {
 ALLOWED_HOSTS_FILE = os.path.join(DEPLOYMENT_DIR, "allowed_hosts.txt")
 SERVED_PATHS = [os.path.join(DEPLOYMENT_DIR, 'www')]
 UPLOAD_PATH = os.path.join(DEPLOYMENT_DIR, 'uploads')
-FILE_UPLOAD_TEMP_DIR = '/srv/django-uploads'
 IP2LOCATION_FILE = os.path.join(
     DEPLOYMENT_DIR, 'IP-COUNTRY-REGION-CITY-ISP.BIN')
 
@@ -33,10 +32,6 @@ if os.path.exists(os.path.join(DEPLOYMENT_DIR, 'header_override.html')):
 # allow site specific overrides for secrets
 if os.path.exists(os.path.join(DEPLOYMENT_DIR, 'secrets.py')):
     execfile(os.path.join(DEPLOYMENT_DIR, 'secrets.py'))
-
-# make sure django directory exists
-if not os.path.isdir(FILE_UPLOAD_TEMP_DIR):
-    raise RuntimeError('Missing Django upload dir')
 
 CACHES = {
     'default': {
