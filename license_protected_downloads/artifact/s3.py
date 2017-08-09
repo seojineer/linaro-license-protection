@@ -79,10 +79,11 @@ class S3Artifact(Artifact):
                 return 'text'
         return self.mtype
 
-    def get_file_download_response(self, method='GET'):
+    def get_file_download_response(self, method='GET', force_http=False):
         "Return HttpResponse which will send path to user's browser."
         assert not self.isdir()
-        return HttpResponseRedirect(self.item.generate_url(90, method=method))
+        return HttpResponseRedirect(
+            self.item.generate_url(90, method=method, force_http=force_http))
 
     @cached_prop
     def build_info_buffer(self):

@@ -243,7 +243,8 @@ def file_server_get(request, path):
 
     if request.method == 'GET':
         Download.mark(request, artifact)
-    return artifact.get_file_download_response(request.method)
+    force_http = not request.is_secure()
+    return artifact.get_file_download_response(request.method, force_http)
 
 
 def get_textile_files(request):
