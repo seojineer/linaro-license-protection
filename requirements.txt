@@ -11,3 +11,6 @@ boto
 IP2Location
 mock
 testrepository
+psycopg2
+textile
+django-openid-auth
