@@ -7,3 +7,4 @@ static
 .idea
 download_report*.csv
 .venv
+secrets.py
