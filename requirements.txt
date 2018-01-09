@@ -1,5 +1,5 @@
 beautifulsoup
-Django==1.8.10
+Django==1.11
 django-openid-auth
 html2text
 pep8
