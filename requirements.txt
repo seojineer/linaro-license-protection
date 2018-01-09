@@ -5,6 +5,7 @@ html2text
 pep8
 pyflakes
 python-openid
+pyOpenSSL
 requests
 textile
 boto
