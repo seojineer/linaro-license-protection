@@ -14,5 +14,4 @@ mock
 testrepository
 psycopg2
 textile
-django-openid-auth
 whitenoise

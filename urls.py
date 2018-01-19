@@ -1,20 +1,71 @@
 from django.conf import settings
 from django.views.generic import RedirectView
 
-try:
-    from django.conf.urls.defaults import patterns, include, url
-except:
-    # django >= 1.6
-    from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
+from django.urls import reverse_lazy
+from django.views.static import serve
+
+from django.contrib.auth import views as auth_views
+
+from license_protected_downloads.views import (
+    show_license
+    as show_license_views,
+    redirect_to_root
+    as redirect_to_root_views,
+    accept_license
+    as accept_license_views,
+    get_textile_files
+    as get_textile_files_views,
+    reports
+    as reports_views,
+    reports_month_file_downloads
+    as reports_month_file_downloads_views,
+    reports_month_country
+    as reports_month_country_views,
+    reports_month_region
+    as reports_month_region_views,
+    reports_month_country_details
+    as reports_month_country_details_views,
+    reports_month_region_details
+    as reports_month_region_details_views,
+    file_server
+    as file_server_views,
+    error_view
+)
+
+# V1 and V2 not used
+# Lets import anyway and delete this at a later date
+from license_protected_downloads.api.v1 import (
+    list_files_api
+    as list_files_api_views,
+    get_license_api
+    as get_license_api_views
+)
+
+from license_protected_downloads.api.v2 import (
+    token
+    as token_v2_views,
+    publish
+    as publish_v2_views
+    )
+from license_protected_downloads.api.v2 import (
+    link_latest as
+    link_v2_latest_views
+)
+
+from license_protected_downloads.api.v3 import token as token_views
+from license_protected_downloads.api.v3 import publish as publish_views
+from license_protected_downloads.api.v3 import link_latest as link_latest_views
+
+
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()
 
 
-urlpatterns = patterns(
-    '',
-    url(r'^admin/', include(admin.site.urls)),
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
 
     # Use "linaro-openid" to allow peaceful coexistence of both
     # python-apache-openid and django-openid authentication on the
@@ -22,83 +73,81 @@ urlpatterns = patterns(
     # we can go back to using just "openid" here.
     url(r'^linaro-openid/', include('django_openid_auth.urls')),
     url(r'^login/?$',
-        RedirectView.as_view(url='/linaro-openid/login/', permanent=True)),
-    url(r'^logout/?$', 'django.contrib.auth.views.logout'),
+        RedirectView.as_view(url='/linaro-openid/login/', permanent=True),
+        name='login'),
+    url(r'^logout/?$',
+        auth_views.logout,
+        name='logout'),
 
     # Handle JS libs and CSS.
-    url(r'^js/(?P<path>.*)$', 'django.views.static.serve',
-        {'document_root': settings.JS_PATH}),
-    url(r'^css/(?P<path>.*)$', 'django.views.static.serve',
-        {'document_root': settings.CSS_PATH}),
+    url(r'^js/(?P<path>.*)$', serve,
+          {'document_root': settings.JS_PATH}),
+    url(r'^css/(?P<path>.*)$', serve,
+         {'document_root': settings.CSS_PATH}),
 
     # The license page...
     url(r'^license$',
-        'license_protected_downloads.views.show_license',
+        show_license_views,
         name='show_license'),
 
     # Exceptions redirected to root...
     url(r'^license',
-        'license_protected_downloads.views.redirect_to_root',
+        redirect_to_root_views,
         name='redirect_to_root'),
 
     # Accept the license
     url(r'^accept-license',
-        'license_protected_downloads.views.accept_license',
+        accept_license_views,
         name='accept_license'),
 
     # Recursively get files for rendering (async calls accepted only).
     url(r'^get-textile-files',
-        'license_protected_downloads.views.get_textile_files',
+        get_textile_files_views,
         name='get_textile_files'),
 
+    # V1 and V2 API's not used
     url(r'^api/ls/(?P<path>.*)$',
-        'license_protected_downloads.api.v1.list_files_api'),
-
+        list_files_api_views),
     url(r'^api/license/(?P<path>.*)$',
-        'license_protected_downloads.api.v1.get_license_api'),
-
+        get_license_api_views),
     url(r'^api/v2/token/(?P<token>.*)$',
-        'license_protected_downloads.api.v2.token'),
-
+        token_v2_views),
     url(r'^api/v2/publish/(?P<path>.*)$',
-        'license_protected_downloads.api.v2.publish'),
-
+        publish_v2_views),
     url(r'^api/v2/link_latest/(?P<path>.*)$',
-        'license_protected_downloads.api.v2.link_latest'),
+        link_v2_latest_views),
 
     url(r'^api/v3/token/(?P<token>.*)$',
-        'license_protected_downloads.api.v3.token'),
+        token_views),
     url(r'^api/v3/publish/(?P<path>.*)$',
-        'license_protected_downloads.api.v3.publish'),
+        publish_views),
     url(r'^api/v3/link_latest/(?P<path>.*)$',
-        'license_protected_downloads.api.v3.link_latest'),
-)
+        link_latest_views),
+]
 
 if settings.TRACK_DOWNLOAD_STATS:
-    urlpatterns += patterns(
-        '',
+    urlpatterns += [
         url(r'^reports/$',
-            'license_protected_downloads.views.reports'),
+            reports_views),
 
         url(r'^reports/(?P<year_month>\d{4}\.\d{2})/downloads/$',
-            'license_protected_downloads.views.reports_month_downloads'),
+            reports_month_downloads_views),
         url(r'^reports/(?P<year_month>\d{4}\.\d{2})/downloads(?P<name>/.*)',
-            'license_protected_downloads.views.reports_month_file_downloads'),
+            reports_month_file_downloads_views),
         url(r'^reports/(?P<year_month>\d{4}\.\d{2})/country/$',
-            'license_protected_downloads.views.reports_month_country'),
+            reports_month_country_views),
         url(r'^reports/(?P<year_month>\d{4}\.\d{2})/region/$',
-            'license_protected_downloads.views.reports_month_region'),
+            reports_month_region_views),
         url(r'^reports/(?P<year_month>\d{4}\.\d{2})/country/(?P<country>.*)/',
-            'license_protected_downloads.views.reports_month_country_details'),
+            reports_month_country_details_views),
         url(r'^reports/(?P<year_month>\d{4}\.\d{2})/region/(?P<region>.*)/',
-            'license_protected_downloads.views.reports_month_region_details'),
-    )
+            reports_month_region_details_views),
+    ]
 
-urlpatterns += patterns(
-    '',
+urlpatterns += [
     # Catch-all. We always return a file (or try to) if it exists.
     # This handler does that.
-    url(r'(?P<path>.*)', 'license_protected_downloads.views.file_server'),
-)
+    url(r'(?P<path>.*)', file_server_views),
+]
 
-handler500 = 'license_protected_downloads.views.error_view'
+handler500 = error_view

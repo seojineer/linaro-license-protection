@@ -296,7 +296,7 @@ class ViewTests(BaseServeViewTest):
         self.assertEqual(response.status_code, 302)
         url = urlparse.urljoin("http://testserver/", target_file)
         listing_url = os.path.dirname(url)
-        self.assertEqual(response['Location'],
+        self.assertEqual(self.urlbase + response['Location'],
                          listing_url + "?dl=/" + target_file)
 
     def test_redirect_to_decline_page_on_decline_license(self):
@@ -322,9 +322,9 @@ class ViewTests(BaseServeViewTest):
 
         # We should get redirected back to the original file location.
         self.assertEqual(response.status_code, 302)
-        listing_url = os.path.dirname(url)
+        
         self.assertEqual(response['Location'],
-                         listing_url + "?dl=/" + target_file)
+                         "build-info?dl=/" + target_file)
 
         # We should have a license accept cookie.
         accept_cookie_name = "license_accepted_" + digest
@@ -340,7 +340,7 @@ class ViewTests(BaseServeViewTest):
         # cookies from the current session, and re-introduce them.
         client = Client()
         client.cookies[accept_cookie_name] = accept_cookie_name
-        response = client.get(response['Location'])
+        response = client.get(self.urlbase + response['Location'])
 
         # If we have access to the file, we get a page with "refresh" directive
         self.assertEqual(response.status_code, 200)
@@ -375,7 +375,7 @@ class ViewTests(BaseServeViewTest):
         url = 'http://testserver/~linaro-android'
         response = self.client.get(url)
         self.assertEqual(302, response.status_code)
-        self.assertEqual(url + '/', response['Location'])
+        self.assertEqual('/~linaro-android/', response['Location'])
 
     def test_parent_dir(self):
         '''Ensure the listing has the correct parent directory link'''
@@ -416,7 +416,7 @@ class ViewTests(BaseServeViewTest):
         self.assertEqual(response.status_code, 302)
         url = urlparse.urljoin("http://testserver/", target_file)
         listing_url = os.path.dirname(url)
-        self.assertEqual(
+        self.assertEqual(self.urlbase +
             response['Location'], listing_url + "?dl=/" + target_file)
 
         client = Client()
@@ -436,7 +436,7 @@ class ViewTests(BaseServeViewTest):
         self.assertEqual(response.status_code, 302)
         url = urlparse.urljoin("http://testserver/", target_file)
         listing_url = os.path.dirname(url)
-        self.assertEqual(
+        self.assertEqual(self.urlbase +
             response['Location'], listing_url + "?dl=/" + target_file)
 
         client = Client()
