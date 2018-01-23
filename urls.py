@@ -18,6 +18,8 @@ from license_protected_downloads.views import (
     as get_textile_files_views,
     reports
     as reports_views,
+    reports_month_downloads
+    as reports_month_downloads_views,
     reports_month_file_downloads
     as reports_month_file_downloads_views,
     reports_month_country
