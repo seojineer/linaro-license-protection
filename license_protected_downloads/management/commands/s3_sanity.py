@@ -21,7 +21,7 @@ class Command(BaseCommand):
         return slave_keys
 
     def handle(self, *args, **options):
-        master_bucket_name = 'publishing-linaro-org'
+        master_bucket_name = 'publishing-ie-linaro-org'
         slave_bucket_name = ['publishing-ap-linaro-org']
 
         master_bucket = self.conn.get_bucket(master_bucket_name,
