@@ -27,7 +27,7 @@ for p in SERVED_PATHS + [UPLOAD_PATH]:
 # allow local override of default page styling
 if os.path.exists(os.path.join(DEPLOYMENT_DIR, 'header_override.html')):
     BASE_PAGE = 'header_override.html'
-    TEMPLATE_DIRS += (DEPLOYMENT_DIR,)
+    [t["DIRS"].append(DEPLOYMENT_DIR) for t in TEMPLATES if t.has_key("DIRS")]
 
 # allow site specific overrides for secrets
 if os.path.exists(os.path.join(DEPLOYMENT_DIR, 'secrets.py')):
