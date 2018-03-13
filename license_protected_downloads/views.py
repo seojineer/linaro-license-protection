@@ -195,7 +195,9 @@ def _handle_dir_list(request, artifact):
 def _check_file_permission(request, artifact, internal):
     url = artifact.url()
     if internal or is_whitelisted(url) or \
-            'key' in request.GET:  # If user has a key, default to open
+            'key' in request.GET or \
+             settings.DISABLE_LICENSE_PROTECTION:
+        # If user has a key, default to open
         digests = 'OPEN'
     else:
         digests = artifact.get_license_digests()
