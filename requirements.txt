@@ -6,7 +6,7 @@ django-openid-auth
 html2text
 mock
 pep8
-psycopg2
+psycopg2==2.7.4
 pyOpenSSL
 pyflakes
 python-openid

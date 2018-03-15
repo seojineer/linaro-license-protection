@@ -24,7 +24,7 @@ class LicenseTestCase(TestCase):
         lic3_text = 'Linaro License'
         digest1 = hashlib.md5(lic1_text).hexdigest()
         digest2 = hashlib.md5(lic2_text).hexdigest()
-        digest3 = hashlib.md5(lic2_text).hexdigest()
+        digest3 = hashlib.md5(lic3_text).hexdigest()
         self.lic1 = License.objects.create(
             digest=digest1, text=lic1_text, theme='samsung')
         self.lic2 = License.objects.create(
