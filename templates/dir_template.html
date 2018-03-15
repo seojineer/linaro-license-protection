@@ -2,6 +2,7 @@
 
 {% block content %}
 {{ header_content|safe }}
+{% load file_exists %}
 <table>
     <thead>
         <tr>
@@ -23,7 +24,7 @@
 {% for value in dirlist %}
   <tr onmouseover="this.style.background='#CBE68F'" onmouseout="this.style.background='#FFFFFF'">
     <td valign="top">
-      <img src="{{ STATIC_URL }}/static/{{ value.type }}.png"
+      <img src="{{ STATIC_URL|add:'/static/'|add:value.type|add:'.png'|file_exists}}"
            alt="{{ value.type }}">
     </td>
     <td>
