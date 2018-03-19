@@ -17,10 +17,6 @@ REPORT_CSV = os.path.join(PROJECT_ROOT, "download_report.csv")
 S3_PURGE_EXCLUDES = []
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# Make everything "OPEN".
-# This will disable license protection, be very sure you want this to be TRUE
-DISABLE_LICENSE_PROTECTION = False
-
 ADMINS = (
     ('linaro-infrastructure', 'linaro-infrastructure-errors@linaro.org'),
 )
