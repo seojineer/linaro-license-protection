@@ -43,6 +43,7 @@ TIME_ZONE = 'UTC'
 LANGUAGE_CODE = 'en-us'
 
 SITE_ID = 1
+SITE_NAME = 'Linaro License Protection'
 
 USE_I18N = True
 USE_L10N = True

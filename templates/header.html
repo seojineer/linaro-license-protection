@@ -1,11 +1,10 @@
-{% load site_info %}
 <html>
 <head>
   {% if dl != None %}
     <meta http-equiv="REFRESH" content="0;url={{ dl }}">
   {% endif %}
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <title>{%site_name%}</title>
+  <title>{{site_name}}</title>
   <link href="//www.linaro.org/remote/css/init.css"
         rel="stylesheet" type="text/css" >
   <link href="//www.linaro.org/remote/css/remote.css"
@@ -31,7 +30,7 @@
 </head>
 <body>
 <div id="head">
-  <h1>{%site_name%}</h1>
+  <h1>{{site_name}}</h1>
 </div>
 <div id="content">
   {% block content %}{% endblock %}
