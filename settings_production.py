@@ -15,14 +15,8 @@ DATABASES = {
 }
 
 ALLOWED_HOSTS_FILE = os.path.join(DEPLOYMENT_DIR, "allowed_hosts.txt")
-SERVED_PATHS = [os.path.join(DEPLOYMENT_DIR, 'www')]
-UPLOAD_PATH = os.path.join(DEPLOYMENT_DIR, 'uploads')
 IP2LOCATION_FILE = os.path.join(
     DEPLOYMENT_DIR, 'IP-COUNTRY-REGION-CITY-ISP.BIN')
-
-for p in SERVED_PATHS + [UPLOAD_PATH]:
-    if not os.path.exists(p):
-        os.mkdir(p)
 
 # allow local override of default page styling
 if os.path.exists(os.path.join(DEPLOYMENT_DIR, 'header_override.html')):
