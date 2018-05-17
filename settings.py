@@ -9,11 +9,12 @@ DEBUG = True
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.split(PROJECT_ROOT)[-1]
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
+DEPLOYMENT_DIR = os.path.abspath(os.path.join(PROJECT_ROOT, '..'))
 JS_PATH = os.path.join(ROOT_PATH, "js")
 CSS_PATH = os.path.join(ROOT_PATH, "css")
 TEMPLATES_PATH = os.path.join(ROOT_PATH, "templates")
 TEXTILE_FALLBACK_PATH = os.path.join(TEMPLATES_PATH, "textile_fallbacks")
-REPORT_CSV = os.path.join(PROJECT_ROOT, "download_report.csv")
+REPORT_CSV = os.path.join(DEPLOYMENT_DIR, "download_report.csv")
 S3_PURGE_EXCLUDES = []
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 

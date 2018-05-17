@@ -1,8 +1,6 @@
 # Settings for our production instances
 from settings import *
 
-DEPLOYMENT_DIR = os.path.abspath(os.path.join(PROJECT_ROOT, '..'))
-
 DEBUG = False
 
 ROOT_URLCONF = 'urls'
