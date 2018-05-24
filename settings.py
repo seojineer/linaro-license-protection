@@ -295,7 +295,9 @@ TRACK_DOWNLOAD_STATS = False
 # SECRET_KEY (to keep it secret).
 try:
     from local_settings import *
-except ImportError:
+    if SECRET_KEY is None:
+        raise ValueError
+except (ImportError,NameError,ValueError):
     import random
 
     # Create local_settings with random SECRET_KEY and MASTER_API_KEY
