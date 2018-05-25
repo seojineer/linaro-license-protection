@@ -291,6 +291,12 @@ BOT_USER_AGENTS = [
 MASTER_API_KEY = ""
 TRACK_DOWNLOAD_STATS = False
 
+# Import proxy_settings if file exists
+try:
+    from proxy_settings import *
+except ImportError:
+    pass
+
 # Try to import local_settings. If it doesn't exist, generate it. It contains
 # SECRET_KEY (to keep it secret).
 try:
