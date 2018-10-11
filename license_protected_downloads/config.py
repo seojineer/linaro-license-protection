@@ -6,6 +6,7 @@ INTERNAL_HOSTS = (
     '82.71.243.203',
     '51.148.40.1',
     '51.148.40.7',
+    '51.148.40.18',    # lkft.validation.linaro.org
     '81.128.185.42',   # tcwg.validation.linaro.org
     '81.128.185.50',   # lab.validation.linaro.org
     '81.128.185.52',   # lng.validation.linaro.org
