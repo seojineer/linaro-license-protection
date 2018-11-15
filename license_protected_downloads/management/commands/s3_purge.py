@@ -36,6 +36,18 @@ class Command(BaseCommand):
         date = datetime.datetime.now() - datetime.timedelta(days=days)
         return date.isoformat()
 
+    @staticmethod
+    def handle_permanent_deletes(key, dryrun, delete_by, bucket):
+        if isinstance(key, deletemarker.DeleteMarker) and key.is_latest and \
+                key.last_modified < delete_by and key.version_id:
+            if dryrun:
+                logging.info('DRYRUN: Will permanently delete %s, %s, %s', key.name,
+                             key.version_id, isinstance(key, deletemarker.DeleteMarker))
+            else:
+                logging.info('Permanently deleted %s, %s',
+                             key.name, key.version_id)
+                return bucket.delete_key(key.name, version_id=key.version_id)
+
     def handle(self, *args, **options):
         conn = S3Connection(settings.AWS_ACCESS_KEY_ID,
                             settings.AWS_SECRET_ACCESS_KEY)
@@ -49,42 +61,23 @@ class Command(BaseCommand):
                 if not any(fnmatch.fnmatch(key.name, p) for p in
                            settings.S3_PURGE_EXCLUDES):
                     if options['dryrun'] and not options['forcedelete']:
-                        logging.info('DRYRUN: Will set delete marker %s',\
-                        key.name)
-                    elif options['forcedelete'] and \
-                    not options['cleanup_releases']:
-                        if key.last_modified < now_delete:
-                            for v_key in bucket.list_versions():
-                                 if isinstance(v_key, deletemarker.DeleteMarker) \
-                                  and v_key.is_latest:
-                                     if not any(fnmatch.fnmatch(v_key.name, p) \
-                                       for p in settings.S3_PURGE_EXCLUDES):
-                                         if options['dryrun']:
-                                             logging.info(
-                                             'DRYRUN: Will permanently delete \
-                                             %s, %s', v_key.name, v_key.version_id)
-                                         else:
-                                             logging.info(
-                                             'Permanently deleted %s, %s',\
-                                             v_key.name, v_key.version_id)
-                                             bucket.delete_key(v_key.name, \
-                                               version_id=v_key.version_id)
-                    elif options['forcedelete'] and options['cleanup_releases']:
+                        logging.info(
+                            'DRYRUN: Will set delete marker %s', key.name)
+                    elif options['forcedelete'] and not options['cleanup_releases']:
+                        for v_key in bucket.list_versions(prefix='snapshots/'):
+                            self.handle_permanent_deletes(
+                                v_key, options['dryrun'], now_delete, bucket)
+                        break
+                    elif options['cleanup_releases']:
                         """ Clean up the releases/ prefix """
-                        for key in bucket.list_versions(prefix='releases/'):
-                            if options['dryrun']:
-                                logging.info(
-                                'DRYRUN: Releases: Will permanently delete \
-                                %s, %s', key.name, key.version_id)
-                            else:
-                                logging.debug('Permanently deleted %s, %s', \
-                                key.name, key.version_id)
-                                bucket.delete_key(key.name,\
-                                  version_id=key.version_id)
+                        for r_key in bucket.list_versions(prefix='releases/'):
+                            self.handle_permanent_deletes(
+                                r_key, options['dryrun'], now_delete, bucket)
+                        break
                     else:
                         try:
                             logging.debug('Delete marker set %s', key.name)
-                            bucket.delete_key(key)
+                            # bucket.delete_key(key)
                         except Exception:
-                            logging.exception('S3Connection error for %s',
-                                          key.name)
+                            logging.exception(
+                                'S3Connection error for %s', key.name)
