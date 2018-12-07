@@ -146,6 +146,8 @@ The following fields may be present in a files paragraph:
  * Auth-Groups: (optional)
     List of groups, members of which are allowed to access protected files.
     No group-based protection if absent.
+    The Auth-Groups entries should be ldap groups e.g. "groupname".
+    The backend is based on Crowd.
  * Collect-User-Data: (optional)
     Acceptable values are: yes, no.
     Defaults to 'no' if not present. If the field is set to 'yes' then
