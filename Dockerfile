@@ -5,8 +5,10 @@ ADD . /srv/linaro-license-protection
 ADD secrets.py /srv/secrets.py
 RUN echo "*" >> /srv/allowed_hosts.txt
 ENV allowed_hosts="*"
-ENV DJANGO_DEBUG="y"
+#ENV DJANGO_DEBUG="y"
 RUN /srv/linaro-license-protection/manage.py migrate # Used to build the sqlite database. Temp fix as codebase needs to be updated to delete old DB calls
+
+RUN pip install -r /srv/linaro-license-protection/requirements.txt
 
 # README
 # Mount a docker "bind" mount for on-the-fly reloading
