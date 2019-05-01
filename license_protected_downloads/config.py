@@ -3,6 +3,7 @@
 # Let internal hosts through always.
 INTERNAL_HOSTS = (
     '82.71.243.201',   # validation.linaro.org
+    '51.148.40.11',   # validation.linaro.org
     '82.71.243.203',
     '51.148.40.1',
     '51.148.40.7',
