@@ -1,3 +1,4 @@
+import codecs
 import os
 import textile
 import OrderedDict
@@ -39,6 +40,7 @@ class RenderTextFiles:
     @classmethod
     def render_buff(cls, buff):
         try:
+            buff = codecs.decode(buff, "utf-8")
             return textile.textile(buff)
         except:
             # Do nothing, parsing failed.
