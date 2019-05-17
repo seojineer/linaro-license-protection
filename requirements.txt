@@ -12,5 +12,5 @@ pyflakes
 python-openid
 requests
 testrepository
-textile==2.1.5
+textile
 whitenoise
