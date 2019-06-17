@@ -144,7 +144,7 @@ The following fields may be present in a files paragraph:
     Acceptable values are: stericsson, samsung.
     Theme name for selecting proper theming on download and license pages.
  * Auth-Groups: (optional)
-    List of groups, members of which are allowed to access protected files.
+    Comma separated list of groups, members of which are allowed to access protected files.
     No group-based protection if absent.
     The Auth-Groups entries should be ldap groups e.g. "groupname".
     The backend is based on Crowd.
