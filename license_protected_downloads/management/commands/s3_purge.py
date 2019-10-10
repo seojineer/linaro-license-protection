@@ -77,7 +77,7 @@ class Command(BaseCommand):
                     else:
                         try:
                             logging.debug('Delete marker set %s', key.name)
-                            # bucket.delete_key(key)
+                            bucket.delete_key(key)
                         except Exception:
                             logging.exception(
                                 'S3Connection error for %s', key.name)
