@@ -37,47 +37,81 @@ class Command(BaseCommand):
         return date.isoformat()
 
     @staticmethod
-    def handle_permanent_deletes(key, dryrun, delete_by, bucket):
-        if isinstance(key, deletemarker.DeleteMarker) and key.is_latest and \
-                key.last_modified < delete_by and key.version_id:
-            if dryrun:
-                logging.info('DRYRUN: Will permanently delete %s, %s, %s', key.name,
-                             key.version_id, isinstance(key, deletemarker.DeleteMarker))
+    def find_last_modified(keys):
+        for k in keys:
+            if not isinstance(k, deletemarker.DeleteMarker):
+                return k.last_modified
+
+    @staticmethod
+    def process_s3_object(bucket, this_key, s3obj_buffer, options, mark_day, delete_day):
+
+        logging.debug("processing key %s" % this_key)
+
+        if this_key is '' or s3obj_buffer is []:
+            return
+
+        if any(fnmatch.fnmatch(this_key, p) for p in
+              settings.S3_PURGE_EXCLUDES):
+            logging.debug("SKIP: file in S3_PURGE_EXCLUDES: %s" % this_key)
+            return
+
+        last_modified = Command.find_last_modified(s3obj_buffer)
+
+        # delete an object if:  --forcedelete was specified, the first key is a deletemarker,
+        #  and last_modified for deletemarker is outside of the delete window
+        if options['forcedelete'] is True:
+            if isinstance(s3obj_buffer[0], deletemarker.DeleteMarker):
+                if last_modified < delete_day:
+                    if not options['dryrun']:
+                        try:
+                            logging.info('DELETE: permanently deleting %s' % this_key)
+                            bucket.delete_keys(s3obj_buffer)
+                        except Exception:
+                            logging.exception('S3Connection error for %s', this_key)
+                    else:
+                        logging.info('DRYRUN: would permanently delete %s' % this_key)
+                else:
+                    logging.debug('SKIP: deletemarker set, but not expired on %s (last_modified: %s, delete_day: %s)' % (this_key, last_modified, delete_day))
+                return
+
+        # if we're still here, check to see if we need to mark file for deletion based
+        # on most recent key
+
+        # if it's already a deletemarker, skip it
+        if isinstance(s3obj_buffer[0], deletemarker.DeleteMarker):
+            logging.debug('SKIP: file already marked for deletion but no forcedelete: %s'%this_key)
+            return
+
+        # if in mark window, send delete on the filename to set deletemarker
+        if last_modified < mark_day:
+            if not options['dryrun']:
+                try:
+                    logging.debug('MARK: set deletemarker on %s'%this_key)
+                    bucket.delete_key(this_key)
+                except Exception:
+                    logging.exception('S3Connection error for %s', this_key)
             else:
-                logging.info('Permanently deleted %s, %s',
-                             key.name, key.version_id)
-                return bucket.delete_key(key.name, version_id=key.version_id)
+                logging.info('DRYRUN: would have marked for delete %s' % this_key)
 
     def handle(self, *args, **options):
         conn = S3Connection(settings.AWS_ACCESS_KEY_ID,
                             settings.AWS_SECRET_ACCESS_KEY)
         bucket = conn.get_bucket(settings.S3_BUCKET, validate=False)
-        bucket_key = bucket.list(options['prefix'])
         now_mark = self.x_days_ago(int(options['markdays']))
         now_delete = self.x_days_ago(int(options['deletedays']))
 
-        for key in bucket_key:
-            if key.last_modified < now_mark:
-                if not any(fnmatch.fnmatch(key.name, p) for p in
-                           settings.S3_PURGE_EXCLUDES):
-                    if options['dryrun'] and not options['forcedelete']:
-                        logging.info(
-                            'DRYRUN: Will set delete marker %s', key.name)
-                    elif options['forcedelete'] and not options['cleanup_releases']:
-                        for v_key in bucket.list_versions(prefix='snapshots/'):
-                            self.handle_permanent_deletes(
-                                v_key, options['dryrun'], now_delete, bucket)
-                        break
-                    elif options['cleanup_releases']:
-                        """ Clean up the releases/ prefix """
-                        for r_key in bucket.list_versions(prefix='releases/'):
-                            self.handle_permanent_deletes(
-                                r_key, options['dryrun'], now_delete, bucket)
-                        break
-                    else:
-                        try:
-                            logging.debug('Delete marker set %s', key.name)
-                            bucket.delete_key(key)
-                        except Exception:
-                            logging.exception(
-                                'S3Connection error for %s', key.name)
+        this_key = ''
+        s3obj_buffer = []
+
+        for key in bucket.list_versions(options['prefix']):
+            # if the key.name changes, we've gotten all the versions for the previous
+            # file and should clear our the s3obj_buffer
+            if key.name != this_key:
+                self.process_s3_object(bucket, this_key, s3obj_buffer, options, now_mark, now_delete)
+                this_key = key.name
+                s3obj_buffer = []
+
+            s3obj_buffer.append(key)
+
+        # call one last time to ensure last key in the bucket gets processed
+        self.process_s3_object(bucket, this_key, s3obj_buffer, options, now_mark, now_delete)
