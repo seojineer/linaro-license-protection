@@ -23,6 +23,5 @@ RUN pip install -r /srv/linaro-license-protection/requirements.txt
 # Run docker in "S3" mode (settings.production) in django runserver
 # Requires putting snapshots/releases.linaro.org into /etc/hosts and secrets.py being copied
 #
-# docker run -it --mount src="$(pwd)",target=/srv/linaro-license-protection,type=bind -e allowed_hosts=snapshots.linaro.org -p 8080:8080 linaro/ci-amd64-llp-alpine
-#
+# docker run -it --mount src="$(pwd)",target=/srv/linaro-license-protection,type=bind -e allowed_hosts=snapshots.linaro.org --mount src="$(pwd)/secrets.py",target=/srv/secrets.py,type=bind -p 8080:8080 linaro/ci-amd64-llp-alpine
 #
