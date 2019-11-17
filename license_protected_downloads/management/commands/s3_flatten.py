@@ -5,7 +5,8 @@ import logging
 import datetime
 from fnmatch import fnmatch
 from boto.s3.connection import S3Connection
-from boto.s3 import deletemarker,key
+from boto.s3 import deletemarker,key,prefix
+import sys
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -14,6 +15,8 @@ class Command(BaseCommand):
 
     help = 'Mark files as deleted or delete files for good, which are older \
             than X days'
+
+    bucket = None
 
     @staticmethod
     def add_arguments(parser):
@@ -35,6 +38,9 @@ class Command(BaseCommand):
 
     @staticmethod
     def print_key(key):
+        if isinstance(key, prefix.Prefix):
+            return "DIRECTORY: %s" % key.name
+
         if key.is_latest:
             latest = "*"
         else:
@@ -63,22 +69,34 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         conn = S3Connection(settings.AWS_ACCESS_KEY_ID,
                             settings.AWS_SECRET_ACCESS_KEY)
-        bucket = conn.get_bucket(settings.S3_BUCKET, validate=False)
-        now_mark = self.x_days_ago(int(options['markdays']))
-        now_delete = self.x_days_ago(int(options['deletedays']))
+        self.bucket = conn.get_bucket(settings.S3_BUCKET, validate=False)
+        self.now_mark = self.x_days_ago(int(options['markdays']))
+        self.now_delete = self.x_days_ago(int(options['deletedays']))
 
-        bucket_keys = bucket.list_versions(options['prefix'])
+        self.handle_bucket(*args, **options)
+
+    def handle_bucket(self, *args, **options):
+        logging.info( "--> %s" % options['prefix'])
+
+        bucket_keys = self.bucket.list_versions(options['prefix'], delimiter='/')
 
         objs = {}
         delete_list = []
+        subdirs = []
 
         if options['verbose']:
-            logging.info( "Delete day: %s" % now_delete)
-            logging.info( "Mark day: %s" % now_mark)
+            logging.info( "Delete day: %s" % self.now_delete)
+            logging.info( "Mark day: %s" % self.now_mark)
 
         for key in bucket_keys:
             if options['verbose']:
-                logging.info(self.print_key(key))
+                logging.info("%s - %s" %(self.print_key(key), type(key)))
+
+            # if it's a subdir, then we need to descend into in a separate
+            # call
+            if isinstance(key, prefix.Prefix):
+                subdirs.append(key.name)
+                continue
 
             if key.name not in objs:
                 objs[key.name] = {'last':None, 'delete':None}
@@ -112,7 +130,7 @@ class Command(BaseCommand):
             # purge as we go
             if len(delete_list) > 1000:
                 while delete_list:
-                    self.delete_objects(bucket, delete_list[0:1000], settings.S3_PURGE_EXCLUDES, options['dryrun'], options['verbose'])
+                    self.delete_objects(self.bucket, delete_list[0:1000], settings.S3_PURGE_EXCLUDES, options['dryrun'], options['verbose'])
                     delete_list = delete_list[1000:]
 
         if options['verbose']:
@@ -131,7 +149,7 @@ class Command(BaseCommand):
                     delete_list.append(objs[candidate]['delete'])
                 else:
                     # check last_modified on the last real file, not delete marker
-                    if objs[candidate]['last'].last_modified < now_delete:
+                    if objs[candidate]['last'].last_modified < self.now_delete:
                         delete_list.append(objs[candidate]['delete'])
                         delete_list.append(objs[candidate]['last'])
 
@@ -145,7 +163,7 @@ class Command(BaseCommand):
                     logging.info("excluded: %s" % candidate)
                 continue
             else:
-                if objs[candidate]['last'].last_modified < now_mark:
+                if objs[candidate]['last'].last_modified < self.now_mark:
                     if not options['dryrun']:
                         # by appending only the name rather than the key
                         # object, S3 should insert a delete marker
@@ -158,8 +176,15 @@ class Command(BaseCommand):
 
 
         while len(delete_list) > 1000:
-            self.delete_objects(bucket, delete_list[0:1000], settings.S3_PURGE_EXCLUDES, options['dryrun'], options['verbose'])
+            self.delete_objects(self.bucket, delete_list[0:1000], settings.S3_PURGE_EXCLUDES, options['dryrun'], options['verbose'])
             delete_list = delete_list[1000:]
-        self.delete_objects(bucket, delete_list[0:1000], settings.S3_PURGE_EXCLUDES, options['dryrun'], options['verbose'])
+        self.delete_objects(self.bucket, delete_list[0:1000], settings.S3_PURGE_EXCLUDES, options['dryrun'], options['verbose'])
         if options['verbose']:
             logging.info("done with cleanup.")
+
+        # clean up mem and descend to any child directories
+        del objs
+        for s in subdirs:
+            new_opts = options
+            new_opts['prefix'] = s
+            self.handle_bucket(*args, **new_opts)
