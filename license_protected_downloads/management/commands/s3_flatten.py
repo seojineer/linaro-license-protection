@@ -26,7 +26,7 @@ class Command(BaseCommand):
                             help='Number of days to mark files as deleted')
         parser.add_argument('--deletedays', default=180,
                             help='Number of days to delete files for good')
-        parser.add_argument('--prefix', default='snapshots/aarch64laptops',
+        parser.add_argument('--prefix', default='snapshots/',
                             help='Custom prefix path')
         parser.add_argument('-V', '--verbose', action='store_true',
                             help='log detailed information on actions to INFO')
