@@ -75,8 +75,14 @@ class LatestLinkResource(PublishResource):
             raise HttpResponseError('Invalid link name', 401)
 
         dst = os.path.join(os.path.dirname(path), link_name)
-        keys = b.list(dst)
+
+        v = b.get_versioning_status()
+        if v['Versioning']:
+            keys = b.list_versions(dst)
+        else:
+            keys = b.list(dst)
         b.delete_keys(keys)
+
         for k in items:
             newkeyname = k.name.replace(path, dst)
             b.copy_key(newkeyname, k.bucket.name, k.name)
