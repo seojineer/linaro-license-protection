@@ -11,6 +11,7 @@ INTERNAL_HOSTS = (
     '81.128.185.42',   # tcwg.validation.linaro.org
     '81.128.185.50',   # lab.validation.linaro.org
     '81.128.185.52',   # lng.validation.linaro.org
+    '147.75.32.78',    # aarch64_08
     '51.15.128.165',   # ARMHF-01
     '144.76.6.139',    # aosp-x86_64-07
     '188.40.51.209',   # aosp-x86_64-08
