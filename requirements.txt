@@ -13,4 +13,4 @@ python-openid
 requests
 testrepository
 textile
-whitenoise
+whitenoise==5.0
