@@ -14,3 +14,4 @@ requests
 testrepository
 textile
 whitenoise==5.0
+gunicorn==19.7.1
