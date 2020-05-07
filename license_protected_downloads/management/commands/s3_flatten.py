@@ -7,6 +7,7 @@ from fnmatch import fnmatch
 from boto.s3.connection import S3Connection
 from boto.s3 import deletemarker,key,prefix
 import sys
+import httplib
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -62,7 +63,15 @@ class Command(BaseCommand):
                     logging.info("deleting: %s" % (x))
 
         if not dryrun:
-            bucket.delete_keys(delete_list)
+            retries = 3
+            while retries > 0:
+                try:
+                    bucket.delete_keys(delete_list)
+                    retries = -1
+                except httplib.BadStatusLine as e:
+                    logging.error("httplib error in delete_keys():  %" % e)
+                    retries -= 1
+                    sleep(30)
         else:
             logging.info( "DRYRUN: delete_keys for %s keys" % len(delete_list) )
 
@@ -78,7 +87,15 @@ class Command(BaseCommand):
     def handle_bucket(self, *args, **options):
         logging.info( "--> %s" % options['prefix'])
 
-        bucket_keys = self.bucket.list_versions(options['prefix'], delimiter='/')
+        retries = 3
+        while retries > 0:
+            try:
+                bucket_keys = self.bucket.list_versions(options['prefix'], delimiter='/')
+                retries = -1
+            except httplib.BadStatusLine as e:
+                logging.error("httplib error in delete_keys():  %" % e)
+                retries -= 1
+                sleep(30)
 
         objs = {}
         delete_list = []
