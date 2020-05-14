@@ -63,15 +63,7 @@ class Command(BaseCommand):
                     logging.info("deleting: %s" % (x))
 
         if not dryrun:
-            retries = 3
-            while retries > 0:
-                try:
-                    bucket.delete_keys(delete_list)
-                    retries = -1
-                except httplib.BadStatusLine as e:
-                    logging.error("httplib error in delete_keys():  %" % e)
-                    retries -= 1
-                    sleep(30)
+            bucket.delete_keys(delete_list)
         else:
             logging.info( "DRYRUN: delete_keys for %s keys" % len(delete_list) )
 
@@ -82,20 +74,24 @@ class Command(BaseCommand):
         self.now_mark = self.x_days_ago(int(options['markdays']))
         self.now_delete = self.x_days_ago(int(options['deletedays']))
 
-        self.handle_bucket(*args, **options)
+        self.handle_bucket_retry(*args, **options)
+
+    # wrap the handle_bucket() method in a try/except to allow us to
+    # retry if there's an httplib error.
+    def handle_bucket_retry(self, *args, **options):
+        retries = 3
+        while retries > 0:
+            try:
+                self.handle_bucket(*args, **options)
+            except httplib.BadStatusLine as e:
+                logging.error("httplib error handle_bucket():  %" % e)
+                retries -= 1
+                sleep(30)
 
     def handle_bucket(self, *args, **options):
         logging.info( "--> %s" % options['prefix'])
 
-        retries = 3
-        while retries > 0:
-            try:
-                bucket_keys = self.bucket.list_versions(options['prefix'], delimiter='/')
-                retries = -1
-            except httplib.BadStatusLine as e:
-                logging.error("httplib error in delete_keys():  %" % e)
-                retries -= 1
-                sleep(30)
+        bucket_keys = self.bucket.list_versions(options['prefix'], delimiter='/')
 
         objs = {}
         delete_list = []
@@ -204,4 +200,4 @@ class Command(BaseCommand):
         for s in subdirs:
             new_opts = options
             new_opts['prefix'] = s
-            self.handle_bucket(*args, **new_opts)
+            self.handle_bucket_retry(*args, **new_opts)
