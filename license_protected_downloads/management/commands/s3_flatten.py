@@ -85,7 +85,7 @@ class Command(BaseCommand):
                 self.handle_bucket(*args, **options)
                 retries = 0
             except httplib.BadStatusLine as e:
-                logging.error("httplib error handle_bucket():  %" % e)
+                logging.error("httplib error handle_bucket():  %s" % e)
                 retries -= 1
                 sleep(30)
 
