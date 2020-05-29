@@ -8,6 +8,7 @@ from boto.s3.connection import S3Connection
 from boto.s3 import deletemarker,key,prefix
 import sys
 import httplib
+from time import sleep
 
 logging.getLogger().setLevel(logging.INFO)
 
