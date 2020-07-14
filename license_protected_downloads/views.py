@@ -28,6 +28,7 @@ from license_protected_downloads.common import (
     cached_call,
     dir_list,
     find_artifact,
+    s3_replace_latest,
 )
 from license_protected_downloads.api.v1 import file_server_post
 
@@ -125,6 +126,11 @@ def group_auth_failed_response(request, auth_groups):
 def file_server(request, path):
     """Serve up a file / directory listing or license page as required"""
     path = iri_to_uri(path)
+    if "/latest" in path:
+        new_path = s3_replace_latest(path, None)
+
+        if new_path != path:
+            return redirect('/'+new_path)
 
     if request.method == "POST":
         return file_server_post(request, path)

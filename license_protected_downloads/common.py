@@ -1,5 +1,6 @@
 import fnmatch
 import os
+import re
 
 import boto
 
@@ -158,13 +159,42 @@ def _sort_artifacts(a, b):
     # just do a normal string sort
     return cmp(a, b)
 
+def s3_replace_latest(url, bucket=None):
+    ''' read .s3_linked_from file to find out the original directory to read from
+    '''
+    # not a latest url, continue
+    if not "latest" in url:
+        return url
+
+    link_url = re.sub("latest.*","latest/.s3_linked_from", url)
+
+    if bucket is None:
+        bucket = S3Artifact.get_bucket()
+
+    s3path = settings.S3_PREFIX_PATH + link_url
+
+    key = boto.s3.key.Key(bucket, s3path)
+    # if there's no key already, there's no .s3_linked_from, so we're done here
+    if key is None:
+        return url 
+    try:
+        redir_loc = key.get_contents_as_string().strip()
+        # .s3_linked_from is referencing itself?  Should return original url
+        if redir_loc == s3path:
+            return url
+        # scrub the s3 prefix
+        new_url = re.sub("^%s" % settings.S3_PREFIX_PATH, '', redir_loc)
+        return new_url
+    except:
+        raise Http404
+
 
 def _s3_list(bucket, url):
     prefix = settings.S3_PREFIX_PATH + url
     if prefix[-1] != '/':
         # s3 listing needs '/' to do a dir listing
         prefix = prefix + '/'
-
+    prefix = s3_replace_latest(prefix, bucket)
     for item in bucket.list(delimiter='/', prefix=prefix):
         if item.name != prefix:
             yield item

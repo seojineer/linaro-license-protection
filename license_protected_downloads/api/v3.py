@@ -77,9 +77,6 @@ class LatestLinkResource(PublishResource):
         dst = os.path.join(os.path.dirname(path), link_name)
         keys = b.list(dst)
         b.delete_keys(keys)
-        for k in items:
-            newkeyname = k.name.replace(path, dst)
-            b.copy_key(newkeyname, k.bucket.name, k.name)
         # keep track of where the link content came from
         b.new_key(dst + '/.s3_linked_from').set_contents_from_string(path)
 
