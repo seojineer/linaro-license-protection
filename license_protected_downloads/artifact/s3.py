@@ -4,6 +4,7 @@ import os
 import time
 
 import boto
+import boto.s3.key
 
 from django.conf import settings
 from django.http import HttpResponseRedirect

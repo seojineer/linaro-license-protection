@@ -16,6 +16,12 @@ TEMPLATES_PATH = os.path.join(ROOT_PATH, "templates")
 TEXTILE_FALLBACK_PATH = os.path.join(TEMPLATES_PATH, "textile_fallbacks")
 REPORT_CSV = os.path.join(DEPLOYMENT_DIR, "download_report.csv")
 S3_PURGE_EXCLUDES = []
+S3_BUCKET = 'publishing-ie-linaro-org'
+S3_PREFIX_PATH = "releases"
+if 'AWS_ACCESS_KEY_ID' in os.environ:
+    AWS_ACCESS_KEY_ID=os.environ['AWS_ACCESS_KEY_ID']
+if 'AWS_SECRET_ACCESS_KEY' in os.environ:
+    AWS_SECRET_ACCESS_KEY=os.environ['AWS_SECRET_ACCESS_KEY']
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 ADMINS = (

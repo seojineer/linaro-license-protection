@@ -162,16 +162,17 @@ def _sort_artifacts(a, b):
 def s3_replace_latest(url, bucket=None):
     ''' read .s3_linked_from file to find out the original directory to read from
     '''
-    # not a latest url, continue
-    if not "latest" in url:
+    urlreg = r"^(?P<prefix>.*)/(?P<vers>latest.*)/(?P<target>.*)$"
+    m = re.search(urlreg, url)
+    if not m:
         return url
 
-    link_url = re.sub("latest.*","latest/.s3_linked_from", url)
+    link_from = '/'.join([m.group('prefix'),m.group('vers'), ".s3_linked_from"])
 
     if bucket is None:
         bucket = S3Artifact.get_bucket()
 
-    s3path = settings.S3_PREFIX_PATH + link_url
+    s3path = settings.S3_PREFIX_PATH + link_from
 
     key = boto.s3.key.Key(bucket, s3path)
     # if there's no key already, there's no .s3_linked_from, so we're done here
@@ -184,9 +185,11 @@ def s3_replace_latest(url, bucket=None):
             return url
         # scrub the s3 prefix
         new_url = re.sub("^%s" % settings.S3_PREFIX_PATH, '', redir_loc)
+        new_url += m.group('target')
         return new_url
     except:
-        raise Http404
+        # problem gettings contents, so stop trying to intercept the request
+        return url
 
 
 def _s3_list(bucket, url):
