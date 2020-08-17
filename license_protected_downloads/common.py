@@ -177,7 +177,7 @@ def s3_replace_latest(url, bucket=None):
     key = boto.s3.key.Key(bucket, s3path)
     # if there's no key already, there's no .s3_linked_from, so we're done here
     if key is None:
-        return url 
+        return url
     try:
         redir_loc = key.get_contents_as_string().strip()
         # .s3_linked_from is referencing itself?  Should return original url
@@ -185,7 +185,9 @@ def s3_replace_latest(url, bucket=None):
             return url
         # scrub the s3 prefix
         new_url = re.sub("^%s" % settings.S3_PREFIX_PATH, '', redir_loc)
-        new_url += m.group('target')
+        # reconstruct the url
+        if m.group('target') != "":
+            new_url = "%s/%s" % (new_url, m.group('target'))
         return new_url
     except:
         # problem gettings contents, so stop trying to intercept the request
