@@ -16,8 +16,7 @@ import requests
 
 
 _orig_s3_prefix = getattr(settings, 'S3_PREFIX_PATH', None)
-_access_key = getattr(settings, 'AWS_ACCESS_KEY_ID', None)
-_s3_enabled = _orig_s3_prefix is not None and _access_key is not None
+_s3_enabled = _orig_s3_prefix is not None
 
 
 class APIv3TokenTests(TestCase):
@@ -97,7 +96,6 @@ class APIv3PublishTests(TestCase):
         k.set_contents_from_string(content)
         self._post_file('/api/v3/publish/a', token, 'wont overwrite', 403)
 
-    @unittest.skip("FIXME: the 'builds/' folder isn't being created")
     def test_link_latest_simple(self):
         content = 'build123'
         token = APIToken.objects.create(key=self.api_key).token
@@ -129,24 +127,23 @@ class APIv3PublishTests(TestCase):
         self.assertEqual(
             settings.S3_PREFIX_PATH + 'builds/123', k.get_contents_as_string())
 
-	# failing test: It looks like the post is failing to create the file?
-    #def test_link_latest_trailing_slash(self):
-    #    content = 'build123'
-    #    token = APIToken.objects.create(key=self.api_key).token
+    def test_link_latest_trailing_slash(self):
+        content = 'build123'
+        token = APIToken.objects.create(key=self.api_key).token
 
-    #    self._post_file('/api/v3/publish/builds/123/a', token, content)
-    #    info = 'Format-Version: 0.5\n\nFiles-Pattern: *\nLicense-Type: open\n'
-    #    self._post_file(
-    #        '/api/v3/publish/builds/123/BUILD-INFO.txt', token, info)
+        self._post_file('/api/v3/publish/builds/123/a', token, content)
+        info = 'Format-Version: 0.5\n\nFiles-Pattern: *\nLicense-Type: open\n'
+        self._post_file(
+            '/api/v3/publish/builds/123/BUILD-INFO.txt', token, info)
 
-    #    resp = self.client.post(
-    #        '/api/v3/link_latest/builds/123/', HTTP_AUTHTOKEN=token)
-    #    self.assertEqual(201, resp.status_code)
+        resp = self.client.post(
+            '/api/v3/link_latest/builds/123/', HTTP_AUTHTOKEN=token)
+        self.assertEqual(201, resp.status_code)
 
-    #    resp = self.client.get('/builds/latest/a')
-    #    self.assertEqual(302, resp.status_code)
-    #    resp = urllib2.urlopen(resp['Location'])
-    #    self.assertEqual(content, resp.read())
+        resp = self.client.get('/builds/latest/a')
+        self.assertEqual(302, resp.status_code)
+        resp = urllib2.urlopen(resp['Location'])
+        self.assertEqual(content, resp.read())
 
     def test_link_latest_bad(self):
         token = APIToken.objects.create(key=self.api_key).token

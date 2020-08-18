@@ -127,7 +127,7 @@ class BuildInfoProtectedTests(BaseServeViewTest):
         url = urlparse.urljoin("http://testserver/", target)
         response = self.client.get(url, follow=True)
         # If a build-info file has no information about this file
-        self.assertIn(response.status_code, [403,404])
+        self.assertEqual(response.status_code, 403)
 
     def test_directory_protected(self):
         '''Ensure we can protect an entire directory. This is done by having a
@@ -153,9 +153,8 @@ class EulaProtectedTests(BaseServeViewTest):
         target_file = '~linaro-android/staging-imx53/test.txt'
         url = urlparse.urljoin(self.urlbase, target_file)
         response = self.client.get(url, follow=True)
-        self.assertIn(response.status_code, [403,404])
+        self.assertEqual(response.status_code, 403)
 
-    @unittest.skip('FIXME')
     def test_OPEN_EULA_txt(self):
         target_file = '~linaro-android/staging-vexpress-a9/test.txt'
         self._test_get_file(target_file, True)
@@ -173,7 +172,6 @@ class EulaProtectedTests(BaseServeViewTest):
         self.assertContains(response, license)
         self.assertContains(response, theme_txt)
 
-    @unittest.skip('FIXME')
     def test_protected_by_EULA_txt(self):
         target_file = '~linaro-android/staging-origen/test.txt'
         eula_path = os.path.join(
@@ -190,7 +188,6 @@ class EulaProtectedTests(BaseServeViewTest):
     def test_per_file_non_protected_dirs(self):
         self._test_get_file('images/MANIFEST', False)
 
-    @unittest.skip('FIXME: test doest not appear to be working')
     @mock.patch('license_protected_downloads.views.config')
     def test_protected_internal_file(self, config):
         '''ensure a protected file can be downloaded by an internal host'''
@@ -200,7 +197,6 @@ class EulaProtectedTests(BaseServeViewTest):
 
 
 class WildCardTests(BaseServeViewTest):
-    @unittest.skip('FIXME: we apparently no longer support wildcards')
     def test_wildcard_found(self):
         url = 'http://testserver/~linaro-android/staging-panda/te*.txt'
         resp = self.client.get(url, follow=True)
@@ -211,13 +207,11 @@ class WildCardTests(BaseServeViewTest):
         resp = self.client.get(url, follow=True)
         self.assertEquals(200, resp.status_code)
 
-	# we appear to play dumb with a 404 instead of a 403 now
     def test_wildcard_multiple(self):
         url = 'http://testserver/~linaro-android/staging-panda/*.txt'
         resp = self.client.get(url, follow=True)
         self.assertEquals(404, resp.status_code)
 
-    @unittest.skip("FIXME: we appear to interpret wildcard literally")
     def test_wildcard_protected(self):
         url = 'https://testserver/~linaro-android/staging-origen/te*.txt'
         resp = self.client.get(url)
@@ -226,7 +220,6 @@ class WildCardTests(BaseServeViewTest):
 
 
 class HeaderTests(BaseServeViewTest):
-    @unittest.skip('FIXME')
     def test_header_html(self):
         url = 'http://testserver/~linaro-android'
         resp = self.client.get(url, follow=True)
@@ -242,14 +235,12 @@ class HeaderTests(BaseServeViewTest):
         response = self.client.get(url, follow=True)
         self.assertContains(response, 'Included from README')
 
-    @unittest.skip('FIXME: returning a 404 now')
     def test_render_descriptions(self):
         url = 'http://testserver/~linaro-android/staging-panda/'
         resp = self.client.get(url, follow=True)
         self.assertEquals(200, resp.status_code)
         self.assertIn('<a href="#tabs-2">Git Descriptions</a>', resp.content)
 
-    @unittest.skip('FIXME: textile feature not working anymore')
     def test_get_textile_files(self):
         resp = self.client.get(
             '/get-textile-files?path=~linaro-android/staging-panda/')

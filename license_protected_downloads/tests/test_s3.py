@@ -21,8 +21,7 @@ from license_protected_downloads.tests.test_views import (
 )
 
 _orig_s3_prefix = getattr(settings, 'S3_PREFIX_PATH', None)
-_access_key = getattr(settings, 'AWS_ACCESS_KEY', None)
-_s3_enabled = _orig_s3_prefix is not None and _access_key is not None
+_s3_enabled = _orig_s3_prefix is not None
 
 
 def _upload_sampleroot(bucket):
@@ -125,7 +124,6 @@ class TestS3(TestCase):
         with self.assertRaises(Http404):
             common.find_artifact(self.request, 'build-info/o')
 
-    @unittest.skip("FIXME: raising a Http404")
     def test_find_artifact_directory(self):
         '''S3 gives different listings for subdir/ and subdir
 
@@ -178,7 +176,6 @@ class TestMixedBuilds(TestCase):
         path = os.path.join(self.tempdir, '~linaro-android/staging-snowball/1')
         os.makedirs(path)
 
-    @unittest.skip("FIXME: we no longer support local, so test uneeded")
     def test_find_artifact_both(self):
         # first make sure if both s3 and local are found we return the local
         # instance
@@ -191,7 +188,6 @@ class TestMixedBuilds(TestCase):
         builds = [x['name'] for x in common.dir_list(a)]
         self.assertEqual(['1', '173'], builds)
 
-    @unittest.skip("FIXME: we no longer support local, so test uneeded")
     def test_prefer_local(self):
         '''if we happen to have local and s3 build, list local'''
         path = os.path.join(

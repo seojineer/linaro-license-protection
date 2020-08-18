@@ -5,11 +5,7 @@ import shutil
 import tempfile
 import StringIO
 
-import unittest
-
 import mock
-
-from django.conf import settings
 
 import django.conf
 from django.test import Client, TestCase
@@ -19,9 +15,6 @@ from license_protected_downloads.models import (
     APIToken,
 )
 
-_orig_s3_prefix = getattr(settings, 'S3_PREFIX_PATH', None)
-_access_key = getattr(settings, 'AWS_ACCESS_KEY_ID', None)
-_s3_enabled = _orig_s3_prefix is not None and _access_key is not None
 
 class APIv2Tests(TestCase):
     def setUp(self):
@@ -210,7 +203,6 @@ class APIv2Tests(TestCase):
             '/api/v2/link_latest/buildX', HTTP_AUTHTOKEN=token)
         self.assertEqual(201, resp.status_code)
 
-    @unittest.skip('FIXME: KeyError on x-sendfile')
     def test_link_latest_trailing_slash(self):
         token = APIToken.objects.create(key=self.api_key).token
         self._send_file('/api/v2/publish/build/X/a', token, 'content')
@@ -222,7 +214,7 @@ class APIv2Tests(TestCase):
             '/api/v2/link_latest/build/X/', HTTP_AUTHTOKEN=token)
         self.assertEqual(201, resp.status_code)
         resp = self.client.get('/build/latest/a')
-        self.assertIn(resp.status_code, [200,302])
+        self.assertEqual(200, resp.status_code)
         self.assertEqual('content', open(resp['X-Sendfile']).read())
 
     def test_link_latest_bad(self):

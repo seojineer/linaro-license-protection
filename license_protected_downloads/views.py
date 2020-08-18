@@ -126,7 +126,8 @@ def group_auth_failed_response(request, auth_groups):
 def file_server(request, path):
     """Serve up a file / directory listing or license page as required"""
     path = iri_to_uri(path)
-    if "/latest" in path:
+    s3_prefix = getattr(settings, 'S3_PREFIX_PATH', None)
+    if "/latest" in path and s3_prefix is not None:
         new_path = s3_replace_latest(path, None)
 
         if new_path != path:

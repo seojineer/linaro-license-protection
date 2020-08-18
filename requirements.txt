@@ -2,7 +2,7 @@ Django==1.11.20
 IP2Location
 beautifulsoup
 boto
-django-openid-auth
+django-openid-auth==0.15
 html2text
 mock
 pep8
