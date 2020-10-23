@@ -162,7 +162,7 @@ def _sort_artifacts(a, b):
 def s3_replace_latest(url, bucket=None):
     ''' read .s3_linked_from file to find out the original directory to read from
     '''
-    urlreg = r"^(?P<prefix>.*)/(?P<vers>latest.*)/(?P<target>.*)$"
+    urlreg = r"^(?P<prefix>.*)/(?P<vers>latest)/(?P<target>.*)$"
     m = re.search(urlreg, url)
     if not m:
         return url
