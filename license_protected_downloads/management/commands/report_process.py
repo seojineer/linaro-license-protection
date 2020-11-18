@@ -9,6 +9,7 @@ import logging
 import csv
 import fcntl
 import sys
+from datetime import datetime
 
 logging.getLogger().setLevel(logging.WARN)
 
@@ -45,10 +46,20 @@ class Command(BaseCommand):
                     # This looks odd, but we sometimes get URLs with newlines
                     # in them and we need the real file name
                     download = row[1].replace('\n', '')
+
+                    # Check and see if there's a timestamp column..
+                    # if not, then we fail back to the old behavior
+                    # of assuming that download time is when report was run
+                    try:
+                        download_timestamp = datetime.strptime(
+                            row[4], "%Y-%m-%d %H:%M:%S.%f")
+                    except IndexError as e:
+                        download_timestamp = datetime.now()
+
                     try:
                         Download.objects.create(
                             ip=row[0], name=download, link=str2bool(row[2]),
-                            ref=row[3])
+                            ref=row[3], timestamp=download_timestamp)
                     except DataError:
                         logging.error(
                             'Skipping invalid download entry: %s', row)

@@ -140,6 +140,10 @@ class Download(models.Model):
     region_isp = models.CharField(max_length=256, blank=True, null=True)
     ref = models.CharField(max_length=4096, blank=True, null=True)
 
+
+    # this just notes the download request in a giant CSV file.
+    # We then run a report script via cron in order to fill out
+    # the missing details, such as geo ip and all that fun stuff.
     @staticmethod
     def mark(request, artifact):
         try:
@@ -157,9 +161,10 @@ class Download(models.Model):
             link = name != artifact.url()
             http_ref = request.META.get('HTTP_REFERER', '/')
             ref = http_ref.replace('\n', '').replace(',', '')
+            timestamp = datetime.datetime.now()
             with open(settings.REPORT_CSV, "a") as f:
                 writer = csv.writer(f)
-                writer.writerow([ip, name, link, ref[:4096]])
+                writer.writerow([ip, name, link, ref[:4096], timestamp])
         except:
             logging.exception('unable to mark download')
 
