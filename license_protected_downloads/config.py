@@ -3,7 +3,7 @@
 # Let internal hosts through always.
 INTERNAL_HOSTS = (
     '82.71.243.201',   # validation.linaro.org
-    '51.148.40.11',   # validation.linaro.org
+    '51.148.40.11',    # validation.linaro.org
     '82.71.243.203',
     '51.148.40.1',
     '51.148.40.7',
@@ -17,7 +17,8 @@ INTERNAL_HOSTS = (
     '188.40.51.209',   # aosp-x86_64-08
     '213.133.116.86',  # aosp-x86_64-09 (ART)
     '78.46.190.194',   # aosp-x86_64-10 (ART)
-    '148.251.140.195', # lhg-build-01
+    '95.217.145.175',  # aosp-x86_64-13 (ART)
+    '148.251.140.195',  # lhg-build-01
     '188.40.92.79',    # x86_64-07
     '188.40.49.144',   # x86_64-08
     '148.251.184.94',  # x86_64-09
