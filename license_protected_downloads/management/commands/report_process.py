@@ -53,6 +53,10 @@ class Command(BaseCommand):
                     try:
                         download_timestamp = datetime.strptime(
                             row[4], "%Y-%m-%d %H:%M:%S.%f")
+                    except ValueError as e:
+                        # handle timestamp in a different format
+                        download_timestamp = datetime.strptime(
+                            row[4], "%Y-%m-%d %H:%M:%S")
                     except IndexError as e:
                         download_timestamp = datetime.now()
 
