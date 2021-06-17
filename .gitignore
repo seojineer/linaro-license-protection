@@ -9,3 +9,5 @@ static
 download_report*.csv
 .venv
 secrets.py
+allowed_hosts.txt
+local_settings.py
