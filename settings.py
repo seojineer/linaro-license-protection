@@ -80,7 +80,10 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    STATIC_ROOT
+    # Also:
+    # - for some reason, django doesn't like this to be "STATIC_ROOT"
+    # - this must be a tuple, so even if only 1 entry leave a trailing comma
+    os.path.join(PROJECT_ROOT, 'license_protected_downloads/static'),
 )
 
 # List of finder classes that know how to find static files in

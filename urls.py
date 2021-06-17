@@ -4,6 +4,7 @@ from django.views.generic import RedirectView
 from django.conf.urls import include, url
 from django.urls import reverse_lazy
 from django.views.static import serve
+from django.conf.urls.static import static
 
 from django.contrib.auth import views as auth_views
 
@@ -125,7 +126,7 @@ urlpatterns = [
         publish_views),
     url(r'^api/v3/link_latest/(?P<path>.*)$',
         link_latest_views),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.TRACK_DOWNLOAD_STATS:
     urlpatterns += [
