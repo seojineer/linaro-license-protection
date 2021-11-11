@@ -1,3 +1,7 @@
+# suppress BeautifulSoup warning
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from license_protected_downloads.models import Download

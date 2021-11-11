@@ -1,3 +1,7 @@
+# suppress BeautifulSoup warning
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+
 import datetime
 
 from django.conf import settings
