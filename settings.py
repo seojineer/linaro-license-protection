@@ -1,5 +1,9 @@
 # Django settings for linaro_license_protection_2 project.
 
+# suppress BeautifulSoup warning
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+
 import os
 
 from version import VERSION
@@ -83,7 +87,7 @@ STATICFILES_DIRS = (
     # Also:
     # - for some reason, django doesn't like this to be "STATIC_ROOT"
     # - this must be a tuple, so even if only 1 entry leave a trailing comma
-    os.path.join(PROJECT_ROOT, 'license_protected_downloads/static'),
+    os.path.join(PROJECT_ROOT, 'static'),
 )
 
 # List of finder classes that know how to find static files in
