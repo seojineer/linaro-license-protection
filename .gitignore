@@ -10,3 +10,4 @@ download_report*.csv
 secrets.py
 allowed_hosts.txt
 local_settings.py
+*lambda.zip
