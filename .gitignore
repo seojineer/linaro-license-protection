@@ -1,7 +1,6 @@
 .testrepository
 licenses.sqlite3
 licenses.db
-license_protected_downloads/static
 static
 *.pyc
 *.swp
