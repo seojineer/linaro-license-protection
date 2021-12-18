@@ -1,7 +1,7 @@
 .testrepository
 licenses.sqlite3
 licenses.db
-static
+staticroot
 *.pyc
 *.swp
 .idea

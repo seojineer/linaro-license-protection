@@ -18,7 +18,7 @@ if [ -z $VIRTUAL_ENV ] ; then
 	pip install -r requirements.txt
 fi
 
-rm -rf static/*
+rm -rf staticroot/*
 
 DJANGO_SETTINGS_MODULE=settings SKIP_LINT=$SKIP_LINT ./manage.py collectstatic --no-input
 DJANGO_SETTINGS_MODULE=settings SKIP_LINT=$SKIP_LINT ./manage.py test license_protected_downloads
