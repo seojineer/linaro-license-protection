@@ -11,3 +11,4 @@ secrets.py
 allowed_hosts.txt
 local_settings.py
 *lambda.zip
+linaro_ldap.py

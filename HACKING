@@ -10,7 +10,8 @@ Dependencies
  * python-mock
  * python-subunit
  * testrepository (>=0.0.6)
- * python-django-openid-auth
+ * python-ldap (3.3.1)
+ * django-auth-ldap (1.6.1)
  * python-textile
 
 Code structure

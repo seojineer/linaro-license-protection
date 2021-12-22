@@ -19,6 +19,10 @@ if [ -z $VIRTUAL_ENV ] ; then
 fi
 
 rm -rf staticroot/*
+if [ ! -f "linaro_ldap.py" ];
+then
+    wget -O linaro_ldap.py https://git.linaro.org/infrastructure/linaro-git-tools.git/plain/linaro_ldap.py
+fi
 
 DJANGO_SETTINGS_MODULE=settings SKIP_LINT=$SKIP_LINT ./manage.py collectstatic --no-input
 DJANGO_SETTINGS_MODULE=settings SKIP_LINT=$SKIP_LINT ./manage.py test license_protected_downloads

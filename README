@@ -17,8 +17,7 @@ Features
  * click through licensing with each file potentially having a different
    license/theme
  * group-based access authorization restrictions (using group information
-   from external services, currently OpenID with team extensions
-   (as used by Launchpad.net) and Atlassian Crowd are supported).
+   from external services, currently LDAP is supported).
  * post-processing of all uploads (a script that manages uploads)
  * per-IP pass-through (for automatic services like a test framework)
  * key based file uploads into a private area.
@@ -147,7 +146,7 @@ The following fields may be present in a files paragraph:
     Comma separated list of groups, members of which are allowed to access protected files.
     No group-based protection if absent.
     The Auth-Groups entries should be ldap groups e.g. "groupname".
-    The backend is based on Crowd.
+    The backend is based on Linaro LDAP.
  * Collect-User-Data: (optional)
     Acceptable values are: yes, no.
     Defaults to 'no' if not present. If the field is set to 'yes' then

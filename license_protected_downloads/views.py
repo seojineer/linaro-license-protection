@@ -112,7 +112,7 @@ def group_auth_failed_response(request, auth_groups):
     else:
         groups_string = "the " + auth_groups[0] + " group"
 
-    response = render(request, 'openid_forbidden_template.html',
+    response = render(request, 'forbidden_template.html',
                       {'login': settings.LOGIN_URL + "?next=" + request.path,
                        'authenticated': request.user.is_authenticated(),
                        'groups_string': groups_string,

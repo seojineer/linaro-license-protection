@@ -35,7 +35,7 @@ License-Type: open
 Files-Pattern: *openid*
 Build-Name: landing-protected
 License-Type: protected
-OpenID-Launchpad-Teams: linaro
+Auth-Groups: linaro
 
 Files-Pattern: *multi*
 Build-Name: landing-multi-license

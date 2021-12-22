@@ -138,40 +138,22 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
-    'django_openid_auth',
     'license_protected_downloads',
 )
 
 AUTHENTICATION_BACKENDS = (
-    'django_openid_auth.auth.OpenIDBackend',
+    'django_auth_ldap.backend.LDAPBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
-LOGIN_URL = '/linaro-openid/login/'
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 
 # Name of "plugin" modules to use for group authentication
 # Plugins will be queried in specified order until first positive match
 # Available plugins:
-#   license_protected_downloads.group_auth_crowd - uses CROWD groups
-#   license_protected_downloads.group_auth_openid - uses Launchpad OpenID teams
-GROUP_AUTH_MODULES = ['license_protected_downloads.group_auth_crowd']
-
-# Config for django_openid_auth.auth.OpenIDBackend
-OPENID_CREATE_USERS = True
-#OPENID_SSO_SERVER_URL = 'https://login.launchpad.net/'
-OPENID_SSO_SERVER_URL = 'https://login.linaro.org:8443/openidserver/op'
-OPENID_UPDATE_DETAILS_FROM_SREG = True
-OPENID_LAUNCHPAD_TEAMS_MAPPING_AUTO = True
-OPENID_FOLLOW_RENAMES = True
-OPENID_USE_AS_ADMIN_LOGIN = True
-OPENID_USE_EMAIL_FOR_USERNAME = True
-SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
-
-ATLASSIAN_CROWD_API_URL = \
-    "https://login.linaro.org:8443/crowd/rest/usermanagement/1"
-ATLASSIAN_CROWD_API_USERNAME = 'linaro-license-protection'
-ATLASSIAN_CROWD_API_PASSWORD = None
+#   license_protected_downloads.group_auth_ldap - uses Linaro ldap groups
+GROUP_AUTH_MODULES = ['license_protected_downloads.group_auth_ldap']
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

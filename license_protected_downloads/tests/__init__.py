@@ -7,7 +7,7 @@ from license_protected_downloads.tests.test_custom_commands import *
 from license_protected_downloads.tests.test_downloads_command import *
 from license_protected_downloads.tests.test_models import *
 from license_protected_downloads.tests.test_pep8 import *
-from license_protected_downloads.tests.test_openid_auth import *
+from license_protected_downloads.tests.test_ldap_auth import *
 from license_protected_downloads.tests.test_pyflakes import *
 from license_protected_downloads.tests.test_render_text_files import *
 from license_protected_downloads.tests.test_splicebuildinfos import *

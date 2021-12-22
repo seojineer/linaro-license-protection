@@ -138,13 +138,13 @@ class BuildInfoProtectedTests(BaseServeViewTest):
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(
-            '<title>OpenID transaction in progress</title>', response.content)
+            '<h2>Linaro Login</h2>', response.content)
 
         url = 'http://testserver/protected_listing/'
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(
-            '<title>OpenID transaction in progress</title>', response.content)
+            '<h2>Linaro Login</h2>', response.content)
 
 
 class EulaProtectedTests(BaseServeViewTest):

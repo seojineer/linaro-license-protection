@@ -70,14 +70,11 @@ admin.autodiscover()
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
-    # Use "linaro-openid" to allow peaceful coexistence of both
-    # python-apache-openid and django-openid authentication on the
-    # same server.  When we get rid of apache openid protection,
-    # we can go back to using just "openid" here.
-    url(r'^linaro-openid/', include('django_openid_auth.urls')),
-    url(r'^login/?$',
-        RedirectView.as_view(url='/linaro-openid/login/', permanent=True),
+    url(r'^login/$',
+        auth_views.login,
+        {'template_name': 'login.html'},
         name='login'),
+
     url(r'^logout/?$',
         auth_views.logout,
         name='logout'),
