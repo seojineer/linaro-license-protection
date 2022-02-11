@@ -23,7 +23,7 @@
 
 {% for value in dirlist %}
   <tr onmouseover="this.style.background='#CBE68F'" onmouseout="this.style.background='#FFFFFF'">
-    <td valign="top">
+    <td>
       <img src="{{ STATIC_URL|add:'/static/'|add:value.type|add:'.png'|file_exists}}"
            alt="{{ value.type }}">
     </td>
@@ -35,11 +35,11 @@
        {% endif %}
          >{{ value.name }}</a>
     </td>
-    <td align="center">{{ value.mtime }}  </td>
-    <td align="center">
+    <td class="center">{{ value.mtime }}  </td>
+    <td class="center">
       {% if value.type != 'folder' %}{{ value.size }}{% endif %}
     </td>
-    <td align="center">
+    <td class="center">
       {% if value.license_digest_list == "OPEN" %}
         <i>open</i>
       {% else %}
