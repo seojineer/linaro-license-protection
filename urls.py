@@ -71,8 +71,10 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
     url(r'^login/$',
-        auth_views.login,
-        {'template_name': 'login.html'},
+        auth_views.LoginView.as_view(
+            template_name='login.html',
+            extra_context={'site_name': settings.SITE_NAME},
+        ),
         name='login'),
 
     url(r'^logout/?$',
