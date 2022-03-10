@@ -22,6 +22,10 @@ def process_group_auth(request, required_groups):
     ldap_groups = linaro_ldap.get_groups_and_users()
 
     for group in required_groups:
+        # skip non-existent groups
+        if group not in ldap_groups:
+            log.warn("Requested membership in non-existent group: %s" % group)
+            continue
         if user in ldap_groups[group]:
             return True
     return False
