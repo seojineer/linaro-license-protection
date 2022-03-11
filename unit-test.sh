@@ -3,13 +3,18 @@
 HERE=$(dirname $(readlink -f $0))
 cd $HERE
 
+# python-ldap 3.3.1 is going to trigger
+# a build, so need to support it
+sudo apt install -y -f libpython-dev libldap2-dev libsasl2-dev 
+
 SKIP_LINT="${SKIP_LINT-1}"
 VENV_DIR="${VENV_DIR-$HERE/.venv}"
 
 if [ ! -f /usr/bin/virtualenv ] ; then
 	echo "installing python-virutalenv"
-	sudo apt-get install -f python-virtualenv
+	sudo apt-get install -y -f python-virtualenv
 fi
+
 
 if [ -z $VIRTUAL_ENV ] ; then
 	echo "creating venv: $VENV_DIR ..."
