@@ -325,3 +325,4 @@ except (ImportError,NameError,ValueError):
 ANNOTATED_XML = 'source-manifest-ann.xml'
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+ALLOWED_HOSTS = ['*']
